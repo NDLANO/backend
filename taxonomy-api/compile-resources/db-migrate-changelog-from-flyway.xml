@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+    <changeSet id="20190606 remove schema_version if exists and is empty" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:0193148c88f65dba0efeb232f3a7ad7e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 migrate flyway migration table to liquibase" author="Jon-Eirik Pettersen">
+        <validCheckSum>7:0d8987d7bed681702f0fa9c76e01cefd</validCheckSum>
+        <validCheckSum>8:699deff96141ec765b41b6b70b795734</validCheckSum>
+        <validCheckSum>8:9d6a6e1ba3cb90de77398b191af91d0c</validCheckSum>
+        <validCheckSum>9:da3490a93a35620cb92fa7c6924347f1</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 stop exec if schema_version exists" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:f210c150e5f969d62f09593f5b6ad899</validCheckSum>
+    </changeSet>
+</databaseChangeLog>

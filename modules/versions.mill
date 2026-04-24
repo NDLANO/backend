@@ -93,4 +93,69 @@ object SharedDependencies {
   def elastic4s: Dep     = mvn"nl.gn0s1s::elastic4s-client-esjava:$Elastic4sV"
   def elastic4sTest: Dep = mvn"nl.gn0s1s::elastic4s-testkit:$Elastic4sV"
   def jave: Seq[Dep]     = Seq(mvn"ws.schild:jave-core:3.5.0", mvn"ws.schild:jave-all-deps:3.5.0")
+
+  // Spring Boot / taxonomy-api stack
+  val SpringBootV       = "3.5.9"
+  val SpringCloudV      = "2025.1.0"
+  val SpringDocV        = "2.8.15"
+  val HypersistenceV    = "3.14.1"
+  val PreLiquibaseV     = "1.6.1"
+  val JavaJwtV          = "4.5.0"
+  val JwksRsaV          = "0.23.0"
+  val CommonsLang3V     = "3.20.0"
+  val CommonsCompressV  = "1.28.0"
+  val JavaMelodySpringV = "2.5.0"
+  val LogbackContribV   = "0.1.5"
+  val TaxonomyJsoupV    = "1.22.1"
+
+  def springBootBoms: Seq[Dep] = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:$SpringBootV",
+    mvn"org.springframework.cloud:spring-cloud-dependencies:$SpringCloudV",
+  )
+
+  def springBootStarters: Seq[Dep] = Seq(
+    mvn"org.springframework.boot:spring-boot-starter",
+    mvn"org.springframework.boot:spring-boot-starter-web",
+    mvn"org.springframework.boot:spring-boot-starter-validation",
+    mvn"org.springframework.boot:spring-boot-starter-data-jpa",
+    mvn"org.springframework.boot:spring-boot-starter-security",
+    mvn"org.springframework.boot:spring-boot-starter-actuator",
+    mvn"org.springframework.security:spring-security-web",
+  )
+
+  def taxonomyExtras: Seq[Dep] = Seq(
+    mvn"org.springdoc:springdoc-openapi-starter-webmvc-api:$SpringDocV".exclude(
+      "org.apache.commons" -> "commons-lang3"
+    ),
+    mvn"org.postgresql:postgresql",
+    mvn"org.liquibase:liquibase-core".exclude("org.apache.commons" -> "commons-lang3"),
+    mvn"net.lbruun.springboot:preliquibase-spring-boot-starter:$PreLiquibaseV",
+    mvn"io.hypersistence:hypersistence-utils-hibernate-63:$HypersistenceV",
+    mvn"com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations",
+    mvn"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
+    mvn"com.auth0:java-jwt:$JavaJwtV",
+    mvn"com.auth0:jwks-rsa:$JwksRsaV",
+    mvn"org.apache.commons:commons-lang3:$CommonsLang3V",
+    mvn"commons-codec:commons-codec",
+    mvn"org.jsoup:jsoup:$TaxonomyJsoupV",
+    mvn"net.bull.javamelody:javamelody-spring-boot-starter:$JavaMelodySpringV",
+    mvn"io.micrometer:micrometer-registry-prometheus",
+    mvn"ch.qos.logback:logback-core",
+    mvn"ch.qos.logback.contrib:logback-json-classic:$LogbackContribV",
+    mvn"ch.qos.logback.contrib:logback-jackson:$LogbackContribV",
+    mvn"org.jetbrains:annotations:26.0.2",
+  )
+
+  def springBootAnnotationProcessors: Seq[Dep] = Seq(mvn"org.springframework.boot:spring-boot-configuration-processor")
+
+  def springBootTest: Seq[Dep] = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-test",
+    mvn"org.springframework.security:spring-security-test",
+    mvn"org.testcontainers:testcontainers-junit-jupiter:$TestContainersV".exclude(
+      "org.apache.commons" -> "commons-compress"
+    ),
+    mvn"org.testcontainers:testcontainers-postgresql:$TestContainersV",
+    mvn"org.testcontainers:testcontainers:$TestContainersV",
+    mvn"org.apache.commons:commons-compress:$CommonsCompressV".exclude("org.apache.commons" -> "commons-lang3"),
+  )
 }

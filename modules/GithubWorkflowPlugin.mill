@@ -4,10 +4,10 @@ import mill.*
 import mill.api.BuildCtx
 import mill.scalalib.*
 
-trait GithubWorkflowPlugin extends ScalaModule {
+trait GithubWorkflowPlugin extends JavaModule {
   def moduleName: String
   def isComponent: Boolean
-  def test: ScalaTests
+  def test: JavaModule
   private def depNames = this.moduleDeps.map(_.moduleDir.baseName) ++ test
     .moduleDeps
     .map(_.moduleDir.baseName)

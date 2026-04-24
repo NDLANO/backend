@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet id="20190605 v1 create subject table" author="Migrated From Flyway">
+        <validCheckSum>9:d7c11ff4801263f35fd38b9b5b2b1208</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v2 create topic table" author="Migrated From Flyway">
+        <validCheckSum>9:c29e8561152ddaf61498e26dd4ffa0a1</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v3 create subject_topic_table" author="Migrated From Flyway">
+        <validCheckSum>9:7c728bc66f6e62d64a5ca3f1103c410e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v4 create topic_subtopic table" author="Migrated From Flyway">
+        <validCheckSum>9:fe9b6c7b34dee06d7b366022ee6a81d8</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v5 create resource table" author="Migrated From Flyway">
+        <validCheckSum>9:0b4a2ea90269acc0ab91b1f9536453fa</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v6 create topic_resource table" author="Migrated From Flyway">
+        <validCheckSum>8:7841f9bb089c1c742715d09a5ece2926</validCheckSum>
+        <validCheckSum>9:f0cd6331a810642c8c498bffc826e220</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200508 re-create topic_resource_topic_id_fkey foreign key with correct name"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>8:4908b10427b21a67e4a31e11bb781769</validCheckSum>
+        <validCheckSum>9:9dc224ba4e222cece52c93782cdc7b7f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v7 create resource_type table" author="Migrated From Flyway">
+        <validCheckSum>8:d30608305a6da4c8bb4741a570417e33</validCheckSum>
+        <validCheckSum>9:2297907c4ef101904b5295721e696319</validCheckSum>
+        <createTable tableName="resource_type">
+            <column name="id" type="serial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="parent_id" type="integer">
+                <constraints referencedTableName="resource_type" referencedColumnNames="id"
+                             foreignKeyName="resource_type_parent_id_fkey"/>
+            </column>
+            <column name="public_id" type="varchar(255)"/>
+            <column name="name" type="varchar(255)"/>
+        </createTable>
+        <addUniqueConstraint tableName="resource_type" columnNames="public_id" constraintName="resource_type_public_id" />
+        <sql>
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (1, null, 'urn:resourcetype:learningPath', 'Læringssti');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (2, null, 'urn:resourcetype:subjectMaterial', 'Fagstoff');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (3, 2, 'urn:resourcetype:academicArticle', 'Fagartikkel');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (4, 2, 'urn:resourcetype:guidance', 'Veiledning');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (5, null, 'urn:resourcetype:tasksAndActivities', 'Oppgaver og aktiviteter');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (6, 5, 'urn:resourcetype:task', 'Oppgave');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (7, 2, 'urn:resourcetype:movieAndClip', 'Film og filmklipp');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (8, 2, 'urn:resourcetype:lectureAndPresentation', 'Forelesning og presentasjon');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (9, 2, 'urn:resourcetype:simulation', 'Simulering');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (10, 5, 'urn:resourcetype:exercise', 'Øvelse');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (11, null, 'urn:resourcetype:reviewResource', 'Vurderingsressurs');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (12, 11, 'urn:resourcetype:selfEvaluation', 'Egenvurdering');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (14, 5, 'urn:resourcetype:game', 'Spill');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (15, 5, 'urn:resourcetype:workAssignment', 'Arbeidsoppdrag');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (16, 2, 'urn:resourcetype:dictionary', 'Oppslagsverk og ordliste');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (17, 2, 'urn:resourcetype:toolAndTemplate', 'Verktøy og mal');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (18, null, 'urn:resourcetype:SourceMaterial', 'Kildemateriale');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (19, 18, 'urn:resourcetype:featureFilm', 'Spillefilm');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (20, 18, 'urn:resourcetype:shortFilm', 'Kortfilm');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (24, 18, 'urn:resourcetype:historicalMaterial', 'Historisk materiale');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (25, 18, 'urn:resourcetype:literaryText', 'Litterære tekster');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (27, 18, 'urn:resourcetype:soundRecording', 'Lydopptak');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (28, 2, 'urn:resourcetype:experiment', 'Forsøk');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (32, 18, 'urn:resourcetype:filmClip', 'Filmklipp');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (33, 18, 'urn:resourcetype:series', 'Serier');
+            INSERT INTO resource_type (id, parent_id, public_id, name) VALUES (34, 18, 'urn:resourcetype:documentary', 'Dokumentarfilm');
+            ALTER SEQUENCE resource_type_id_seq RESTART WITH 35;
+        </sql>
+    </changeSet>
+    <changeSet id="20190605 v8 create resource_resource_type table" author="Migrated From Flyway">
+        <validCheckSum>9:cc9bc3e0b0e65a416e3b3498ee4e1ac1</validCheckSum>
+        <createTable tableName="resource_resource_type">
+            <column name="id" type="serial"><constraints primaryKey="true" /></column>
+            <column name="public_id" type="varchar(255)"><constraints nullable="false" unique="true" uniqueConstraintName="resource_resource_type_public_id" /></column>
+            <column name="resource_id" type="integer"/>
+            <column name="resource_type_id" type="integer"><constraints referencedTableName="resource_type" referencedColumnNames="id" foreignKeyName="resource_type_resource_type_id_fkey"/></column>
+        </createTable>
+        <addUniqueConstraint tableName="resource_resource_type" columnNames="resource_id,resource_type_id" constraintName="resource_resource_type_unique" />
+    </changeSet>
+    <changeSet id="20190605 v9 add content_uri" author="Migrated From Flyway">
+        <validCheckSum>9:be15dadbb9a761439d05ad29b50b3848</validCheckSum>
+    </changeSet>
+    <changeSet id="20190605 v10 language" author="Migrated From Flyway">
+        <validCheckSum>8:bfa1be1fac786e4a73e2b21b075bdb43</validCheckSum>
+        <validCheckSum>9:70913af97fcccddac737b5ecdd0e79a9</validCheckSum>
+
+        <createTable tableName="resource_type_translation">
+            <column name="id" type="serial"><constraints primaryKey="true" /></column>
+            <column name="resource_type_id" type="integer"><constraints nullable="false" referencedTableName="resource_type" referencedColumnNames="id" foreignKeyName="resource_type_translation_resource_type_id_fkey" /></column>
+            <column name="language_code" type="varchar(3)"><constraints nullable="false" /></column>
+            <column name="name" type="varchar(255)" />
+        </createTable>
+        <addUniqueConstraint tableName="resource_type_translation" columnNames="resource_type_id,language_code" constraintName="resource_type_language_unique" />
+        <sql>
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (1, 'nb', 'Læringssti');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (1, 'nn', 'Læringssti');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (1, 'en', 'Learning path');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (1, 'se', 'Oahppanbálggis');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (2, 'nb', 'Fagstoff');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (2, 'nn', 'Fagstoff');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (2, 'en', 'Subject Material');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (2, 'se', 'Fágaávnnas');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (3, 'nb', 'Fagartikkel');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (3, 'nn', 'Fagartikkel');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (3, 'en', 'Article');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (3, 'se', 'Fágaartihkal');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (4, 'nb', 'Veiledning');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (4, 'nn', 'Rettleiing');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (4, 'en', 'Guidance');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (4, 'se', 'Bagadus');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (5, 'nb', 'Oppgaver og aktiviteter');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (5, 'nn', 'Oppgåver og aktivitetar');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (5, 'en', 'Tasks and Activites');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (5, 'se', 'Bargobihtát ja doaimmat');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (6, 'nb', 'Oppgave');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (6, 'nn', 'Oppgåve');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (6, 'en', 'Task');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (6, 'se', 'Bargobihttá');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (7, 'nb', 'Film og filmklipp');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (7, 'nn', 'Film og filmklipp');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (7, 'en', 'Films and Film clips');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (7, 'se', 'Filmmat ja filbmaoasážat');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (8, 'nb', 'Forelesing og presentasjon');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (8, 'nn', 'Førelesing og presentasjon');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (8, 'en', 'Lectures and Presentations');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (8, 'se', 'Logaldallan ja ovdanbuktin');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (9, 'nb', 'Simulering');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (9, 'nn', 'Simulering');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (9, 'en', 'Simulations');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (9, 'se', 'Simuleren');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (10, 'nb', 'Øvelse');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (10, 'nn', 'Øving');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (10, 'en', 'Exercise');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (10, 'se', 'Hárjehus');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (11, 'nb', 'Vurderingsressurs');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (11, 'nn', 'Vurderingsressurs');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (11, 'en', 'Assessment Resources');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (11, 'se', 'Árvvoštallanresursa');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (12, 'nb', 'Egenvurdering');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (12, 'nn', 'Eigenvurdering');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (12, 'en', 'Self Evaluation');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (12, 'se', 'Iežas árvvoštallan');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (14, 'nb', 'Spill');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (14, 'nn', 'Spel');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (14, 'en', 'Game');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (14, 'se', 'Speallu');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (15, 'nb', 'Arbeidsoppdrag');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (15, 'nn', 'Arbeidsoppdrag');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (15, 'en', 'Work Assignment');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (15, 'se', 'Bargodoaibma');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (16, 'nb', 'Oppslagsverk og ordliste');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (16, 'nn', 'Oppslagsverk og ordliste');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (16, 'en', 'Dictionary');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (16, 'se', 'Diehtogirjjit ja sátnegirji');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (17, 'nb', 'Verktøy og mal');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (17, 'nn', 'Verktøy og mal');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (17, 'en', 'Tools and Templates');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (17, 'se', 'Reaiddut ja málle');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (18, 'nb', 'Kildemateriell');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (18, 'nn', 'Kjeldemateriale');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (18, 'en', 'External resources');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (18, 'se', 'Gáldomateriála');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (19, 'nb', 'Spillefilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (19, 'nn', 'Spelefilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (19, 'en', 'Feature Film');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (19, 'se', 'Guoimmuhanfilbma');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (20, 'nb', 'Kortfilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (20, 'nn', 'Kortfilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (20, 'en', 'Short Film');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (20, 'se', 'Oanehisfilbma');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (24, 'nb', 'Historisk materiale');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (24, 'nn', 'Historiske kjelder');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (24, 'en', 'Historical Sources');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (24, 'se', 'Historjjálaš materiála');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (25, 'nb', 'Litterære tekster');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (25, 'nn', 'Litterære tekstar');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (25, 'en', 'Literary Text');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (25, 'se', 'Girjjálašvuođa teavsttat');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (27, 'nb', 'Lydopptak');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (27, 'nn', 'Lydopptak');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (27, 'en', 'Sound Recordings');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (27, 'se', 'Jietnabádden');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (28, 'nb', 'Forsøk');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (28, 'nn', 'Forsøk');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (28, 'en', 'Experiment');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (28, 'se', 'Geahččaladdan');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (32, 'nb', 'Filmklipp');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (32, 'nn', 'Filmklipp');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (32, 'en', 'Film Clip');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (32, 'se', 'Filbmaoasáš');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (33, 'nb', 'Serier');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (33, 'nn', 'Seriar');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (33, 'en', 'Series');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (33, 'se', 'Ráiddut');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (34, 'nb', 'Dokumentarfilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (34, 'nn', 'Dokumentarfilm');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (34, 'en', 'Documentary');
+            INSERT INTO resource_type_translation (resource_type_id, language_code, name) VALUES (34, 'se', 'Dokumentára filbma');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20190605 v11 set primary" author="Migrated From Flyway">
+        <validCheckSum>8:b97137a5b271410906d28e86af610f9d</validCheckSum>
+        <validCheckSum>9:19e15f262e6a85fd69df8971f2532471</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v12 urls" author="Migrated From Flyway">
+        <validCheckSum>9:cffe208959590d8e24eb0cf09204faaa</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v13 filter" author="Migrated From Flyway">
+        <validCheckSum>9:e2a337ddec6be8cad622a12f05650199</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190605 v14 resource_filter" author="Migrated From Flyway">
+        <validCheckSum>8:8443ad1a262444b09395879a5c673232</validCheckSum>
+        <validCheckSum>9:4cf18bd86080d9b45b6b32d923a4d4b3</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v15 topic_filter" author="Migrated From Flyway">
+        <validCheckSum>9:9094e65a6ee8ce8d5b53c0b1a458a718</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v16 rank" author="Migrated From Flyway">
+        <validCheckSum>9:26db2b3e275831028c3c81329038ea8e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v17 add context to topic" author="Migrated From Flyway">
+        <validCheckSum>9:bf9a91ae8b816bb1d80feb6453be164f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v18 cached_url_view" author="Migrated From Flyway">
+        <validCheckSum>9:f4bae8b43878626dfc86286d4073590c</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v19 cached_url view with parent" author="Migrated From Flyway">
+        <validCheckSum>9:0fd229e11b334cee674b376190123645</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v20 url_map" author="Migrated From Flyway">
+        <validCheckSum>9:b3c325f59a606b892a4d8015d0e6046f</validCheckSum>
+        <createTable tableName="URL_MAP">
+            <column name="OLD_URL" type="varchar(255)"><constraints primaryKey="true" /></column>
+            <column name="PUBLIC_ID" type="varchar(255)"><constraints nullable="false" /></column>
+            <column name="SUBJECT_ID" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="20190606 v21 RecanonifyUrlMap" author="Migrated From Flyway">
+        <validCheckSum>9:d0e65cb36bf75b06633214ac580a6c71</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v22 cached_url materialized view" author="Migrated From Flyway">
+        <validCheckSum>9:d721dd839589356ed15e7384fc466c51</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 v23 modification triggers" author="Migrated From Flyway">
+        <validCheckSum>9:0494c571de43dc77beebdd9fa98a34d6</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 fix unique constraint for topic_subtopic set on the wrong table (remove index)"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:3d9c5c30bc315a737f8c80c0d552f4b5</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 fix unique constraint for topic_subtopic set on the wrong table (create index)"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:46c4f02dd1041a5e7b33d999938005d1</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 rename foreign keys on table resource_resource_type (1/2 resource_type_resource_id_fkey)" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:0c405affbccb8c51d49ca968e430b61e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 rename foreign keys on table resource_resource_type (2/2 resource_type_resource_type_id_fkey)" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:576c1a91a2474c604980af4e7850f6a6</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on filter" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:7b0f23dd38f38629407cfa7582459daa</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on relevance" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:e458745fea888644f8f34644b4571b08</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on relevance_translation" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:333682953fc97e847591653d387667d7</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:97423a399a4ad77dbf76f3a78781c332</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_filter 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:e2762ae58e08bb795ef3bf5f0b023616</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_filter 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:08f4ca7eb9e24744b4c9cda0247332b8</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_resource_type 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:f54faea52189b83814f2ee93eafbfd9b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_resource_type 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:75896f7813c0ef1cd080f9b11a57fcfe</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_translation" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:1fbbaeca13a7c4eaac9dafca2644ea02</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_type" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:bef0c4506cef11069190eed26c506e4b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on resource_type_translation" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:1acdcaf9a5c9430ed347f4060b489191</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on subject" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:9426d59546c77d5ec3893e1d2e9cbfaf</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on subject_topic 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:a3e1d1f08228e533c8b1f52df70d457f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on subject_topic 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:aa75532af482d70439e283160e3c56d7</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on subject_translation" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:bd5be2dfbb51ff452871929dafd49611</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:099fcc041abb40bcf3d881191d4bb55c</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_filter 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:a2c63845de6030cb15bfda19f43b510b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_filter 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:332c79218c42336b8890168cd9bc073c</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_resource 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:406e1942519603c33eeeca63a22b6aca</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_resource 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:dd78f2e0d760d371d941d34e48ebb9e7</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_subtopic 1/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:d411f55fddf650f029556c9ec8df7c32</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_subtopic 2/2" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:0b5b2aa5dd3151b3d4308034a19bd934</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190606 replace unique index with constraint on topic_translation" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:2ba776399dd0f78c5687c64365526213</validCheckSum>
+    </changeSet>
+</databaseChangeLog>

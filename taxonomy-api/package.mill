@@ -1,0 +1,51 @@
+package build.`taxonomy-api`
+
+import mill.*
+import mill.scalalib.*
+import build.modules.{JavaBaseModule, JavaDockerComponent, SharedDependencies}
+
+object `package` extends JavaBaseModule, JavaDockerComponent {
+  override def moduleName: String           = "taxonomy-api"
+  override def mainClass: T[Option[String]] = Task {
+    Some("no.ndla.taxonomy.TaxonomyApplication")
+  }
+
+  // Resources live in `compile-resources/` (Mill's `compileResources` task), not the
+  // standard `src/main/resources/`. Rationale: IntelliJ's BSP integration exposes
+  // `src/main/resources` as a "java-resource" source folder AND the merged compile
+  // output (bspBuildTargetCompileMerged.dest) which also contains those files — so
+  // every resource appears twice on the runtime classpath and Liquibase fails on the
+  // duplicates. `compile-resources` is exposed as a single library entry instead,
+  // giving each file exactly one classpath location.
+  override def resources: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
+
+  override def bomMvnDeps: T[Seq[Dep]] = Task {
+    SharedDependencies.springBootBoms
+  }
+
+  override def mvnDeps: T[Seq[Dep]] = Task {
+    SharedDependencies.springBootStarters ++ SharedDependencies.taxonomyExtras
+  }
+
+  override def compileMvnDeps: T[Seq[Dep]] = Task {
+    SharedDependencies.springBootAnnotationProcessors
+  }
+
+  // The `typescript` Spring profile points at `jdbc:tc:postgresql://...`, which needs
+  // testcontainers' JDBC driver on the runtime classpath. Those are test-scoped, so
+  // bring them in only for the OpenAPI→TS generation task.
+  override def openApiExtraRunClasspath: T[Seq[PathRef]] = Task {
+    test.runClasspath()
+  }
+
+  object test extends TestBase {
+    override def bomMvnDeps: T[Seq[Dep]] = Task {
+      SharedDependencies.springBootBoms
+    }
+    override def mvnDeps: T[Seq[Dep]] = Task {
+      SharedDependencies.springBootTest
+    }
+  }
+}

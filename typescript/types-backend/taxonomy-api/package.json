@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/taxonomy-api",
+  "private": true,
+  "types": "../build/taxonomy-api.d.ts"
+}

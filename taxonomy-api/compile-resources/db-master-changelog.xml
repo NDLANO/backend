@@ -1,0 +1,901 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="classpath:db-master-changelog.xml">
+
+    <preConditions>
+        <dbms type="postgresql"/>
+    </preConditions>
+
+    <include file="db-migrate-changelog-from-flyway.xml"/>
+    <include file="db-migrate-from-flyway.xml"/>
+
+    <changeSet id="20190614 topic_resource_types" author="janespen">
+        <validCheckSum>9:8ec4652ab1fb16040f393af9ea1854e6</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190622 create topic_tree_by_subject_id_view view" author="Jon-Eirik Pettersen">
+        <validCheckSum>8:3d5d0d5752c5e425e50ff075d9169180</validCheckSum>
+        <validCheckSum>9:0134d4abe977adeae9e898aa3ff35358</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190623 create topic_tree_by_topic_id_view view" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:7a8818319c684718bcc96a31024b4706</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190924 disable update triggers for cached_url before removing shared topics"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:ff3d4dbe87b49d2875d80666c3b2e8ab</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190924 clone and remove shared topics" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:239e086d02a5549648fed84ba9f789a3</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190925 re-create cached_url without primary connection column" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:dc2f84bf2f4500dd5255cda063115a30</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190925 re-enable update triggers for cached_url" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:01f246179b1b8a227cb73f432ac0ff9c</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190925 remove is_primary column from connection tables" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:a727475d79d6633e5fa1603a7447aa49</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20190925 add constraints to prevent shared topics or resources from being created"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:70d70ca56b593fccd575a1bbafb2a1f3</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191114 re-add primary field to topic_resources" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:938ffc9c03546741c124b04f3ba86314</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191114 remove update triggers before merging resources" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:767379ae6faeb486a7480cb21e2e174f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191114 remove unique constraints for topic_resource" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:44f44d5277367e5f1bebde2fbb1266ec</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191115 merge resources with shared content" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:0b4098efb0dfa5dcaf4acab348766bcb</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191115 set single primary resource connection" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:e433630656857341bfce66598f45b7d7</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191115 re-create cached_url and update triggers" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:af1b6506a861e6e077a056b3f382405f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20191115 add unique constraint to prevent shared content_uri on resources"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:693ad827a5ca76d74b91d14c0c4b87d6</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200504 add cached_paths table" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:d203a7f12b5c26afa1d6e4c1d90d6b8d</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200505 add foreign keys and indices to cached_paths" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:f80632e3f48fcfa57283082eaab51887</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200506 add unique constraint to cached_path path" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:d3586a42bb5706fa0e5c3772df51d057</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200506 migrate data from cached_url materialized view to cached_path table"
+               author="Jon-Eirik Pettersen">
+        <validCheckSum>9:bac7180cfc3f82ce1790ddbca8688772</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200506 delete cached_url materialized view" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:48d4558b23fc96f2d9cbf189228531c7</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200506 add auto_increment to serial columns" author="Jon-Eirik Pettersen">
+        <validCheckSum>8:8a8f66f412d323763364dacdf98e5ddf</validCheckSum>
+        <validCheckSum>9:d41d8cd98f00b204e9800998ecf8427e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200508 delete view topic_tree_by_subject_id_view" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:6b373c12db61bf0278245b352a9b10b4</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200508 delete view topic_tree_by_topic_id_view" author="Jon-Eirik Pettersen">
+        <validCheckSum>9:8b8528db82101dc9fbb0a9e2bcc40eac</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200902 add content_uri to filter" author="Gunnar Velle">
+        <validCheckSum>9:074dfdb095715ca5b1a122c4c89961d5</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210118 add relevance_id to topic-subtopic" author="Max Moeschinger">
+        <validCheckSum>9:70c00ec0ef09af49c50f547bb335af82</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210302 unlink filters" author="Jan-Espen Oversand">
+        <validCheckSum>9:18b34f34d37befbba96372a0e76c6b6f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210623" author="Gunnar Velle">
+        <validCheckSum>9:05a8e42d003d2dab3493402156931805</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210623_2" author="Gunnar Velle">
+        <validCheckSum>9:2de8129034e3deddc21e76ce4afdf82f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210305 01 drop filter relations" author="Jan-Espen Oversand">
+        <validCheckSum>9:70e2e0547cd0fb9ff26e9b9ee1eb84ae</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210305 02 drop filters" author="Jan-Espen Oversand">
+        <validCheckSum>9:11d81b943dd1dbbdf6f5c37fb1072dd4</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211005 unlink topic resources" author="Gunnar Velle">
+        <validCheckSum>9:c64f58887bc6c8f7134f1803e4e1d972</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211005 drop topic resources" author="Gunnar Velle">
+        <validCheckSum>9:529de0b42a020dd5f5c1324d1aec6747</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211018 change language-code length" author="Gunnar Velle">
+        <validCheckSum>9:b28ca9465168ede6001f351da5592652</validCheckSum>
+        <modifyDataType tableName="resource_type_translation" columnName="language_code" newDataType="varchar(7)"/>
+    </changeSet>
+
+    <changeSet id="20211020 01 create tables for node" author="Gunnar Velle">
+        <validCheckSum>9:18a4c6f242d93e05f4511a9da1915ebb</validCheckSum>
+        <createTable tableName="node">
+            <column name="id" type="serial" autoIncrement="true">
+                <constraints primaryKey="true" uniqueConstraintName="node_pkey"/>
+            </column>
+            <column name="public_id" type="varchar(255)" >
+                <constraints nullable="false" uniqueConstraintName="node_public_id"/>
+            </column>
+            <column name="node_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ident" type="varchar(255)">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="name" type="varchar(255)"/>
+            <column name="content_uri" type="varchar(255)"/>
+            <column name="context" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="node" columnNames="node_type,ident" constraintName="unique_node_type_ident"/>
+
+        <createTable tableName="node_connection">
+            <column name="id" type="serial" autoIncrement="true">
+                <constraints primaryKey="true" uniqueConstraintName="node_connection_pkey"/>
+            </column>
+            <column name="public_id" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="parent_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="child_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="integer"/>
+            <column name="relevance_id" type="integer"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="node_connection" baseColumnNames="parent_id"
+                                 constraintName="fk_node_connection_parent_id"
+                                 referencedTableName="node" referencedColumnNames="id"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT"/>
+        <addForeignKeyConstraint baseTableName="node_connection" baseColumnNames="child_id"
+                                 constraintName="fk_node_connection_child_id"
+                                 referencedTableName="node" referencedColumnNames="id"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT"/>
+
+        <createTable tableName="node_resource">
+            <column name="id" type="serial" autoIncrement="true">
+                <constraints primaryKey="true" uniqueConstraintName="node_resource_pkey"/>
+            </column>
+            <column name="public_id" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="node_resource_public_id"/>
+            </column>
+            <column name="node_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="integer"/>
+            <column name="relevance_id" type="integer"/>
+            <column name="is_primary" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="node_resource" baseColumnNames="node_id"
+                                 constraintName="fk_node_resource_node_id"
+                                 referencedTableName="node" referencedColumnNames="id"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="20211020 copy subjects to nodes" author="Gunnar Velle">
+        <validCheckSum>9:ef713a50f0c2fc767442939c9ef13c31</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy topics to nodes" author="Gunnar Velle">
+        <validCheckSum>9:2c0204ee3d89afef839ca2b7b219c268</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy subjects to nodes - relations" author="Gunnar Velle">
+        <validCheckSum>9:036375a185236db2209da8053a76ca0b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy topics to nodes - relations" author="Gunnar Velle">
+        <validCheckSum>9:ac0d709a6daaf29956604a0e93f1866e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 move cached paths from other to node" author="Gunnar Velle">
+        <validCheckSum>9:19c9f0e60b00e0558aa34fd55f1a46e0</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy translations from subjects to nodes" author="Gunnar Velle">
+        <validCheckSum>9:52b34bff98b575b8ecdd51f11e04030a</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy translations from topics to nodes" author="Gunnar Velle">
+        <validCheckSum>9:7eb8812305df6b1eb0d730ed2a5eaaab</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211020 copy resources from topics to nodes" author="Gunnar Velle">
+        <validCheckSum>9:e8385c889e523ec1b56557bb65be9555</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20211126 add root param to node" author="Gunnar Velle">
+        <validCheckSum>9:f642eb7f732f57df6d61ef91f1e90e86</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20220104 add missing index for cached path" author="Gunnar Velle">
+        <validCheckSum>9:21872249bed3ef5452f11936a782deb1</validCheckSum>
+        <addUniqueConstraint tableName="node" columnNames="public_id"
+                             constraintName="node_public_id"/>
+        <addUniqueConstraint tableName="node_resource" columnNames="node_id,resource_id"
+                             constraintName="node_resource_unique"/>
+        <addUniqueConstraint tableName="node_connection" columnNames="parent_id,child_id"
+                             constraintName="node_connection_unique"/>
+    </changeSet>
+
+    <changeSet id="20220105 removes old fields" author="Gunnar Velle">
+        <validCheckSum>9:e21d5eaf69999ba79d1081219d7837ee</validCheckSum>
+    </changeSet>
+
+    <!-- Adapted from taxonomy metadata -->
+    <changeSet id="20200212 create metadata table" author="jon-eirik.pettersen@cerpus.com">
+        <validCheckSum>9:70a07debd12b137abfb99ec2ddf58ef9</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200212 create grep_code table" author="jon-eirik.pettersen@cerpus.com">
+        <validCheckSum>9:6fb51a707114376eef983d716e57c96e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20200212 create metadata_grep_code table" author="jon-eirik.pettersen@cerpus.com">
+        <validCheckSum>9:ef61b12153e5c3b41cd25a347d5e9659</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210408 create custom field table" author="jan.espen.oversand@cerpus.com">
+        <validCheckSum>9:ab069f454f399b1373cdfa4d34e0bc92</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20210408 create custom field value table" author="jan.espen.oversand@cerpus.com">
+        <validCheckSum>9:a41c98f5e2a6a317f084679cc9c5d732</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20220208 add metadata references" author="Gunnar Velle">
+        <validCheckSum>9:62357266166f8ae8533c800ce8ea5483</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20220216 merge metadata into local base" author="Gunnar Velle">
+        <validCheckSum>9:97445a5cf07ed6d272bda0e119b98783</validCheckSum>
+    </changeSet>
+    <!-- Adapted from taxonomy metadata -->
+
+    <changeSet id="20220228 add version table" author="Gunnar Velle">
+        <createTable tableName="version">
+            <column name="id" type="serial" autoIncrement="true">
+                <constraints primaryKey="true" uniqueConstraintName="version_pkey"/>
+            </column>
+            <column name="public_id" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="version_public_id"/>
+            </column>
+            <column name="version_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="hash" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="version_hash"/>
+            </column>
+            <column name="locked" type="boolean" defaultValueBoolean="false"/>
+            <column name="published" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="archived" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20220225 add script to clone schema" author="Gunnar Velle" runOnChange="true">
+        <!-- Fetched from http://pateldenish.com/2019/08/clone-schema-in-postgres.html -->
+        <!-- and https://github.com/denishpatel/pg-clone-schema/blob/master/clone_schema.sql -->
+        <!-- NB! Original script is changed so the functions is created in current schema and not public! -->
+        <sqlFile path="clone_schema.sql" splitStatements="false"/>
+    </changeSet>
+
+    <changeSet id="20220302 drop old tables" author="Gunnar Velle">
+        <validCheckSum>9:9514fb93bf8930e271d0496b4ad1b1c5</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20220920 add metadata to connections" author="Gunnar Velle">
+        <validCheckSum>9:b67b20ac0fcac83180bd7c41f511ab98</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20220920 populate connections with metadata" author="Gunnar Velle" ignore="true">
+        <validCheckSum>9:0a79757317f37ff7f301ac27a87cbe71</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20221019 change language-code length" author="Gunnar Velle">
+        <validCheckSum>9:9d54a9289a3775c27b5204574caa3d4f</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20221019 add index to improve composite index" author="Gunnar Velle">
+        <validCheckSum>9:9448d6aaa3ab7b7f2ad2b1d674e364df</validCheckSum>
+        <createIndex tableName="node_connection" indexName="node_connection_parent_id">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20221129 add async changelog table" author="Gunnar Velle">
+        <validCheckSum>9:3036bdb81b37d382ad5a336f8b07e43a</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Stop constraining max 1 node-parents" author="Jonas Natten">
+        <validCheckSum>9:d25aed09a17a4f3d9403fb03b683dd39</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Add primary to node-connections :^)" author="Jonas Natten">
+        <addColumn tableName="node_connection">
+            <column name="is_primary" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230103 Copy resources to nodes" author="Jonas Natten">
+        <validCheckSum>9:7b11ce2f635d49f1ca338aa174ae590b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Copy resources-connections to nodes" author="Jonas Natten">
+        <validCheckSum>9:183b45d81dcdabd0c59ba4abf03b25f8</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Copy translations from resources to nodes" author="Jonas Natten">
+        <validCheckSum>9:03c6e7b2cffa2e5b6b8d15f7e8b37fbc</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Move to node ids for resource_resource_type" author="Jonas Natten">
+        <validCheckSum>9:f18d4b6c924f7ed414ae218b6c302132</validCheckSum>
+        <dropUniqueConstraint tableName="resource_resource_type" constraintName="resource_resource_type_unique"/>
+        <addUniqueConstraint tableName="resource_resource_type" columnNames="resource_id,resource_type_id" constraintName="resource_resource_type_unique"/>
+        <addForeignKeyConstraint baseTableName="resource_resource_type" baseColumnNames="resource_id"
+                                 constraintName="resource_resource_type_resource_id_fkey"
+                                 referencedTableName="node" referencedColumnNames="id"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT"/>
+        <addForeignKeyConstraint baseTableName="resource_resource_type" baseColumnNames="resource_type_id"
+                                 constraintName="resource_resource_type_resource_type_id_fkey"
+                                 referencedTableName="resource_type" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="20230103 Move to node ids for cached_paths for resources" author="Jonas Natten">
+        <validCheckSum>9:57e10187671b0768cbf591fcfcd05c85</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230103 Drop old resource tables" author="Jonas Natten">
+        <validCheckSum>9:22ccd36e02a2aa6d0f59c7bca74bf06b</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230129 Add nodeConnection child index" author="Jonas Natten">
+        <createIndex tableName="node_connection" indexName="node_connection_child_id">
+            <column name="child_id" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230207 Add extra type indexes" author="Jonas Natten">
+        <createIndex tableName="node" indexName="node_node_type">
+            <column name="node_type" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230208 Move visible to separate column for nodes" author="Jonas Natten">
+        <validCheckSum>9:d7c52d5cc8df8c7693b0f741b9182fb3</validCheckSum>
+        <addColumn tableName="node">
+            <column name="visible" type="boolean" defaultValueBoolean="true" />
+        </addColumn>
+        <createIndex tableName="node" indexName="node_is_visible_index">
+            <column name="visible" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230208 Move visible to separate column for node_connection" author="Jonas Natten">
+        <validCheckSum>9:918c83e4cc72151bbf1a9762ab77e437</validCheckSum>
+        <addColumn tableName="node_connection">
+            <column name="visible" type="boolean" defaultValueBoolean="true" />
+        </addColumn>
+        <createIndex tableName="node_connection" indexName="node_connection_is_visible_index">
+            <column name="visible" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230208 Move translations to separate column for nodes" author="Jonas Natten">
+        <validCheckSum>9:bc0b836222b88d98448bf8f8a6afa799</validCheckSum>
+        <addColumn tableName="node">
+            <column name="translations" type="jsonb" defaultValue="[]"/>
+        </addColumn>
+        <addNotNullConstraint tableName="node" columnName="translations" />
+    </changeSet>
+
+    <changeSet id="20230208 Move translations to separate column for resource-types" author="Jonas Natten">
+        <validCheckSum>9:a2f2c447da51b053b8322d843e79a99a</validCheckSum>
+        <addColumn tableName="resource_type">
+            <column name="translations" type="jsonb" defaultValue="[]"/>
+        </addColumn>
+        <sql>
+            UPDATE resource_type rt
+            SET translations=(
+                SELECT json_agg(trans) FROM (
+                    SELECT ((js->'f1')::jsonb-'id'-'resource_type_id'-'language_code'|| jsonb_build_object('languageCode', js->'f1'->'language_code')) trans FROM (SELECT row_to_json(row(rtt)) AS js FROM resource_type trt
+                    INNER JOIN resource_type_translation rtt ON rtt.resource_type_id = trt.id
+                    WHERE rtt.id = rt.id) AS _
+                ) AS _
+            )
+        </sql>
+        <addNotNullConstraint tableName="resource_type" columnName="translations" />
+        <dropForeignKeyConstraint baseTableName="resource_type_translation" constraintName="resource_type_translation_resource_type_id_fkey" />
+    </changeSet>
+
+    <changeSet id="20230208 Move translations to separate column for relevances" author="Jonas Natten">
+        <validCheckSum>8:895d7f163967dd6d6f3f65fb2547addc</validCheckSum>
+        <validCheckSum>9:916a1b4fabd1f638659670b50c477c09</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230213 Move grepcodes to a column for node" author="Jonas Natten">
+        <validCheckSum>9:67b79f181367490d741f0dbe713c5d64</validCheckSum>
+        <addColumn tableName="node">
+            <column name="grepcodes" type="jsonb"/>
+        </addColumn>
+        <addNotNullConstraint tableName="node" columnName="grepcodes" />
+    </changeSet>
+
+    <changeSet id="20230213 Move grepcodes to a column for node_connection" author="Jonas Natten">
+        <validCheckSum>9:0c1f2b44af68b610fa2c1869019805f0</validCheckSum>
+        <addColumn tableName="node_connection">
+            <column name="grepcodes" type="jsonb"/>
+        </addColumn>
+        <addNotNullConstraint tableName="node" columnName="grepcodes" />
+    </changeSet>
+
+    <changeSet id="20230214 Move updated_at and created_at to columns node" author="Jonas Natten">
+        <validCheckSum>9:ba588865b08ea15c530488ded44b4ea5</validCheckSum>
+        <addColumn tableName="node">
+            <column name="updated_at" type="timestamp" />
+            <column name="created_at" type="timestamp" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230214 Move updated_at and created_at to columns node_connection" author="Jonas Natten">
+        <validCheckSum>9:85eaefa5cd7c5361077813c7478b3200</validCheckSum>
+        <addColumn tableName="node_connection">
+            <column name="updated_at" type="timestamp" />
+            <column name="created_at" type="timestamp" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230214 Move custom field values to column for node" author="Jonas Natten">
+        <validCheckSum>9:31f5f1dbe8b75ae926d5b14ad7f32580</validCheckSum>
+        <addColumn tableName="node">
+            <column name="customfields" type="jsonb" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230214 Move custom field values to column for node_connection" author="Jonas Natten">
+        <validCheckSum>9:8e11df6e0053548bd666fd22ff907139</validCheckSum>
+        <addColumn tableName="node_connection">
+            <column name="customfields" type="jsonb" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230215 Move cached paths to column" author="Jonas Natten">
+        <validCheckSum>9:74b61881a845a89bd5e057b385e108f1</validCheckSum>
+    </changeSet>
+
+    <changeSet id="202303082023 Clean up tables moved to columns" author="Jonas Natten">
+        <validCheckSum>9:1f2323cfc2a0f7ca0bdb227b5fa13976</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230314 Add created to version" author="Gunnar Velle">
+        <addColumn tableName="version">
+            <column name="created" type="timestamp with time zone" />
+        </addColumn>
+        <sql>
+            UPDATE version
+            SET created = published
+        </sql>
+        <sql>
+            UPDATE version
+            SET created = clock_timestamp()
+            WHERE created IS NULL
+        </sql>
+        <addNotNullConstraint tableName="version" columnName="created" />
+    </changeSet>
+
+    <changeSet id="20230322 Add context list to node" author="Gunnar Velle">
+        <addColumn tableName="node">
+            <column name="contexts" type="jsonb"/>
+        </addColumn>
+        <sql>
+            UPDATE node n
+            SET contexts='[]'
+            WHERE contexts is null
+        </sql>
+    </changeSet>
+
+    <changeSet id="20230411 Drop cached path fields" author="Gunnar Velle">
+        <validCheckSum>9:f8b87a8ccd9e4bbaecfbe054aada166a</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230602 Drop root field" author="Gunnar Velle">
+        <validCheckSum>9:cedfe04eff93aae2cd15f05d5ee495a3</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230614 Add contentURI index" author="Gunnar Velle">
+        <createIndex tableName="node" indexName="node_content_uri">
+            <column name="content_uri" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230823 Clean up duplicate resources" author="Gunnar Velle">
+        <validCheckSum>9:dd5c8a7deaaa4c3011734aaaeccf85f3</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20230823 Add schema and extension" author="Gunnar Velle" runAlways="true">
+        <!-- Need a separate extensions schema to make cloning schemas possible! -->
+        <sql>CREATE SCHEMA IF NOT EXISTS extensions</sql>
+        <sql>CREATE EXTENSION IF NOT EXISTS "btree_gist" schema extensions</sql>
+    </changeSet>
+
+    <changeSet id="20230823 Add constraint to avoid same content_uri for resources" author="Gunnar Velle">
+        <validCheckSum>8:4437aae86611f78da57268f45c3cd929</validCheckSum>
+        <validCheckSum>9:6e04afdd84254e39c95fd6cbfd119cac</validCheckSum>
+        <sql>
+            ALTER TABLE node
+            ADD CONSTRAINT unique_content_uri_for_resource
+            EXCLUDE USING GIST (
+                node_type WITH =,
+                content_uri WITH =
+            )
+            WHERE (node_type = 'RESOURCE');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20230920 Add nodetype index" author="Gunnar Velle">
+        <createIndex tableName="node" indexName="node_node_type_index">
+            <column name="node_type" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20231020 Ensure all node-connections have relevance" author="Gunnar Velle">
+        <validCheckSum>9:b1d3ea677bbb9b6f5d51e6e76d9b7992</validCheckSum>
+        <sql>
+            UPDATE node_connection
+            SET relevance_id = 1
+            WHERE relevance_id is null
+        </sql>
+        <addNotNullConstraint tableName="node_connection" columnName="relevance_id" />
+    </changeSet>
+
+    <changeSet id="20231030 Add default translation based on basename" author="Gunnar Velle">
+        <validCheckSum>9:267d9fd0a8f2030d32c53ea536e32b11</validCheckSum>
+        <sql>
+            UPDATE node n SET translations=(
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM jsonb_array_elements(n.translations) as element
+                    WHERE element ->> 'languageCode' = 'nb'
+                ) THEN n.translations
+                ELSE n.translations || jsonb_build_object('languageCode', 'nb', 'name', n.name)
+                END
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240304 Add new concept resourcetype" author="Gunnar Velle">
+        <sql>
+            INSERT INTO resource_type (id, parent_id, public_id, name, translations) VALUES (35, null, 'urn:resourcetype:concept', 'Forklaring', '[{"name":"Forklaring","languageCode":"nb"},{"name":"Forklaring","languageCode":"nn"},{"name":"Concept","languageCode":"en"},{"name":"Čilgehusat","languageCode":"se"}]');
+            INSERT INTO resource_type (id, parent_id, public_id, name, translations) VALUES (36, 35, 'urn:resourcetype:conceptArticle', 'Forklaringsartikkel', '[{"name":"Forklaringsartikkel","languageCode":"nb"},{"name":"Forklaringsartikkel","languageCode":"nn"},{"name":"Concept article","languageCode":"en"},{"name":"Čielggadanartihkkal","languageCode":"se"}]');
+            ALTER SEQUENCE resource_type_id_seq RESTART WITH 37;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240307 Add index on node contexts" author="Gunnar Velle">
+        <sql>
+            CREATE INDEX IF NOT EXISTS node_contexts_index ON node USING GIN (contexts);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240322 Add parent context ids to context" author="Gunnar Velle">
+        <sql>
+            UPDATE node
+            SET contexts = (
+            SELECT jsonb_agg(jsonb_set(obj, '{parentContextIds}', '[]'::jsonb, true))
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240423 Fix previous migration" author="Gunnar Velle">
+        <sql>
+            UPDATE node n
+            SET contexts='[]'
+            WHERE contexts is null
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240318 Add pretty url to context with path as default" author="Gunnar Velle">
+        <sql>
+            UPDATE node n
+            SET contexts = (
+            SELECT jsonb_agg(jsonb_set(obj, '{url}', to_jsonb('/' || replace(lower(n.name),' ','-') || '__' || (obj->>'contextId')), true))
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240606 Remove default url from context again" author="Gunnar Velle">
+        <sql>
+            UPDATE node n
+            SET contexts = (
+            SELECT jsonb_agg(obj - 'url')
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240606 Add quality evaluation fields to nodes" author="Jonas Natten">
+        <addColumn tableName="node">
+            <column name="quality_evaluation" type="int2"/>
+        </addColumn>
+        <addColumn tableName="node">
+            <column name="quality_evaluation_comment" type="text"/>
+        </addColumn>
+        <addColumn tableName="node">
+            <column name="child_quality_evaluation_average" type="double" />
+        </addColumn>
+        <addColumn tableName="node">
+            <column name="child_quality_evaluation_count" type="int" defaultValueNumeric="0" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20240611 Drop changelog table" author="Gunnar Velle">
+        <validCheckSum>9:97bedb7ec3feece25b43370b1ac47d5e</validCheckSum>
+    </changeSet>
+
+    <changeSet id="20240814 Move relevances to column" author="Jonas Natten">
+        <validCheckSum>9:206507b41118c792e06646516003ff30</validCheckSum>
+        <addColumn tableName="node_connection">
+            <column name="relevance" type="text" />
+        </addColumn>
+        <createIndex tableName="node_connection" indexName="node_connection_relevance">
+            <column name="relevance"/>
+        </createIndex>
+        <dropColumn tableName="node_connection">
+            <column name="relevance_id" />
+        </dropColumn>
+    </changeSet>
+
+    <changeSet id="20240822 Add node name to contexts and populate with translations" author="Gunnar Velle">
+        <sql>
+            UPDATE node n
+            SET contexts = (
+            SELECT jsonb_agg(jsonb_set(jsonb_set(obj, '{parents}', '[]'), '{name}', (
+                SELECT jsonb_object_agg(translation->>'languageCode', translation->>'name') FROM jsonb_array_elements(translations) AS translation), true)
+            )
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240923 Add values from node, and drop parents" author="Gunnar Velle">
+        <validCheckSum>9:e9c3fe94bf888d0a08b4adff213240d0</validCheckSum>
+        <validCheckSum>9:8bbdd8646e8dc993689d57fa917efb91</validCheckSum>
+        <sql>
+            UPDATE node n
+            SET contexts = (
+            SELECT jsonb_agg(jsonb_set(jsonb_set(obj, '{publicId}', to_jsonb(n.public_id), true), '{nodeType}', to_jsonb(n.node_type), true))
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+    </changeSet>
+
+    <changeSet id="20241202 Add list of all contextIds a node has ever had" author="Gunnar Velle">
+        <addColumn tableName="node">
+            <column name="contextids" type="jsonb" defaultValue="[]"/>
+        </addColumn>
+        <sql>
+            UPDATE node n
+            SET contextids=(
+            SELECT json_agg(obj->>'contextId')
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS node_contextids_index ON node USING GIN (contextids);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20250120 Quality evaluation sum instead of calculated" author="Jonas Natten">
+        <dropColumn tableName="node" columnName="child_quality_evaluation_average"/>
+        <addColumn tableName="node">
+            <column name="child_quality_evaluation_sum" type="int" defaultValueNumeric="0" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20250819 Recreate resource_resourcetype foreign key with cascade delete" author="Gunnar Velle">
+        <dropForeignKeyConstraint baseTableName="resource_resource_type" constraintName="resource_resource_type_resource_type_id_fkey"/>
+        <addForeignKeyConstraint baseTableName="resource_resource_type" baseColumnNames="resource_type_id"
+                                 constraintName="resource_resource_type_resource_type_id_fkey"
+                                 referencedTableName="resource_type" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="20251001 Rename top level resourcetypes" author="Gunnar Velle">
+        <sql>
+            UPDATE resource_type
+            SET name = 'Oppgave', translations = '[{"name":"Oppgave","languageCode":"nb"},{"name":"Oppgåve","languageCode":"nn"},{"name":"Task","languageCode":"en"},{"name":"Bargobihtát","languageCode":"se"}]'
+            WHERE public_id = 'urn:resourcetype:tasksAndActivities';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251007 Add NodeConnectionType" author="Gunnar Velle">
+        <addColumn tableName="node_connection">
+            <column name="connection_type" type="varchar(255)" defaultValue="BRANCH">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20151014 Redefine node_connection_unique to include nodeconnectiontype" author="Gunnar Velle">
+        <dropUniqueConstraint tableName="node_connection" constraintName="node_connection_unique"/>
+        <addUniqueConstraint tableName="node_connection" columnNames="parent_id,child_id,connection_type"
+                             constraintName="node_connection_unique"/>
+    </changeSet>
+
+    <changeSet id="20251110 Promote some resourcetypes and delete others" author="Gunnar Velle">
+        <sql>
+            UPDATE resource_type
+            SET parent_id = null
+            WHERE parent_id IN (
+                SELECT id FROM resource_type WHERE public_id = 'urn:resourcetype:SourceMaterial'
+            );
+        </sql>
+        <sql>
+            DELETE from resource_type
+            where parent_id is not null;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251118 Rename top level resourcetypes again" author="Gunnar Velle">
+        <sql>
+            UPDATE resource_type
+            SET name = 'Forklaringsartikkel', translations = '[{"name":"Forklaringsartikkel","languageCode":"nb"},{"name":"Forklaringsartikkel","languageCode":"nn"},{"name":"Concept article","languageCode":"en"},{"name":"Čielggadanartihkkal","languageCode":"se"}]'
+            WHERE public_id = 'urn:resourcetype:concept';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251112 Add order column for resource types" author="Gunnar Velle">
+        <addColumn tableName="resource_type">
+            <column name="order" type="int" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            UPDATE resource_type
+            SET "order" = CASE
+                WHEN public_id = 'urn:resourcetype:learningPath' THEN 0
+                WHEN public_id = 'urn:resourcetype:subjectMaterial' THEN 1
+                WHEN public_id = 'urn:resourcetype:tasksAndActivities' THEN 2
+                WHEN public_id = 'urn:resourcetype:reviewResource' THEN 3
+                WHEN public_id = 'urn:resourcetype:SourceMaterial' THEN 4
+                WHEN public_id = 'urn:resourcetype:concept' THEN 5
+                WHEN public_id = 'urn:resourcetype:documentary' THEN 6
+                WHEN public_id = 'urn:resourcetype:shortFilm' THEN 7
+                WHEN public_id = 'urn:resourcetype:featureFilm' THEN 8
+                WHEN public_id = 'urn:resourcetype:series' THEN 9
+                WHEN public_id = 'urn:resourcetype:filmClip' THEN 10
+                WHEN public_id = 'urn:resourcetype:historicalMaterial' THEN 11
+                WHEN public_id = 'urn:resourcetype:literaryText' THEN 12
+                ELSE 99
+            END;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205 Add new game resourcetype" author="Gunnar Velle">
+        <sql>
+            INSERT INTO resource_type (id, parent_id, public_id, name, translations, "order") VALUES (37, null, 'urn:resourcetype:game', 'Spill', '[{"name":"Spill","languageCode":"nb"},{"name":"Spel","languageCode":"nn"},{"name":"Game","languageCode":"en"},{"name":"Speala","languageCode":"se"}]', 13);
+            ALTER SEQUENCE resource_type_id_seq RESTART WITH 38;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251209 Add isArchived to taxonomy context" author="Gunnar Velle">
+        <sql>
+            UPDATE node n
+            SET contexts = (
+            SELECT jsonb_agg(jsonb_set(obj, '{isArchived}', to_jsonb(false), true))
+            FROM jsonb_array_elements(contexts) AS obj
+            )
+            WHERE contexts != '[]'
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260113 Delete unused resource types" author="Gunnar Velle">
+        <sql>
+            DELETE FROM resource_type
+            WHERE public_id IN ('urn:resourcetype:historicalMaterial', 'urn:resourcetype:literaryText', 'urn:resourcetype:filmClip');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260324 Add requires_technical_evaluation and technical_evaluation_comment to node" author="Amandus Thorsrud">
+        <addColumn tableName="node">
+            <column name="requires_technical_evaluation" type="boolean" />
+            <column name="technical_evaluation_comment" type="text"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20260401 Make requires_technical_evaluation not nullable" author="Amandus Thorsrud">
+        <addNotNullConstraint tableName="node" columnName="requires_technical_evaluation" columnDataType="boolean"
+                              defaultNullValue="false"/>
+    </changeSet>
+
+    <changeSet id="20260407" author="Amandus Thorsrud">
+        <dropNotNullConstraint
+                tableName="node"
+                columnName="requires_technical_evaluation"
+                columnDataType="boolean"/>
+        <update tableName="node">
+            <column name="requires_technical_evaluation" value="null"/>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260423 Set requires_technical_evaluation to true if null and has quality evaluation"
+               author="Amandus Thorsrud">
+        <update tableName="node">
+            <column name="requires_technical_evaluation" valueBoolean="true"/>
+            <where>requires_technical_evaluation IS NULL AND quality_evaluation IS NOT NULL</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

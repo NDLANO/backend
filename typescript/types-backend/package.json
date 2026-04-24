@@ -24,7 +24,8 @@
     "learningpath-api",
     "myndla-api",
     "oembed-proxy",
-    "search-api"
+    "search-api",
+    "taxonomy-api"
   ],
   "devDependencies": {
     "@types/node": "^22.13.16",

@@ -1,0 +1,27 @@
+[
+  {
+    "includes": ["glob:**.java"],
+    "steps": [
+      { "$type": "TrimTrailingWhitespace" },
+      { "$type": "RemoveUnusedImports" },
+      {
+        "$type": "CleanthatJava",
+        "sourceJdkVersion": "25",
+        "mutators": [
+          "SafeAndConsensual",
+          "ArithmethicAssignment",
+          "ForEachToIterableForEach",
+          "LiteralsFirstInComparisons"
+        ]
+      },
+      { "$type": "PalantirJavaFormat", "version": "2.90.0" },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) ",
+        "header": {
+          "content": "/*\n * Part of NDLA taxonomy-api\n * Copyright (C) $YEAR NDLA\n *\n * See LICENSE\n */\n\n"
+        }
+      }
+    ]
+  }
+]

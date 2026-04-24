@@ -1,0 +1,92 @@
+server.port: 5000
+
+spring:
+  datasource:
+    hikari:
+      max-lifetime: 600000
+      connection-timeout: 600000
+      validation-timeout: 600000
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db-master-changelog.xml
+    parameters:
+      schema: ${spring.datasource.hikari.schema:taxonomy_api}
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+
+hibernate:
+  id:
+    db_structure_naming_strategy: legacy
+
+springdoc:
+  writer-with-order-by-keys: true
+  packagesToScan: no.ndla.taxonomy.rest.v1
+  pathsToMatch: /v1/**
+  api-docs:
+    path: /api-docs
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  server:
+    port: ${taxonomy.management.port:5001}
+  endpoint.health.probes.enabled: true
+
+---
+spring:
+  profiles:
+    activate:
+      on-profile: junit
+
+logging.level:
+  liquibase: WARN
+  org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: WARN
+  springfox.documentation.spring.web.readers.operation.CachingOperationNameGenerator: WARN
+---
+spring:
+  profiles:
+    activate:
+      on-profile: staging
+
+auth0:
+  audience: ndla_system
+  issuer: https://ndla-staging.eu.auth0.com/
+  jwks.kid: NDFFOTUxMjQ1ODNDMTlBRkE0RkQ4NDc0RjUxNjUxREE0MTUyQTQ3NQ
+
+service: ndla-taxonomy-staging
+
+---
+spring:
+  profiles:
+    activate:
+      on-profile: prod
+
+auth0:
+  audience: ndla_system
+  issuer: https://ndla.eu.auth0.com/
+  jwks.kid: OEI1MUU4ODk5NzM5MzI2MzZDODk1N0YwQzdDMDQyODVCQzQ3QTI0MA
+
+service: ndla-taxonomy-prod
+
+---
+spring:
+  profiles:
+    activate:
+      on-profile: test
+
+auth0:
+  audience: ndla_system
+  issuer: https://ndla-test.eu.auth0.com/
+  jwks.kid: QzlEOTQ5M0NGMDk4NjExOEJGMjc2MjVFODhEQkE1NUI2NkE0RTQyRg
+
+service: ndla-taxonomy-test
