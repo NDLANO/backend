@@ -84,8 +84,50 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
         var updatedParent = transactionTemplate.execute(status -> nodeRepository.getByPublicId(parentId));
         var average = updatedParent.getChildQualityEvaluationAverage().orElseThrow();
 
-        assertEquals(1, average.getCount()); // Should be 2
-        // assertEquals(4.5, average.getAverageValue());
+        assertEquals(2, average.getCount());
+        assertEquals(4.5, average.getAverageValue());
+    }
+
+    @Test
+    void concurrent_updates_to_sibling_resources_should_accumulate_on_shared_ancestor() throws Exception {
+        var ids = transactionTemplate.execute(status -> {
+            builder.node(
+                    NodeType.TOPIC,
+                    parent -> parent.name("Parent")
+                            .publicId("urn:topic:3")
+                            .child(
+                                    NodeType.RESOURCE,
+                                    child -> child.name("ChildA").publicId("urn:resource:a"))
+                            .child(
+                                    NodeType.RESOURCE,
+                                    child -> child.name("ChildB").publicId("urn:resource:b")));
+            return List.of(URI.create("urn:topic:3"), URI.create("urn:resource:a"), URI.create("urn:resource:b"));
+        });
+        var parentId = ids.get(0);
+        var childAId = ids.get(1);
+        var childBId = ids.get(2);
+
+        var loadedChildren = new CountDownLatch(2);
+        var startUpdates = new CountDownLatch(1);
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            var updateA = executor.submit(
+                    () -> applyNodeQualityEvaluationUpdate(childAId, Grade.Five, loadedChildren, startUpdates));
+            var updateB = executor.submit(
+                    () -> applyNodeQualityEvaluationUpdate(childBId, Grade.Four, loadedChildren, startUpdates));
+
+            assertTrue(loadedChildren.await(5, TimeUnit.SECONDS));
+            startUpdates.countDown();
+
+            updateA.get(5, TimeUnit.SECONDS);
+            updateB.get(5, TimeUnit.SECONDS);
+        }
+
+        var updatedParent = transactionTemplate.execute(status -> nodeRepository.getByPublicId(parentId));
+        var average = updatedParent.getChildQualityEvaluationAverage().orElseThrow();
+
+        assertEquals(2, average.getCount());
+        assertEquals(4.5, average.getAverageValue());
     }
 
     @Test
@@ -167,9 +209,7 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
                 await(continueUpdate);
             }
 
-            qualityEvaluationService.lockNodeForQualityEvaluationUpdate(node, command);
-
-            var oldGrade = node.getQualityEvaluationGrade();
+            var oldGrade = qualityEvaluationService.getOldGradeForQualityEvaluationUpdate(node, command);
             command.apply(node);
             qualityEvaluationService.updateQualityEvaluationOfParents(node, oldGrade, command);
         });

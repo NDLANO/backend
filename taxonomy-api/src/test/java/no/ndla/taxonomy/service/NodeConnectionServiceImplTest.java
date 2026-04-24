@@ -10,6 +10,7 @@ package no.ndla.taxonomy.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import java.util.Set;
 import no.ndla.taxonomy.domain.*;
@@ -36,6 +37,9 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
     @Autowired
     private NodeRepository nodeRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private ContextUpdaterService contextUpdaterService;
 
     private NodeConnectionServiceImpl service;
@@ -59,6 +63,17 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
                 nodeRepository,
                 qualityEvaluationService,
                 draftApiClient);
+    }
+
+    private void refresh(Node node) {
+        entityManager.flush();
+        entityManager.refresh(node);
+    }
+
+    private void assertQualityEvaluationAverage(Node node, double expectedAverage, int expectedCount) {
+        var average = node.getChildQualityEvaluationAverage().orElseThrow();
+        assertEquals(expectedCount, average.getCount());
+        assertEquals(expectedAverage, average.getAverageValue());
     }
 
     @Test
@@ -509,6 +524,67 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void branch_resource_connections_update_quality_evaluation_for_parent_tree() {
+        final var subject = builder.node(NodeType.SUBJECT);
+        final var topic = builder.node(NodeType.TOPIC);
+        final var resource = builder.node(NodeType.RESOURCE, node -> node.qualityEvaluation(Grade.Five));
+
+        service.connectParentChild(subject, topic, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+        var resourceConnection = service.connectParentChild(
+                topic, resource, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+
+        refresh(topic);
+        refresh(subject);
+
+        assertQualityEvaluationAverage(topic, 5.0, 1);
+        assertQualityEvaluationAverage(subject, 5.0, 1);
+
+        service.disconnectParentChildConnection(resourceConnection);
+
+        refresh(topic);
+        refresh(subject);
+
+        assertTrue(topic.getChildQualityEvaluationAverage().isEmpty());
+        assertTrue(subject.getChildQualityEvaluationAverage().isEmpty());
+    }
+
+    @Test
+    public void branch_topic_connections_update_quality_evaluation_for_parent_tree() {
+        final var subject = builder.node(NodeType.SUBJECT);
+        final var parentTopic = builder.node(NodeType.TOPIC);
+        final var childTopic = builder.node(NodeType.TOPIC);
+        final var firstResource = builder.node(NodeType.RESOURCE, node -> node.qualityEvaluation(Grade.Five));
+        final var secondResource = builder.node(NodeType.RESOURCE, node -> node.qualityEvaluation(Grade.Three));
+
+        service.connectParentChild(
+                subject, parentTopic, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+        service.connectParentChild(
+                childTopic, firstResource, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+        service.connectParentChild(
+                childTopic, secondResource, Relevance.CORE, 2, Optional.of(true), NodeConnectionType.BRANCH);
+
+        refresh(childTopic);
+        assertQualityEvaluationAverage(childTopic, 4.0, 2);
+
+        var topicConnection = service.connectParentChild(
+                parentTopic, childTopic, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+
+        refresh(parentTopic);
+        refresh(subject);
+
+        assertQualityEvaluationAverage(parentTopic, 4.0, 2);
+        assertQualityEvaluationAverage(subject, 4.0, 2);
+
+        service.disconnectParentChildConnection(topicConnection);
+
+        refresh(parentTopic);
+        refresh(subject);
+
+        assertTrue(parentTopic.getChildQualityEvaluationAverage().isEmpty());
+        assertTrue(subject.getChildQualityEvaluationAverage().isEmpty());
+    }
+
+    @Test
     public void link_connections_do_not_affect_quality_evaluation() {
         final var topic = builder.node(NodeType.TOPIC);
         final var branchResource = builder.node(NodeType.RESOURCE, resource -> resource.qualityEvaluation(Grade.Five));
@@ -517,6 +593,8 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
         service.connectParentChild(
                 topic, branchResource, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
 
+        refresh(topic);
+
         assertTrue(topic.getChildQualityEvaluationAverage().isPresent());
         assertEquals(1, topic.getChildQualityEvaluationAverage().orElseThrow().getCount());
         assertEquals(5, topic.getChildQualityEvaluationAverage().orElseThrow().getAverageValue());
@@ -524,11 +602,15 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
         var linkConnection = service.connectParentChild(
                 topic, linkedResource, Relevance.CORE, 2, Optional.of(false), NodeConnectionType.LINK);
 
+        refresh(topic);
+
         assertTrue(topic.getChildQualityEvaluationAverage().isPresent());
         assertEquals(1, topic.getChildQualityEvaluationAverage().orElseThrow().getCount());
         assertEquals(5, topic.getChildQualityEvaluationAverage().orElseThrow().getAverageValue());
 
         service.disconnectParentChildConnection(linkConnection);
+
+        refresh(topic);
 
         assertTrue(topic.getChildQualityEvaluationAverage().isPresent());
         assertEquals(1, topic.getChildQualityEvaluationAverage().orElseThrow().getCount());

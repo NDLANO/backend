@@ -43,14 +43,14 @@ public class AdminTest extends RestTest {
     }
 
     public void testQualityEvaluationAverage(Node inputNode, int expectedCount, double expectedAverage) {
-        var node = nodeRepository.findFirstByPublicId(inputNode.getPublicId()).orElseThrow();
+        var node = getFreshNode(inputNode.getPublicId());
         var qe = node.getChildQualityEvaluationAverage().orElseThrow();
         assertEquals(expectedCount, qe.getCount());
         assertEquals(expectedAverage, qe.getAverageValue());
     }
 
     public void assertMissingQualityEvaluation(Node inputNode) {
-        var node = nodeRepository.findFirstByPublicId(inputNode.getPublicId()).orElseThrow();
+        var node = getFreshNode(inputNode.getPublicId());
         var qe = node.getChildQualityEvaluationAverage();
         assertTrue(qe.isEmpty());
     }

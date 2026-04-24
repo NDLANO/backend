@@ -8,6 +8,7 @@
 package no.ndla.taxonomy.rest.v1;
 
 import jakarta.persistence.EntityManager;
+import java.net.URI;
 import no.ndla.taxonomy.TestUtils;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.repositories.*;
@@ -83,5 +84,15 @@ public class RestTest extends AbstractIntegrationTest {
 
     ResourceType newResourceType() {
         return save(new ResourceType());
+    }
+
+    /**
+     * Flushes pending writes and clears the persistence context, then re-loads the node so the
+     * caller observes column values written by bulk SQL updates that bypass managed entities.
+     */
+    protected Node getFreshNode(URI publicId) {
+        entityManager.flush();
+        entityManager.clear();
+        return nodeRepository.getByPublicId(publicId);
     }
 }

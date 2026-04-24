@@ -1234,9 +1234,9 @@ public class NodesTest extends RestTest {
 
         { // Set quality evaluation on resource and check that average on subject & topic is updated
             testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 5}}");
-            var dbResource = nodeRepository.getByPublicId(URI.create(resourceId));
-            var dbTopic = nodeRepository.getByPublicId(URI.create(topicId));
-            var dbSuject = nodeRepository.getByPublicId(URI.create(subjectId));
+            var dbResource = getFreshNode(URI.create(resourceId));
+            var dbTopic = getFreshNode(URI.create(topicId));
+            var dbSuject = getFreshNode(URI.create(subjectId));
             assertEquals(dbResource.getQualityEvaluationGrade(), Optional.of(Grade.Five));
             var expectedFive = Optional.of(new GradeAverage(5, 1));
             assertEquals(dbSuject.getChildQualityEvaluationAverage(), expectedFive);
@@ -1245,9 +1245,9 @@ public class NodesTest extends RestTest {
 
         { // Remove quality evaluation on resource and check that average on subject & topic is removed
             testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": null}");
-            var dbResource = nodeRepository.getByPublicId(URI.create(resourceId));
-            var dbTopic = nodeRepository.getByPublicId(URI.create(topicId));
-            var dbSuject = nodeRepository.getByPublicId(URI.create(subjectId));
+            var dbResource = getFreshNode(URI.create(resourceId));
+            var dbTopic = getFreshNode(URI.create(topicId));
+            var dbSuject = getFreshNode(URI.create(subjectId));
             assertEquals(dbResource.getQualityEvaluationGrade(), Optional.empty());
             var actualSubject = dbSuject.getChildQualityEvaluationAverage();
             assertEquals(actualSubject, Optional.empty());
@@ -1274,17 +1274,73 @@ public class NodesTest extends RestTest {
                                                 rc -> rc.name("R1").publicId(resourceId))));
 
         testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 2}}");
-        var dbTopic = nodeRepository.getByPublicId(URI.create(topicId));
-        var dbSubject = nodeRepository.getByPublicId(URI.create(subjectId));
+        var dbTopic = getFreshNode(URI.create(topicId));
+        var dbSubject = getFreshNode(URI.create(subjectId));
         assertTrue(dbTopic.getChildQualityEvaluationAverage().isPresent());
         assertTrue(dbSubject.getChildQualityEvaluationAverage().isPresent());
 
         testUtils.deleteResource("/v1/nodes/" + resourceId);
 
-        var dbTopicAfter = nodeRepository.getByPublicId(URI.create(topicId));
-        var dbSubjectAfter = nodeRepository.getByPublicId(URI.create(subjectId));
+        var dbTopicAfter = getFreshNode(URI.create(topicId));
+        var dbSubjectAfter = getFreshNode(URI.create(subjectId));
         assertTrue(dbTopicAfter.getChildQualityEvaluationAverage().isEmpty());
         assertTrue(dbSubjectAfter.getChildQualityEvaluationAverage().isEmpty());
+    }
+
+    @Test
+    public void updating_reused_resource_quality_evaluation_counts_each_branch_path() throws Exception {
+        var subjectId = "urn:subject:1";
+        var firstTopicId = "urn:topic:1";
+        var secondTopicId = "urn:topic:2";
+        var resourceId = "urn:resource:1";
+        var resource = builder.node(NodeType.RESOURCE, n -> n.name("R1").publicId(resourceId));
+
+        builder.node(
+                NodeType.SUBJECT,
+                n -> n.name("S1")
+                        .publicId(subjectId)
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.name("T1").publicId(firstTopicId).child(resource))
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.name("T2").publicId(secondTopicId).child(resource)));
+
+        testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 5}}");
+
+        assertEquals(
+                Optional.of(new GradeAverage(10, 2)),
+                getFreshNode(URI.create(subjectId)).getChildQualityEvaluationAverage());
+        assertEquals(
+                Optional.of(new GradeAverage(5, 1)),
+                getFreshNode(URI.create(firstTopicId)).getChildQualityEvaluationAverage());
+        assertEquals(
+                Optional.of(new GradeAverage(5, 1)),
+                getFreshNode(URI.create(secondTopicId)).getChildQualityEvaluationAverage());
+
+        testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 3}}");
+
+        assertEquals(
+                Optional.of(new GradeAverage(6, 2)),
+                getFreshNode(URI.create(subjectId)).getChildQualityEvaluationAverage());
+        assertEquals(
+                Optional.of(new GradeAverage(3, 1)),
+                getFreshNode(URI.create(firstTopicId)).getChildQualityEvaluationAverage());
+        assertEquals(
+                Optional.of(new GradeAverage(3, 1)),
+                getFreshNode(URI.create(secondTopicId)).getChildQualityEvaluationAverage());
+
+        testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": null}");
+
+        assertTrue(getFreshNode(URI.create(subjectId))
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
+        assertTrue(getFreshNode(URI.create(firstTopicId))
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
+        assertTrue(getFreshNode(URI.create(secondTopicId))
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
     }
 
     @Test
@@ -1348,7 +1404,7 @@ public class NodesTest extends RestTest {
             testUtils.createResource("/v1/node-resources/", connectBody3);
         }
 
-        var topic2 = nodeRepository.getByPublicId(URI.create("urn:topic:2"));
+        var topic2 = getFreshNode(URI.create("urn:topic:2"));
         assertEquals(3, topic2.getChildNodes().size());
         assertTrue(topic2.getChildQualityEvaluationAverage().isPresent());
         assertEquals(3, topic2.getChildQualityEvaluationAverage().get().getCount());
@@ -1356,7 +1412,7 @@ public class NodesTest extends RestTest {
                 3.3333333333333335,
                 topic2.getChildQualityEvaluationAverage().get().getAverageValue());
 
-        var subject1 = nodeRepository.getByPublicId(URI.create("urn:subject:1"));
+        var subject1 = getFreshNode(URI.create("urn:subject:1"));
         assertTrue(subject1.getChildQualityEvaluationAverage().isPresent());
         assertEquals(6, subject1.getChildQualityEvaluationAverage().get().getCount());
         assertEquals(
@@ -1394,7 +1450,7 @@ public class NodesTest extends RestTest {
         builder.node(NodeType.SUBJECT, s2 -> s2.name("S2").publicId("urn:subject:2"));
 
         s1Node.updateEntireAverageTree();
-        var topic1 = nodeRepository.getByPublicId(URI.create("urn:topic:1"));
+        var topic1 = getFreshNode(URI.create("urn:topic:1"));
         assertEquals(3, topic1.getChildNodes().size());
         topic1.updateEntireAverageTree();
 
@@ -1404,17 +1460,17 @@ public class NodesTest extends RestTest {
                 3.3333333333333335,
                 topic1.getChildQualityEvaluationAverage().get().getAverageValue());
 
-        var subject1 = nodeRepository.getByPublicId(URI.create("urn:subject:1"));
+        var subject1 = getFreshNode(URI.create("urn:subject:1"));
         assertTrue(subject1.getChildQualityEvaluationAverage().isPresent());
         assertEquals(3, subject1.getChildQualityEvaluationAverage().get().getCount());
         assertEquals(
                 3.3333333333333335,
                 subject1.getChildQualityEvaluationAverage().get().getAverageValue());
 
-        var subject2 = nodeRepository.getByPublicId(URI.create("urn:subject:2"));
+        var subject2 = getFreshNode(URI.create("urn:subject:2"));
         assertFalse(subject2.getChildQualityEvaluationAverage().isPresent());
 
-        var topic = nodeRepository.getByPublicId(URI.create("urn:topic:1"));
+        var topic = getFreshNode(URI.create("urn:topic:1"));
         assertEquals(1, topic.getParentConnections().size());
         assertTrue(topic.getParentConnections().stream().findFirst().isPresent());
         var connectionId =
@@ -1428,17 +1484,18 @@ public class NodesTest extends RestTest {
 
         testUtils.createResource("/v1/node-connections/", connectBody);
 
-        assertEquals(3, topic1.getChildNodes().size());
-        assertTrue(topic1.getChildQualityEvaluationAverage().isPresent());
-        assertEquals(3, topic1.getChildQualityEvaluationAverage().get().getCount());
+        var movedTopic = getFreshNode(URI.create("urn:topic:1"));
+        assertEquals(3, movedTopic.getChildNodes().size());
+        assertTrue(movedTopic.getChildQualityEvaluationAverage().isPresent());
+        assertEquals(3, movedTopic.getChildQualityEvaluationAverage().get().getCount());
         assertEquals(
                 3.3333333333333335,
-                topic1.getChildQualityEvaluationAverage().get().getAverageValue());
+                movedTopic.getChildQualityEvaluationAverage().get().getAverageValue());
 
-        var s1 = nodeRepository.getByPublicId(URI.create("urn:subject:1"));
+        var s1 = getFreshNode(URI.create("urn:subject:1"));
         assertFalse(s1.getChildQualityEvaluationAverage().isPresent());
 
-        var s2 = nodeRepository.getByPublicId(URI.create("urn:subject:2"));
+        var s2 = getFreshNode(URI.create("urn:subject:2"));
         assertTrue(s2.getChildQualityEvaluationAverage().isPresent());
         assertEquals(3, s2.getChildQualityEvaluationAverage().get().getCount());
         assertEquals(
@@ -1563,8 +1620,8 @@ public class NodesTest extends RestTest {
         disconnect(t1, t2);
 
         {
-            var node = nodeRepository.findFirstByPublicId(t2.getPublicId());
-            var qe = node.get().getChildQualityEvaluationAverage();
+            var node = getFreshNode(t2.getPublicId());
+            var qe = node.getChildQualityEvaluationAverage();
             assertFalse(qe.isPresent());
         }
 
@@ -1626,8 +1683,7 @@ public class NodesTest extends RestTest {
 
     public List<Integer> getQualityEvaluationGradesOf(List<URI> ids) {
         return ids.stream()
-                .map(id -> nodeRepository
-                        .getByPublicId(id)
+                .map(id -> getFreshNode(id)
                         .getQualityEvaluationGrade()
                         .orElseThrow()
                         .toInt())
@@ -1636,10 +1692,7 @@ public class NodesTest extends RestTest {
 
     public List<GradeAverage> getQEAverageGradesOf(List<URI> ids) {
         return ids.stream()
-                .map(id -> nodeRepository
-                        .getByPublicId(id)
-                        .getChildQualityEvaluationAverage()
-                        .orElse(null))
+                .map(id -> getFreshNode(id).getChildQualityEvaluationAverage().orElse(null))
                 .toList();
     }
 
@@ -2042,7 +2095,7 @@ public class NodesTest extends RestTest {
     }
 
     public void testQualityEvaluationAverage(Node inputNode, int expectedCount, double expectedAverage) {
-        var node = nodeRepository.findFirstByPublicId(inputNode.getPublicId()).orElseThrow();
+        var node = getFreshNode(inputNode.getPublicId());
         var qe = node.getChildQualityEvaluationAverage().orElseThrow();
         assertEquals(expectedCount, qe.getCount());
         assertEquals(expectedAverage, qe.getAverageValue());

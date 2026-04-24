@@ -11,10 +11,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import java.net.URI;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.repositories.NodeRepository;
@@ -48,31 +45,77 @@ public class QualityEvaluationService {
     }
 
     /**
-     * Acquires a pessimistic lock on the node and refreshes it from the database, ensuring
-     * that the subsequent getOldGrade/apply/updateParents sequence sees the latest persisted state.
-     * Must be called within the same transaction as the update (e.g. from CrudController.updateEntity).
+     * Returns the old grade to use for a quality-evaluation update. If the command changes quality
+     * evaluation, the node is pessimistically locked and refreshed first so the grade is based on the
+     * latest committed row.
      */
     @Transactional
-    public void lockNodeForQualityEvaluationUpdate(Node node, UpdatableDto<?> command) {
-        if (getQualityEvaluationCommand(command).isEmpty()) {
-            return;
+    public Optional<Grade> getOldGradeForQualityEvaluationUpdate(Node node, UpdatableDto<?> command) {
+        if (getQualityEvaluationCommand(command).isPresent()) {
+            entityManager.flush();
+            lockAndRefresh(node);
         }
 
-        entityManager.flush();
-        lockAndRefresh(node);
+        return node.getQualityEvaluationGrade();
     }
 
+    /**
+     * Note: this clears the Hibernate persistence context as a side effect of the bulk SQL update.
+     * Any entities loaded earlier in this transaction become detached.
+     */
     @Transactional
     public void updateQualityEvaluationOfParents(Node node, Optional<Grade> oldGrade, UpdatableDto<?> command) {
         var nodeCommand = getQualityEvaluationCommand(command);
-        if (nodeCommand.isEmpty()) {
+        if (nodeCommand.isEmpty() || !shouldBeIncludedInQualityEvaluationAverage(node.getNodeType())) {
             return;
         }
 
         var newGrade = nodeCommand.get().qualityEvaluation.getValue().map(QualityEvaluationDTO::getGrade);
+        applyGradeDeltaToAncestors(node.getParentNodesForQualityEvaluation(), oldGrade, newGrade, true);
+    }
 
-        updateQualityEvaluationOfParents(
-                node.getNodeType(), node.getParentNodesForQualityEvaluation(), oldGrade, newGrade);
+    /**
+     * Applies the (oldGrade -> newGrade) delta to every non-LINK ancestor in a single atomic SQL
+     * statement. When clearPersistenceContext is true, managed entities are detached after the
+     * update so subsequent reads see DB state. Pass false when the caller still needs entities
+     * loaded earlier in the transaction (e.g. the freshly refreshed child in a connect/disconnect
+     * flow).
+     */
+    private void applyGradeDeltaToAncestors(
+            Collection<Node> directParents,
+            Optional<Grade> oldGrade,
+            Optional<Grade> newGrade,
+            boolean clearPersistenceContext) {
+        if (directParents.isEmpty() || (oldGrade.isEmpty() && newGrade.isEmpty()) || oldGrade.equals(newGrade)) {
+            return;
+        }
+
+        var oldGradeInt = oldGrade.map(Grade::toInt).orElse(null);
+        var newGradeInt = newGrade.map(Grade::toInt).orElse(null);
+        int countDelta = (newGrade.isPresent() ? 1 : 0) - (oldGrade.isPresent() ? 1 : 0);
+        int sumDelta = (newGradeInt == null ? 0 : newGradeInt) - (oldGradeInt == null ? 0 : oldGradeInt);
+
+        var startIds = directParents.stream().map(Node::getId).toList();
+        if (clearPersistenceContext) {
+            nodeRepository.applyQualityEvaluationDeltaToAncestors(
+                    startIds, oldGradeInt, newGradeInt, sumDelta, countDelta);
+        } else {
+            nodeRepository.applyQualityEvaluationDeltaToAncestorsWithoutClearing(
+                    startIds, oldGradeInt, newGradeInt, sumDelta, countDelta);
+        }
+    }
+
+    private void applyGradeAverageDeltaToAncestors(
+            Collection<Node> directParents, GradeAverage gradeAverage, boolean shouldAdd) {
+        if (directParents.isEmpty() || gradeAverage.getCount() == 0 || gradeAverage.getAverageSum() == 0) {
+            return;
+        }
+
+        var direction = shouldAdd ? 1 : -1;
+        nodeRepository.applyQualityEvaluationAverageDeltaToAncestors(
+                directParents.stream().map(Node::getId).toList(),
+                gradeAverage.getAverageSum() * direction,
+                gradeAverage.getCount() * direction);
     }
 
     @Transactional
@@ -87,30 +130,16 @@ public class QualityEvaluationService {
             return;
         }
 
-        // Lock the parent tree once upfront to avoid double lock+refresh discarding changes.
-        // var allNodes = lockParentTree(List.of(parent));
-        // lockAndRefresh(child);
+        entityManager.flush();
+        entityManager.refresh(child);
 
-        // Update parents quality evaluation average with the newly linked one.
-        updateQualityEvaluationOfParents(
-                child.getNodeType(), List.of(parent), Optional.empty(), child.getQualityEvaluationGrade());
+        if (shouldBeIncludedInQualityEvaluationAverage(child.getNodeType())) {
+            applyGradeDeltaToAncestors(List.of(parent), Optional.empty(), child.getQualityEvaluationGrade(), false);
+        }
 
         child.getChildQualityEvaluationAverage().ifPresent(childAverage -> {
-            addGradeAverageTreeToParents(parent, childAverage);
+            applyGradeAverageDeltaToAncestors(List.of(parent), childAverage, true);
         });
-
-        // nodeRepository.saveAll(allNodes);
-    }
-
-    private void addGradeAverageTreeToParents(Node node, GradeAverage averageToAdd) {
-        node.addGradeAverageTreeToAverageCalculation(averageToAdd);
-        node.getParentNodesForQualityEvaluation().forEach(parent -> addGradeAverageTreeToParents(parent, averageToAdd));
-    }
-
-    private void removeGradeAverageTreeFromParents(Node node, GradeAverage averageToRemove) {
-        node.removeGradeAverageTreeFromAverageCalculation(averageToRemove);
-        node.getParentNodesForQualityEvaluation()
-                .forEach(parent -> removeGradeAverageTreeFromParents(parent, averageToRemove));
     }
 
     @Transactional
@@ -124,58 +153,27 @@ public class QualityEvaluationService {
         var child = connectionToDelete.getChild().get();
         var parent = connectionToDelete.getParent().get();
 
+        entityManager.flush();
+        entityManager.refresh(child);
+
         if (shouldBeIncludedInQualityEvaluationAverage(child.getNodeType())) {
-            updateQualityEvaluationOfParents(
-                    child.getNodeType(), List.of(parent), child.getQualityEvaluationGrade(), Optional.empty());
+            applyGradeDeltaToAncestors(List.of(parent), child.getQualityEvaluationGrade(), Optional.empty(), false);
             return;
         }
 
         if (child.getChildQualityEvaluationAverage().isEmpty()) return;
         var childAverage = child.getChildQualityEvaluationAverage().get();
-
-        // var allNodes = lockParentTree(List.of(parent));
-        removeGradeAverageTreeFromParents(parent, childAverage);
-        // nodeRepository.saveAll(allNodes);
+        applyGradeAverageDeltaToAncestors(List.of(parent), childAverage, false);
     }
 
-    @Transactional
-    protected void updateQualityEvaluationOfParents(
-            NodeType nodeType, Collection<Node> parentNodes, Optional<Grade> oldGrade, Optional<Grade> newGrade) {
-        if (!shouldBeIncludedInQualityEvaluationAverage(nodeType)) {
-            return;
-        }
-        if (oldGrade.isEmpty() && newGrade.isEmpty() || oldGrade.equals(newGrade)) {
-            return;
-        }
-
-        updateQualityEvaluationOfRecursive(parentNodes, oldGrade, newGrade);
-    }
-
+    /**
+     * Note: this clears the Hibernate persistence context as a side effect of the bulk SQL update.
+     * Any entities loaded earlier in this transaction become detached.
+     */
     @Transactional
     public void updateQualityEvaluationOfRecursive(
             Collection<Node> parents, Optional<Grade> oldGrade, Optional<Grade> newGrade) {
-        // var allNodes = lockParentTree(parents);
-        updateQualityEvaluationOfRecursiveUnlocked(parents, oldGrade, newGrade);
-        // nodeRepository.saveAll(allNodes);
-    }
-
-    private void updateQualityEvaluationOfRecursiveUnlocked(
-            Collection<Node> parents, Optional<Grade> oldGrade, Optional<Grade> newGrade) {
-        parents.forEach(p -> {
-            p.updateChildQualityEvaluationAverage(oldGrade, newGrade);
-            var parentsParents = p.getParentNodesForQualityEvaluation();
-            updateQualityEvaluationOfRecursiveUnlocked(parentsParents, oldGrade, newGrade);
-        });
-    }
-
-    private Collection<Node> lockParentTree(Collection<Node> parents) {
-        // Flush pending changes before locking so that refresh does not discard in-memory mutations
-        // made earlier in this transaction (e.g. command.apply on the child node).
-        entityManager.flush();
-        var allNodes = collectParentTree(parents);
-        // Lock in consistent ID order to prevent deadlocks between concurrent transactions.
-        allNodes.stream().sorted(Comparator.comparing(Node::getId)).forEach(this::lockAndRefresh);
-        return allNodes;
+        applyGradeDeltaToAncestors(parents, oldGrade, newGrade, true);
     }
 
     /**
@@ -186,23 +184,6 @@ public class QualityEvaluationService {
     private void lockAndRefresh(Node node) {
         entityManager.lock(node, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(node);
-    }
-
-    private Collection<Node> collectParentTree(Collection<Node> parents) {
-        Map<Integer, Node> nodesById = new HashMap<>();
-        collectParentTree(parents, nodesById);
-        return nodesById.values();
-    }
-
-    private void collectParentTree(Collection<Node> parents, Map<Integer, Node> nodesById) {
-        parents.forEach(parent -> {
-            if (parent == null || nodesById.containsKey(parent.getId())) {
-                return;
-            }
-
-            nodesById.put(parent.getId(), parent);
-            collectParentTree(parent.getParentNodesForQualityEvaluation(), nodesById);
-        });
     }
 
     @Transactional
@@ -217,11 +198,16 @@ public class QualityEvaluationService {
     @Transactional
     public void updateQualityEvaluationOfAllNodes() {
         nodeRepository.wipeQualityEvaluationAverages();
-        var nodeStream = nodeRepository.findNodesWithQualityEvaluation();
-        nodeStream.forEach(node -> updateQualityEvaluationOfParents(
-                node.getNodeType(),
-                node.getParentNodesForQualityEvaluation(),
-                Optional.empty(),
-                node.getQualityEvaluationGrade()));
+        try (var nodeStream = nodeRepository.findNodesWithQualityEvaluation()) {
+            nodeStream.forEach(node -> {
+                if (shouldBeIncludedInQualityEvaluationAverage(node.getNodeType())) {
+                    applyGradeDeltaToAncestors(
+                            node.getParentNodesForQualityEvaluation(),
+                            Optional.empty(),
+                            node.getQualityEvaluationGrade(),
+                            false);
+                }
+            });
+        }
     }
 }

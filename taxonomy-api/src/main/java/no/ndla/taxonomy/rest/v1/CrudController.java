@@ -109,11 +109,9 @@ public abstract class CrudController<T extends DomainEntity> {
         T entity = repository.getByPublicId(id);
         validator.validate(id, entity);
 
-        // if (entity instanceof Node node && qualityEvaluationService != null) {
-        //     qualityEvaluationService.lockNodeForQualityEvaluationUpdate(node, command);
-        // }
-
-        var oldGrade = getOldGrade(entity);
+        var oldGrade = entity instanceof Node node && qualityEvaluationService != null
+                ? qualityEvaluationService.getOldGradeForQualityEvaluationUpdate(node, command)
+                : getOldGrade(entity);
 
         command.apply(entity);
 
