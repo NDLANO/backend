@@ -310,6 +310,7 @@
             "allowedValues": [
               "standard",
               "minimal",
+              "compact",
               "podcast"
             ]
           }
