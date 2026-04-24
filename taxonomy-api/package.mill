@@ -17,7 +17,9 @@ object `package` extends JavaBaseModule, JavaDockerComponent {
   // every resource appears twice on the runtime classpath and Liquibase fails on the
   // duplicates. `compile-resources` is exposed as a single library entry instead,
   // giving each file exactly one classpath location.
-  override def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  override def resources: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
 
   override def bomMvnDeps: T[Seq[Dep]] = Task {
     SharedDependencies.springBootBoms
