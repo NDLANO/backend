@@ -1,0 +1,11 @@
+server.port: 5000
+
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:17.5:///taxonomy_api
+    username: test
+    password: test
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      pool-name: HikariTestcontainers

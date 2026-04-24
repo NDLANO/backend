@@ -1,0 +1,13 @@
+name: "Release: taxonomy-api"
+on:
+  workflow_dispatch:
+    inputs: {}
+  push:
+    branches:
+      - master
+jobs:
+  release:
+    uses: ndlano/reusable-workflows/.github/workflows/release.yaml@main
+    secrets: inherit
+    with:
+      component: taxonomy-api

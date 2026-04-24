@@ -1,0 +1,17 @@
+*.tsv
+*.tfvars
+.idea
+*.iml
+target
+*.backup
+.env
+.yarn/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Typescript
+/typescript/node_modules
+/typescript/build
