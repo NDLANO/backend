@@ -109,16 +109,16 @@ public abstract class CrudController<T extends DomainEntity> {
         T entity = repository.getByPublicId(id);
         validator.validate(id, entity);
 
-        var oldGrade = entity instanceof Node node && qualityEvaluationService != null
-                ? qualityEvaluationService.getOldGradeForQualityEvaluationUpdate(node, command)
-                : getOldGrade(entity);
+        var oldQualityEvaluationState = entity instanceof Node node && qualityEvaluationService != null
+                ? qualityEvaluationService.getQualityEvaluationUpdateState(node, command)
+                : null;
 
         command.apply(entity);
 
         if (entity instanceof Node node) {
             if (contextUpdaterService != null) contextUpdaterService.updateContexts(node);
             if (qualityEvaluationService != null)
-                qualityEvaluationService.updateQualityEvaluationOfParents(node, oldGrade, command);
+                qualityEvaluationService.updateQualityEvaluationOfParents(node, oldQualityEvaluationState, command);
         }
 
         if (entity instanceof ResourceType resourceType && resourceTypeService != null) {
@@ -140,7 +140,9 @@ public abstract class CrudController<T extends DomainEntity> {
                 validator.validate(id, entity);
                 entity.setPublicId(id);
             });
-            var oldGrade = getOldGrade(entity);
+            var oldQualityEvaluationState = entity instanceof Node node && qualityEvaluationService != null
+                    ? qualityEvaluationService.getCurrentQualityEvaluationUpdateState(node)
+                    : null;
 
             command.apply(entity);
             URI location = URI.create(getLocation() + "/" + entity.getPublicId());
@@ -149,7 +151,7 @@ public abstract class CrudController<T extends DomainEntity> {
             if (entity instanceof Node node) {
                 if (contextUpdaterService != null) contextUpdaterService.updateContexts(node);
                 if (qualityEvaluationService != null)
-                    qualityEvaluationService.updateQualityEvaluationOfParents(node, oldGrade, command);
+                    qualityEvaluationService.updateQualityEvaluationOfParents(node, oldQualityEvaluationState, command);
             }
 
             if (entity instanceof ResourceType resourceType && resourceTypeService != null) {

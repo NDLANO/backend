@@ -16,7 +16,6 @@ import java.util.Optional;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.repositories.NodeRepository;
 import no.ndla.taxonomy.rest.v1.commands.NodePostPut;
-import no.ndla.taxonomy.service.dtos.QualityEvaluationDTO;
 import no.ndla.taxonomy.service.exceptions.NotFoundServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +46,8 @@ public class QualityEvaluationService {
         }
     }
 
+    public record QualityEvaluationUpdateState(NodeType oldNodeType, Optional<Grade> oldGrade) {}
+
     public QualityEvaluationService(NodeRepository nodeRepository, EntityManager entityManager) {
         this.nodeRepository = nodeRepository;
         this.entityManager = entityManager;
@@ -56,27 +57,32 @@ public class QualityEvaluationService {
         return nodeType == NodeType.RESOURCE;
     }
 
-    private Optional<NodePostPut> getQualityEvaluationCommand(UpdatableDto<?> command) {
-        if (command instanceof NodePostPut nodeCommand && nodeCommand.qualityEvaluation.isChanged()) {
-            return Optional.of(nodeCommand);
-        }
-
-        return Optional.empty();
+    private boolean shouldRefreshBeforeQualityEvaluationUpdate(UpdatableDto<?> command) {
+        return command instanceof NodePostPut nodeCommand
+                && (nodeCommand.qualityEvaluation.isChanged() || nodeCommand.nodeType != null);
     }
 
     /**
-     * Returns the old grade to use for a quality-evaluation update. If the command changes quality
-     * evaluation, the node is pessimistically locked and refreshed first so the grade is based on the
-     * latest committed row.
+     * Returns the old quality-evaluation state to use for an update. If the command can affect
+     * quality evaluation, the node is pessimistically locked and refreshed first so the state is
+     * based on the latest committed row.
      */
     @Transactional
-    public Optional<Grade> getOldGradeForQualityEvaluationUpdate(Node node, UpdatableDto<?> command) {
-        if (getQualityEvaluationCommand(command).isPresent()) {
+    public QualityEvaluationUpdateState getQualityEvaluationUpdateState(Node node, UpdatableDto<?> command) {
+        if (shouldRefreshBeforeQualityEvaluationUpdate(command)) {
             entityManager.flush();
             lockAndRefresh(node);
         }
 
-        return node.getQualityEvaluationGrade();
+        return new QualityEvaluationUpdateState(node.getNodeType(), node.getQualityEvaluationGrade());
+    }
+
+    public QualityEvaluationUpdateState getCurrentQualityEvaluationUpdateState(Node node) {
+        return new QualityEvaluationUpdateState(node.getNodeType(), node.getQualityEvaluationGrade());
+    }
+
+    private Optional<Grade> gradeIncludedInAverage(NodeType nodeType, Optional<Grade> grade) {
+        return shouldBeIncludedInQualityEvaluationAverage(nodeType) ? grade : Optional.empty();
     }
 
     /**
@@ -84,13 +90,20 @@ public class QualityEvaluationService {
      * Any entities loaded earlier in this transaction become detached.
      */
     @Transactional
-    public void updateQualityEvaluationOfParents(Node node, Optional<Grade> oldGrade, UpdatableDto<?> command) {
-        var nodeCommand = getQualityEvaluationCommand(command);
-        if (nodeCommand.isEmpty() || !shouldBeIncludedInQualityEvaluationAverage(node.getNodeType())) {
+    public void updateQualityEvaluationOfParents(
+            Node node, QualityEvaluationUpdateState oldState, UpdatableDto<?> command) {
+        if (!(command instanceof NodePostPut nodeCommand)) {
             return;
         }
 
-        var newGrade = nodeCommand.get().qualityEvaluation.getValue().map(QualityEvaluationDTO::getGrade);
+        var qualityEvaluationChanged = nodeCommand.qualityEvaluation.isChanged();
+        var nodeTypeChanged = nodeCommand.nodeType != null && nodeCommand.nodeType != oldState.oldNodeType();
+        if (!qualityEvaluationChanged && !nodeTypeChanged) {
+            return;
+        }
+
+        var oldGrade = gradeIncludedInAverage(oldState.oldNodeType(), oldState.oldGrade());
+        var newGrade = gradeIncludedInAverage(node.getNodeType(), node.getQualityEvaluationGrade());
         propagateResourceGradeDeltaToAncestors(
                 node.getParentNodesForQualityEvaluation(), oldGrade, newGrade, PersistenceContextMode.CLEAR);
     }

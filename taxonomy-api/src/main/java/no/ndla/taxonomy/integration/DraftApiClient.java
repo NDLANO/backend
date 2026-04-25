@@ -42,7 +42,7 @@ public class DraftApiClient {
 
     // Only update notes in the base schema
     private boolean notBaseSchema() {
-        return !VersionContext.getCurrentVersion().equals(defaultSchema);
+        return !Objects.equals(VersionContext.getCurrentVersion(), defaultSchema);
     }
 
     public void updateNotesWithNewConnection(NodeConnection newConnection) {

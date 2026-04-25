@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -74,6 +75,46 @@ public class NodeConnectionServiceImplTest extends AbstractIntegrationTest {
         var average = node.getChildQualityEvaluationAverage().orElseThrow();
         assertEquals(expectedCount, average.getCount());
         assertEquals(expectedAverage, average.getAverageValue());
+    }
+
+    @Test
+    public void draft_note_updates_are_deferred_until_transaction_commit() {
+        final var topic = builder.node(NodeType.TOPIC);
+        final var resource = builder.node(NodeType.RESOURCE);
+
+        service.connectParentChild(topic, resource, Relevance.CORE, null, Optional.of(true), NodeConnectionType.BRANCH);
+
+        verify(draftApiClient, never()).updateNotesWithNewConnection(any(NodeConnection.class));
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        verify(draftApiClient).updateNotesWithNewConnection(any(NodeConnection.class));
+
+        TestTransaction.start();
+        nodeConnectionRepository.deleteAllAndFlush();
+        nodeRepository.deleteAllAndFlush();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
+    }
+
+    @Test
+    public void disconnect_all_parents_by_id_disconnects_every_parent() {
+        final var firstParent = builder.node(NodeType.TOPIC);
+        final var secondParent = builder.node(NodeType.TOPIC);
+        final var resource = builder.node(NodeType.RESOURCE);
+
+        service.connectParentChild(
+                firstParent, resource, Relevance.CORE, 1, Optional.of(true), NodeConnectionType.BRANCH);
+        service.connectParentChild(
+                secondParent, resource, Relevance.CORE, 1, Optional.of(false), NodeConnectionType.BRANCH);
+
+        service.disconnectAllParents(resource.getPublicId());
+
+        assertTrue(resource.getParentConnections().isEmpty());
+        assertTrue(firstParent.getChildConnections().isEmpty());
+        assertTrue(secondParent.getChildConnections().isEmpty());
     }
 
     @Test

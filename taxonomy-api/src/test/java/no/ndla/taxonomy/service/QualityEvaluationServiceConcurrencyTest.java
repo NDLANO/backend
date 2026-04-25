@@ -209,9 +209,9 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
                 await(continueUpdate);
             }
 
-            var oldGrade = qualityEvaluationService.getOldGradeForQualityEvaluationUpdate(node, command);
+            var oldState = qualityEvaluationService.getQualityEvaluationUpdateState(node, command);
             command.apply(node);
-            qualityEvaluationService.updateQualityEvaluationOfParents(node, oldGrade, command);
+            qualityEvaluationService.updateQualityEvaluationOfParents(node, oldState, command);
         });
     }
 

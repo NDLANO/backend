@@ -1664,6 +1664,59 @@ public class NodesTest extends RestTest {
         testQualityEvaluationAverage(t1, 1, 3.0);
     }
 
+    @Test
+    public void updating_resource_to_topic_removes_quality_evaluation_from_parent_average() throws Exception {
+        var subject = builder.node(NodeType.SUBJECT, s -> s.name("S1").publicId("urn:subject:node-type-change-parent"));
+        var topic = builder.node(NodeType.TOPIC, t -> t.name("T1").publicId("urn:topic:node-type-change-parent"));
+        var resource = builder.node(
+                NodeType.RESOURCE,
+                r -> r.name("R1")
+                        .publicId("urn:resource:node-type-change-child")
+                        .qualityEvaluation(Grade.Three));
+
+        connect(subject, topic);
+        connect(topic, resource);
+
+        testQualityEvaluationAverage(subject, 1, 3.0);
+        testQualityEvaluationAverage(topic, 1, 3.0);
+
+        var updateBody = new NodePostPut();
+        updateBody.nodeType = NodeType.TOPIC;
+        updateBody.name = Optional.of("R1 as topic");
+        testUtils.updateResource("/v1/nodes/" + resource.getPublicId(), updateBody);
+
+        assertTrue(getFreshNode(subject.getPublicId())
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
+        assertTrue(getFreshNode(topic.getPublicId())
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
+    }
+
+    @Test
+    public void updating_topic_to_resource_adds_quality_evaluation_to_parent_average() throws Exception {
+        var subject =
+                builder.node(NodeType.SUBJECT, s -> s.name("S1").publicId("urn:subject:node-type-change-resource"));
+        var topic = builder.node(
+                NodeType.TOPIC,
+                t -> t.name("T1")
+                        .publicId("urn:topic:node-type-change-resource")
+                        .qualityEvaluation(Grade.Four));
+
+        connect(subject, topic);
+
+        assertTrue(getFreshNode(subject.getPublicId())
+                .getChildQualityEvaluationAverage()
+                .isEmpty());
+
+        var updateBody = new NodePostPut();
+        updateBody.nodeType = NodeType.RESOURCE;
+        updateBody.name = Optional.of("T1 as resource");
+        testUtils.updateResource("/v1/nodes/" + topic.getPublicId(), updateBody);
+
+        testQualityEvaluationAverage(subject, 1, 4.0);
+    }
+
     public URI createNode(String name, NodeType nodeType, Optional<Integer> qualityEvaluation) {
         var n = new NodePostPut();
         n.name = Optional.of(name);

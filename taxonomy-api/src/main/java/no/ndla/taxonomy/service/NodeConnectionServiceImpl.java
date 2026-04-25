@@ -20,6 +20,8 @@ import no.ndla.taxonomy.service.exceptions.InvalidArgumentServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Transactional(propagation = Propagation.MANDATORY)
 @Service
@@ -41,6 +43,61 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
         this.nodeRepository = nodeRepository;
         this.qualityEvaluationService = qualityEvaluationService;
         this.draftApiClient = draftApiClient;
+    }
+
+    private void runAfterCommit(Runnable task) {
+        var currentVersion = VersionContext.getCurrentVersion();
+        Runnable taskWithVersionContext = () -> {
+            var previousVersion = VersionContext.getCurrentVersion();
+            try {
+                VersionContext.setCurrentVersion(currentVersion);
+                task.run();
+            } finally {
+                if (previousVersion == null) {
+                    VersionContext.clear();
+                } else {
+                    VersionContext.setCurrentVersion(previousVersion);
+                }
+            }
+        };
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            taskWithVersionContext.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                taskWithVersionContext.run();
+            }
+        });
+    }
+
+    private NodeConnection draftNoteSnapshot(NodeConnection connection) {
+        return new NodeConnection(connection);
+    }
+
+    private void updateNotesWithNewConnectionAfterCommit(NodeConnection connection) {
+        var snapshot = draftNoteSnapshot(connection);
+        runAfterCommit(() -> draftApiClient.updateNotesWithNewConnection(snapshot));
+    }
+
+    private void updateNotesWithDeletedConnectionAfterCommit(NodeConnection connection) {
+        var snapshot = draftNoteSnapshot(connection);
+        runAfterCommit(() -> draftApiClient.updateNotesWithDeletedConnection(snapshot));
+    }
+
+    private void updateRelevanceNotesWithUpdatedConnectionAfterCommit(
+            NodeConnection connection, Relevance newRelevance) {
+        var snapshot = draftNoteSnapshot(connection);
+        runAfterCommit(() -> draftApiClient.updateRelevanceNotesWithUpdatedConnection(snapshot, newRelevance));
+    }
+
+    private void updatePrimaryNotesWithUpdatedConnectionAfterCommit(
+            NodeConnection connection, Optional<Boolean> newIsPrimary) {
+        var snapshot = draftNoteSnapshot(connection);
+        runAfterCommit(() -> draftApiClient.updatePrimaryNotesWithUpdatedConnection(snapshot, newIsPrimary));
     }
 
     private NodeConnection doCreateConnection(
@@ -148,7 +205,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
 
         var newConnection = createConnection(parent, child, relevance, rank, isPrimary, connectionType);
         qualityEvaluationService.propagateQualityEvaluationForAddedConnection(newConnection);
-        draftApiClient.updateNotesWithNewConnection(newConnection);
+        updateNotesWithNewConnectionAfterCommit(newConnection);
         return nodeConnectionRepository.saveAndFlush(newConnection);
     }
 
@@ -165,7 +222,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
         final var child = nodeConnection.getChild();
 
         qualityEvaluationService.propagateQualityEvaluationForRemovedConnection(nodeConnection);
-        draftApiClient.updateNotesWithDeletedConnection(nodeConnection);
+        updateNotesWithDeletedConnectionAfterCommit(nodeConnection);
 
         nodeConnection.disassociate();
         nodeConnectionRepository.delete(nodeConnection);
@@ -219,7 +276,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
                     foundNewPrimary.set(true);
                     updatedConnectables.add(connectable1);
                 } else if (setPrimaryTo && connectable.getConnectionType() == NodeConnectionType.BRANCH) {
-                    draftApiClient.updatePrimaryNotesWithUpdatedConnection(connectable1, Optional.of(false));
+                    updatePrimaryNotesWithUpdatedConnectionAfterCommit(connectable1, Optional.of(false));
                     connectable1.setPrimary(false);
                     updatedConnectables.add(connectable1);
                 }
@@ -261,8 +318,8 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
             Relevance newRelevance,
             Optional<Integer> newRank,
             Optional<Boolean> isPrimary) {
-        draftApiClient.updateRelevanceNotesWithUpdatedConnection(nodeConnection, newRelevance);
-        draftApiClient.updatePrimaryNotesWithUpdatedConnection(nodeConnection, isPrimary);
+        updateRelevanceNotesWithUpdatedConnectionAfterCommit(nodeConnection, newRelevance);
+        updatePrimaryNotesWithUpdatedConnectionAfterCommit(nodeConnection, isPrimary);
         newRank.ifPresent(integer -> updateRank(nodeConnection, integer));
         isPrimary.ifPresent(primary -> updatePrimaryConnection(nodeConnection, primary));
         updateRelevance(nodeConnection, newRelevance);
@@ -305,7 +362,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
         var node = nodeRepository
                 .findFirstByPublicId(nodeId)
                 .orElseThrow(() -> new NotFoundHttpResponseException("Node was not found"));
-        node.getParentConnections().forEach(this::disconnectParentChildConnection);
+        Set.copyOf(node.getParentConnections()).forEach(this::disconnectParentChildConnection);
     }
 
     @Override
@@ -330,9 +387,9 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
 
     private void disconnectInvisibleConnections(Node node) {
         if (!node.isVisible()) {
-            node.getParentConnections().forEach(this::disconnectParentChildConnection);
+            Set.copyOf(node.getParentConnections()).forEach(this::disconnectParentChildConnection);
         } else {
-            node.getChildConnections()
+            Set.copyOf(node.getChildConnections())
                     .forEach(nodeConnection ->
                             nodeConnection.getChild().ifPresent(this::disconnectInvisibleConnections));
         }
