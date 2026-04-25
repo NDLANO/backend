@@ -184,9 +184,9 @@ public class QualityEvaluationService {
     }
 
     private void propagateResourceConnectionDelta(Node parent, Node child, DeltaDirection direction) {
-        var previousGrade =
-                direction == DeltaDirection.ADD ? Optional.<Grade>empty() : child.getQualityEvaluationGrade();
-        var newGrade = direction == DeltaDirection.ADD ? child.getQualityEvaluationGrade() : Optional.<Grade>empty();
+        var grade = child.getQualityEvaluationGrade();
+        var previousGrade = direction == DeltaDirection.ADD ? Optional.<Grade>empty() : grade;
+        var newGrade = direction == DeltaDirection.ADD ? grade : Optional.<Grade>empty();
 
         propagateResourceGradeDeltaToAncestors(List.of(parent), previousGrade, newGrade, PersistenceContextMode.KEEP);
     }
