@@ -26,15 +26,22 @@ import no.ndla.taxonomy.rest.v1.commands.NodeSearchBody;
 import no.ndla.taxonomy.rest.v1.responses.Created201ApiResponse;
 import no.ndla.taxonomy.service.*;
 import no.ndla.taxonomy.service.dtos.*;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = {"/v1/nodes", "/v1/nodes/"})
+@Retryable(
+        retryFor = ConcurrencyFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 25, multiplier = 2.0))
 public class Nodes extends CrudControllerWithMetadata<Node> {
     private final NodeRepository nodeRepository;
     private final NodeConnectionRepository nodeConnectionRepository;

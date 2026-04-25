@@ -28,14 +28,21 @@ import no.ndla.taxonomy.service.ResourceTypeService;
 import no.ndla.taxonomy.service.dtos.NodeChildDTO;
 import no.ndla.taxonomy.service.dtos.NodeDTO;
 import no.ndla.taxonomy.service.dtos.SearchResultDTO;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = {"/v1/subjects", "/v1/subjects/"})
+@Retryable(
+        retryFor = ConcurrencyFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 25, multiplier = 2.0))
 public class Subjects extends CrudControllerWithMetadata<Node> {
     private final Nodes nodes;
 

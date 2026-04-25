@@ -120,6 +120,7 @@ object SharedDependencies {
     mvn"org.springframework.boot:spring-boot-starter-data-jpa",
     mvn"org.springframework.boot:spring-boot-starter-security",
     mvn"org.springframework.boot:spring-boot-starter-actuator",
+    mvn"org.springframework.boot:spring-boot-starter-aop",
     mvn"org.springframework.security:spring-security-web",
   )
 
@@ -137,6 +138,7 @@ object SharedDependencies {
     mvn"com.auth0:jwks-rsa:$JwksRsaV",
     mvn"org.apache.commons:commons-lang3:$CommonsLang3V",
     mvn"commons-codec:commons-codec",
+    mvn"org.springframework.retry:spring-retry",
     mvn"org.jsoup:jsoup:$TaxonomyJsoupV",
     mvn"net.bull.javamelody:javamelody-spring-boot-starter:$JavaMelodySpringV",
     mvn"io.micrometer:micrometer-registry-prometheus",

@@ -29,14 +29,21 @@ import no.ndla.taxonomy.service.dtos.NodeDTO;
 import no.ndla.taxonomy.service.dtos.NodeWithParents;
 import no.ndla.taxonomy.service.dtos.ResourceTypeWithConnectionDTO;
 import no.ndla.taxonomy.service.dtos.SearchResultDTO;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = {"/v1/resources", "/v1/resources/"})
+@Retryable(
+        retryFor = ConcurrencyFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 25, multiplier = 2.0))
 public class Resources extends CrudControllerWithMetadata<Node> {
     private final Nodes nodes;
     private final ResourceResourceTypeRepository resourceResourceTypeRepository;
