@@ -152,7 +152,14 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
      * Concurrent calls accumulate via EPQ: SET expressions reference only n.* columns, so on
      * lock-wait unblock under READ COMMITTED, Postgres re-evaluates them against the freshly
      * committed row instead of overwriting. Lock order within the statement is plan-determined;
-     * overlapping concurrent calls rely on Postgres' deadlock detector.
+     * overlapping concurrent calls rely on Postgres' deadlock detector — on deadlock one
+     * transaction aborts with SQLSTATE 40P01. The {@code @Retryable} annotation on the affected
+     * REST controllers (configured by {@link no.ndla.taxonomy.config.RetryConfig}) replays the
+     * outer transaction up to a fixed number of attempts so the rollback is recoverable.
+     *
+     * The recursive CTE is evaluated once at statement start; concurrent commits to node_connection
+     * between CTE evaluation and row-lock acquisition are not reflected in the ancestor set. Use
+     * updateEntireAverageTreeForNode to repair if a connect/disconnect raced with this update.
      *
      * :oldGrade and :newGrade keep their CASTs — a NULL-bound Integer used only in a NULL check
      * otherwise breaks Postgres type inference.
@@ -162,6 +169,11 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
     void applyQualityEvaluationDeltaToAncestors(
             Collection<Integer> startIds, Integer oldGrade, Integer newGrade, int sumDelta, int countDelta);
 
+    /**
+     * Variant of {@link #applyQualityEvaluationDeltaToAncestors} that leaves the persistence
+     * context intact. Use when the caller still needs entities loaded earlier in this transaction
+     * (e.g. the freshly refreshed child or parent in a connect/disconnect flow).
+     */
     @Modifying(flushAutomatically = true)
     @Query(value = APPLY_QUALITY_EVALUATION_GRADE_DELTA_TO_ANCESTORS_QUERY, nativeQuery = true)
     void applyQualityEvaluationDeltaToAncestorsWithoutClearing(
@@ -171,8 +183,12 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
      * Adds (or removes, via negative deltas) a child's already-calculated subtree average to every
      * non-LINK ancestor. Used on connect/disconnect of topic-style children.
      *
+     * Differs from the grade-delta query in how the add/remove signal is encoded: branches gate on
+     * the sign of :countDelta rather than nullable :newGrade, since the source here is an
+     * already-aggregated subtree average rather than a single grade transition.
+     *
      * Does NOT clear the persistence context — current callers keep child/parent in memory.
-     * EPQ accumulation and deadlock characteristics match the grade-delta query above.
+     * EPQ accumulation, CTE-snapshot, and deadlock characteristics match the grade-delta query.
      */
     @Modifying(flushAutomatically = true)
     @Query(value = APPLY_QUALITY_EVALUATION_AVERAGE_DELTA_TO_ANCESTORS_QUERY, nativeQuery = true)

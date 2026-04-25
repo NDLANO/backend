@@ -172,6 +172,12 @@ public class QualityEvaluationService {
         propagateConnectionDelta(parent, child, DeltaDirection.REMOVE);
     }
 
+    /**
+     * Note: leaves {@code parent} with stale child_quality_evaluation_* values in memory. The DB
+     * row is updated, but the managed entity is not refreshed (KEEP mode preserves child/parent
+     * for the rest of the transaction). Callers that observe parent's quality fields after this
+     * call must re-read or refresh. Current call sites only return the connection.
+     */
     private void propagateConnectionDelta(Node parent, Node child, DeltaDirection direction) {
         if (shouldBeIncludedInQualityEvaluationAverage(child.getNodeType())) {
             propagateResourceConnectionDelta(parent, child, direction);
