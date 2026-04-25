@@ -211,6 +211,10 @@ public class QualityEvaluationService {
         entityManager.refresh(node);
     }
 
+    /**
+     * Recovery/repair entry point. Walks descendants in-memory rather than ancestors via SQL —
+     * recomputes from scratch in the opposite direction from the bulk paths above.
+     */
     @Transactional
     public void updateEntireAverageTreeForNode(URI publicId) {
         var node = nodeRepository

@@ -139,27 +139,23 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
 
     /**
      * Applies a (sumDelta, countDelta) to child_quality_evaluation_sum/count for every non-LINK
-     * ancestor (inclusive of the given start ids) in a single atomic SQL statement.
+     * ancestor (inclusive of start ids) in one atomic UPDATE. Shared ancestors are aggregated by
+     * the recursive CTE; deltas are occurrence-weighted (one occurrence per branch path).
      *
-     * Matches the semantics of Node.updateChildQualityEvaluationAverage:
-     *   - empty-state self-heal: if count = 0 or sum = 0 and a new grade is given, set one
-     *     occurrence per ancestor path (the pre-existing corruption-recovery branch);
-     *   - remove-to-zero: removing a grade (old set, new null) that would take either value <= 0
-     *     zeros both columns;
-     *   - otherwise: apply the deltas.
+     * Branches mirror Node.updateChildQualityEvaluationAverage:
+     *   - self-heal: count = 0 or sum = 0 + newGrade present → (occurrences, newGrade * occurrences).
+     *     Caveat: with corrupt (count > 0, sum = 0) + both grades, this overwrites instead of
+     *     applying the diff (SQL recovers once; the old recursion did so per visit);
+     *   - remove-to-zero: oldGrade present, newGrade null, delta would push either ≤ 0 → zero both;
+     *   - else: apply deltas.
      *
-     * Concurrency note: every reference in the SET expressions (and their CASE predicates) is to
-     * the target row's own columns — never to a join-captured snapshot. Under READ COMMITTED,
-     * when a concurrent transaction holds the row lock, Postgres waits; on unblock EPQ
-     * re-evaluates the expressions against the newly committed row version, so concurrent
-     * (sumDelta, countDelta) applications accumulate instead of overwriting each other.
+     * Concurrent calls accumulate via EPQ: SET expressions reference only n.* columns, so on
+     * lock-wait unblock under READ COMMITTED, Postgres re-evaluates them against the freshly
+     * committed row instead of overwriting. Lock order within the statement is plan-determined;
+     * overlapping concurrent calls rely on Postgres' deadlock detector.
      *
-     * The recursive CTE supplies one row for each ancestor path. Shared ancestors are grouped and
-     * receive occurrence-weighted deltas so reused resources match updateEntireAverageTree()
-     * semantics. The path column prevents cycles within a single branch path.
-     *
-     * :oldGrade and :newGrade keep their CASTs because a NULL-bound Integer parameter used only
-     * in a NULL check can otherwise make Postgres fail to infer the expression's type.
+     * :oldGrade and :newGrade keep their CASTs — a NULL-bound Integer used only in a NULL check
+     * otherwise breaks Postgres type inference.
      */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(value = APPLY_QUALITY_EVALUATION_GRADE_DELTA_TO_ANCESTORS_QUERY, nativeQuery = true)
@@ -172,9 +168,11 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
             Collection<Integer> startIds, Integer oldGrade, Integer newGrade, int sumDelta, int countDelta);
 
     /**
-     * Applies a whole subtree average delta to every non-LINK ancestor. This is used when a
-     * topic/subtree connection is created or deleted, where the child node's already-calculated
-     * average should be added to or removed from the new parent branch.
+     * Adds (or removes, via negative deltas) a child's already-calculated subtree average to every
+     * non-LINK ancestor. Used on connect/disconnect of topic-style children.
+     *
+     * Does NOT clear the persistence context — current callers keep child/parent in memory.
+     * EPQ accumulation and deadlock characteristics match the grade-delta query above.
      */
     @Modifying(flushAutomatically = true)
     @Query(value = APPLY_QUALITY_EVALUATION_AVERAGE_DELTA_TO_ANCESTORS_QUERY, nativeQuery = true)
