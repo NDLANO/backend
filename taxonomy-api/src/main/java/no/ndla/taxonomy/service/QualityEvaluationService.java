@@ -27,6 +27,26 @@ public class QualityEvaluationService {
     private final NodeRepository nodeRepository;
     private final EntityManager entityManager;
 
+    private enum PersistenceContextMode {
+        CLEAR,
+        KEEP
+    }
+
+    private enum DeltaDirection {
+        ADD(1),
+        REMOVE(-1);
+
+        private final int multiplier;
+
+        DeltaDirection(int multiplier) {
+            this.multiplier = multiplier;
+        }
+
+        private int applyTo(int value) {
+            return value * multiplier;
+        }
+    }
+
     public QualityEvaluationService(NodeRepository nodeRepository, EntityManager entityManager) {
         this.nodeRepository = nodeRepository;
         this.entityManager = entityManager;
@@ -71,21 +91,21 @@ public class QualityEvaluationService {
         }
 
         var newGrade = nodeCommand.get().qualityEvaluation.getValue().map(QualityEvaluationDTO::getGrade);
-        applyGradeDeltaToAncestors(node.getParentNodesForQualityEvaluation(), oldGrade, newGrade, true);
+        propagateResourceGradeDeltaToAncestors(
+                node.getParentNodesForQualityEvaluation(), oldGrade, newGrade, PersistenceContextMode.CLEAR);
     }
 
     /**
      * Applies the (oldGrade -> newGrade) delta to every non-LINK ancestor in a single atomic SQL
-     * statement. When clearPersistenceContext is true, managed entities are detached after the
-     * update so subsequent reads see DB state. Pass false when the caller still needs entities
-     * loaded earlier in the transaction (e.g. the freshly refreshed child in a connect/disconnect
-     * flow).
+     * statement. Use CLEAR when managed entities should be detached after the update so subsequent
+     * reads see DB state. Use KEEP when the caller still needs entities loaded earlier in the
+     * transaction, e.g. the freshly refreshed child in a connect/disconnect flow.
      */
-    private void applyGradeDeltaToAncestors(
+    private void propagateResourceGradeDeltaToAncestors(
             Collection<Node> directParents,
             Optional<Grade> oldGrade,
             Optional<Grade> newGrade,
-            boolean clearPersistenceContext) {
+            PersistenceContextMode persistenceContextMode) {
         if (directParents.isEmpty() || (oldGrade.isEmpty() && newGrade.isEmpty()) || oldGrade.equals(newGrade)) {
             return;
         }
@@ -96,7 +116,7 @@ public class QualityEvaluationService {
         int sumDelta = (newGradeInt == null ? 0 : newGradeInt) - (oldGradeInt == null ? 0 : oldGradeInt);
 
         var startIds = directParents.stream().map(Node::getId).toList();
-        if (clearPersistenceContext) {
+        if (persistenceContextMode == PersistenceContextMode.CLEAR) {
             nodeRepository.applyQualityEvaluationDeltaToAncestors(
                     startIds, oldGradeInt, newGradeInt, sumDelta, countDelta);
         } else {
@@ -105,21 +125,20 @@ public class QualityEvaluationService {
         }
     }
 
-    private void applyGradeAverageDeltaToAncestors(
-            Collection<Node> directParents, GradeAverage gradeAverage, boolean shouldAdd) {
+    private void propagateSubtreeAverageDeltaToAncestors(
+            Collection<Node> directParents, GradeAverage gradeAverage, DeltaDirection direction) {
         if (directParents.isEmpty() || gradeAverage.getCount() == 0 || gradeAverage.getAverageSum() == 0) {
             return;
         }
 
-        var direction = shouldAdd ? 1 : -1;
         nodeRepository.applyQualityEvaluationAverageDeltaToAncestors(
                 directParents.stream().map(Node::getId).toList(),
-                gradeAverage.getAverageSum() * direction,
-                gradeAverage.getCount() * direction);
+                direction.applyTo(gradeAverage.getAverageSum()),
+                direction.applyTo(gradeAverage.getCount()));
     }
 
     @Transactional
-    public void updateQualityEvaluationOfNewConnection(NodeConnection connection) {
+    public void propagateQualityEvaluationForAddedConnection(NodeConnection connection) {
         if (connection.getConnectionType() == NodeConnectionType.LINK) {
             return;
         }
@@ -133,17 +152,11 @@ public class QualityEvaluationService {
         entityManager.flush();
         entityManager.refresh(child);
 
-        if (shouldBeIncludedInQualityEvaluationAverage(child.getNodeType())) {
-            applyGradeDeltaToAncestors(List.of(parent), Optional.empty(), child.getQualityEvaluationGrade(), false);
-        }
-
-        child.getChildQualityEvaluationAverage().ifPresent(childAverage -> {
-            applyGradeAverageDeltaToAncestors(List.of(parent), childAverage, true);
-        });
+        propagateConnectionDelta(parent, child, DeltaDirection.ADD);
     }
 
     @Transactional
-    public void removeQualityEvaluationOfDeletedConnection(NodeConnection connectionToDelete) {
+    public void propagateQualityEvaluationForRemovedConnection(NodeConnection connectionToDelete) {
         if (connectionToDelete.getConnectionType() == NodeConnectionType.LINK) return;
 
         var noChild = connectionToDelete.getChild().isEmpty();
@@ -156,14 +169,26 @@ public class QualityEvaluationService {
         entityManager.flush();
         entityManager.refresh(child);
 
+        propagateConnectionDelta(parent, child, DeltaDirection.REMOVE);
+    }
+
+    private void propagateConnectionDelta(Node parent, Node child, DeltaDirection direction) {
         if (shouldBeIncludedInQualityEvaluationAverage(child.getNodeType())) {
-            applyGradeDeltaToAncestors(List.of(parent), child.getQualityEvaluationGrade(), Optional.empty(), false);
-            return;
+            propagateResourceConnectionDelta(parent, child, direction);
+            if (direction == DeltaDirection.REMOVE) return;
         }
 
-        if (child.getChildQualityEvaluationAverage().isEmpty()) return;
-        var childAverage = child.getChildQualityEvaluationAverage().get();
-        applyGradeAverageDeltaToAncestors(List.of(parent), childAverage, false);
+        child.getChildQualityEvaluationAverage()
+                .ifPresent(childAverage ->
+                        propagateSubtreeAverageDeltaToAncestors(List.of(parent), childAverage, direction));
+    }
+
+    private void propagateResourceConnectionDelta(Node parent, Node child, DeltaDirection direction) {
+        var previousGrade =
+                direction == DeltaDirection.ADD ? Optional.<Grade>empty() : child.getQualityEvaluationGrade();
+        var newGrade = direction == DeltaDirection.ADD ? child.getQualityEvaluationGrade() : Optional.<Grade>empty();
+
+        propagateResourceGradeDeltaToAncestors(List.of(parent), previousGrade, newGrade, PersistenceContextMode.KEEP);
     }
 
     /**
@@ -173,7 +198,7 @@ public class QualityEvaluationService {
     @Transactional
     public void updateQualityEvaluationOfRecursive(
             Collection<Node> parents, Optional<Grade> oldGrade, Optional<Grade> newGrade) {
-        applyGradeDeltaToAncestors(parents, oldGrade, newGrade, true);
+        propagateResourceGradeDeltaToAncestors(parents, oldGrade, newGrade, PersistenceContextMode.CLEAR);
     }
 
     /**
@@ -201,11 +226,11 @@ public class QualityEvaluationService {
         try (var nodeStream = nodeRepository.findNodesWithQualityEvaluation()) {
             nodeStream.forEach(node -> {
                 if (shouldBeIncludedInQualityEvaluationAverage(node.getNodeType())) {
-                    applyGradeDeltaToAncestors(
+                    propagateResourceGradeDeltaToAncestors(
                             node.getParentNodesForQualityEvaluation(),
                             Optional.empty(),
                             node.getQualityEvaluationGrade(),
-                            false);
+                            PersistenceContextMode.KEEP);
                 }
             });
         }

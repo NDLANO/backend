@@ -147,7 +147,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
         }
 
         var newConnection = createConnection(parent, child, relevance, rank, isPrimary, connectionType);
-        qualityEvaluationService.updateQualityEvaluationOfNewConnection(newConnection);
+        qualityEvaluationService.propagateQualityEvaluationForAddedConnection(newConnection);
         draftApiClient.updateNotesWithNewConnection(newConnection);
         return nodeConnectionRepository.saveAndFlush(newConnection);
     }
@@ -164,7 +164,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     public void disconnectParentChildConnection(NodeConnection nodeConnection) {
         final var child = nodeConnection.getChild();
 
-        qualityEvaluationService.removeQualityEvaluationOfDeletedConnection(nodeConnection);
+        qualityEvaluationService.propagateQualityEvaluationForRemovedConnection(nodeConnection);
         draftApiClient.updateNotesWithDeletedConnection(nodeConnection);
 
         nodeConnection.disassociate();

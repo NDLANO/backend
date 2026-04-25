@@ -74,26 +74,26 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
                 child_quality_evaluation_count = CASE
                     WHEN n.child_quality_evaluation_count = 0
                          OR n.child_quality_evaluation_sum = 0
-                        THEN CASE WHEN CAST(:newGrade AS integer) IS NOT NULL THEN a.occurrences
+                        THEN CASE WHEN CAST(:newGrade AS integer) IS NOT NULL THEN delta.occurrences
                                   ELSE n.child_quality_evaluation_count END
                     WHEN CAST(:oldGrade AS integer) IS NOT NULL AND CAST(:newGrade AS integer) IS NULL
-                         AND (n.child_quality_evaluation_count + a.count_delta <= 0
-                              OR n.child_quality_evaluation_sum + a.sum_delta <= 0)
+                         AND (n.child_quality_evaluation_count + delta.count_delta <= 0
+                              OR n.child_quality_evaluation_sum + delta.sum_delta <= 0)
                         THEN 0
-                    ELSE n.child_quality_evaluation_count + a.count_delta
+                    ELSE n.child_quality_evaluation_count + delta.count_delta
                 END,
                 child_quality_evaluation_sum = CASE
                     WHEN n.child_quality_evaluation_count = 0
                          OR n.child_quality_evaluation_sum = 0
-                        THEN COALESCE(CAST(:newGrade AS integer) * a.occurrences, n.child_quality_evaluation_sum)
+                        THEN COALESCE(CAST(:newGrade AS integer) * delta.occurrences, n.child_quality_evaluation_sum)
                     WHEN CAST(:oldGrade AS integer) IS NOT NULL AND CAST(:newGrade AS integer) IS NULL
-                         AND (n.child_quality_evaluation_count + a.count_delta <= 0
-                              OR n.child_quality_evaluation_sum + a.sum_delta <= 0)
+                         AND (n.child_quality_evaluation_count + delta.count_delta <= 0
+                              OR n.child_quality_evaluation_sum + delta.sum_delta <= 0)
                         THEN 0
-                    ELSE n.child_quality_evaluation_sum + a.sum_delta
+                    ELSE n.child_quality_evaluation_sum + delta.sum_delta
                 END
-            FROM ancestor_deltas a
-            WHERE n.id = a.id
+            FROM ancestor_deltas delta
+            WHERE n.id = delta.id
             """;
 
     String APPLY_QUALITY_EVALUATION_AVERAGE_DELTA_TO_ANCESTORS_QUERY = """
@@ -116,25 +116,25 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
                 child_quality_evaluation_count = CASE
                     WHEN n.child_quality_evaluation_count = 0
                          OR n.child_quality_evaluation_sum = 0
-                        THEN CASE WHEN :countDelta > 0 THEN a.count_delta
+                        THEN CASE WHEN :countDelta > 0 THEN delta.count_delta
                                   ELSE n.child_quality_evaluation_count END
-                    WHEN n.child_quality_evaluation_count + a.count_delta <= 0
-                         OR n.child_quality_evaluation_sum + a.sum_delta <= 0
+                    WHEN n.child_quality_evaluation_count + delta.count_delta <= 0
+                         OR n.child_quality_evaluation_sum + delta.sum_delta <= 0
                         THEN 0
-                    ELSE n.child_quality_evaluation_count + a.count_delta
+                    ELSE n.child_quality_evaluation_count + delta.count_delta
                 END,
                 child_quality_evaluation_sum = CASE
                     WHEN n.child_quality_evaluation_count = 0
                          OR n.child_quality_evaluation_sum = 0
-                        THEN CASE WHEN :countDelta > 0 THEN a.sum_delta
+                        THEN CASE WHEN :countDelta > 0 THEN delta.sum_delta
                                   ELSE n.child_quality_evaluation_sum END
-                    WHEN n.child_quality_evaluation_count + a.count_delta <= 0
-                         OR n.child_quality_evaluation_sum + a.sum_delta <= 0
+                    WHEN n.child_quality_evaluation_count + delta.count_delta <= 0
+                         OR n.child_quality_evaluation_sum + delta.sum_delta <= 0
                         THEN 0
-                    ELSE n.child_quality_evaluation_sum + a.sum_delta
+                    ELSE n.child_quality_evaluation_sum + delta.sum_delta
                 END
-            FROM ancestor_deltas a
-            WHERE n.id = a.id
+            FROM ancestor_deltas delta
+            WHERE n.id = delta.id
             """;
 
     /**
