@@ -19,6 +19,7 @@ import no.ndla.taxonomy.repositories.ResourceTypeRepository;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceTypeDTO;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceTypePUT;
 import no.ndla.taxonomy.rest.v1.responses.Created201ApiResponse;
+import no.ndla.taxonomy.service.ResourceTypeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,8 +32,8 @@ public class ResourceTypes extends CrudController<ResourceType> {
 
     private final ResourceTypeRepository resourceTypeRepository;
 
-    public ResourceTypes(ResourceTypeRepository resourceTypeRepository) {
-        super(resourceTypeRepository);
+    public ResourceTypes(ResourceTypeRepository resourceTypeRepository, ResourceTypeService resourceTypeService) {
+        super(resourceTypeRepository, null, null, null, resourceTypeService);
 
         this.resourceTypeRepository = resourceTypeRepository;
     }
@@ -129,5 +130,22 @@ public class ResourceTypes extends CrudController<ResourceType> {
         return resourceTypeRepository.findAllByParentPublicIdIncludingTranslationsAndFirstLevelSubtypes(id).stream()
                 .map(resourceType -> new ResourceTypeDTO(resourceType, language, 100))
                 .collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Deletes a single entity by id",
+            security = {@SecurityRequirement(name = "oauth")})
+    @PreAuthorize("hasAuthority('TAXONOMY_WRITE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    protected void deleteEntity(@PathVariable("id") URI id) {
+        var entity = repository.getByPublicId(id);
+        repository.delete(entity);
+        repository.flush();
+
+        if (resourceTypeService != null) {
+            resourceTypeService.updateOrderAfterDelete();
+        }
     }
 }

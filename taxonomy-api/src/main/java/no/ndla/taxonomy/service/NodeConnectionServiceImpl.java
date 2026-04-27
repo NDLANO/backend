@@ -100,6 +100,12 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
             Integer rank,
             Optional<Boolean> isPrimary,
             NodeConnectionType connectionType) {
+        // Acquire the QE lock before any lazy-loaded collection access on parent/child/ancestors.
+        // The loop-detection and rank logic below initializes parent.parentConnections; if the
+        // lock were taken later (inside updateQualityEvaluationOfNewConnection), the QE recursion
+        // could walk a stale tree committed by a concurrent QE-holding transaction.
+        qualityEvaluationService.lockForConnectionChange(connectionType);
+
         if (!child.getParentConnections().isEmpty()) {
             if (connectionType == NodeConnectionType.BRANCH && child.getNodeType() == NodeType.TOPIC)
                 throw new DuplicateConnectionException();

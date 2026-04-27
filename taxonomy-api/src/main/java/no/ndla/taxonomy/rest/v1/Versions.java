@@ -35,7 +35,7 @@ public class Versions extends CrudController<Version> {
     private final VersionService versionService;
 
     public Versions(VersionService versionService, VersionRepository versionRepository) {
-        super(versionRepository);
+        super(versionRepository, null, null, null, null);
         this.versionService = versionService;
         this.versionRepository = versionRepository;
     }
