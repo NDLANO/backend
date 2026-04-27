@@ -10,7 +10,7 @@ trait DockerComponent extends JavaModule, DockerModule {
       Assembly.Rule.Exclude("META-INF/FastDoubleParser-NOTICE"),
       Assembly.Rule.ExcludePattern(".*/module-info.class"),
       Assembly.Rule.ExcludePattern(".*/io.netty.versions.properties"),
-      Assembly.Rule.Append("META-INF/services/org.flywaydb.core.extensibility.Plugin", "\n"),
+      Assembly.Rule.AppendPattern("META-INF/services/.*", "\n"),
       Assembly.Rule.Append("mime.types", "\n"),
     )
   }
