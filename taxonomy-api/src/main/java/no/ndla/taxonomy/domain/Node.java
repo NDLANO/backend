@@ -162,6 +162,17 @@ public class Node extends DomainObject implements EntityWithMetadata {
         return Optional.of(gradeAverage);
     }
 
+    public void setChildQualityEvaluationAverage(int averageSum, int count) {
+        if (count <= 0 || averageSum <= 0) {
+            this.childQualityEvaluationSum = 0;
+            this.childQualityEvaluationCount = 0;
+            return;
+        }
+
+        this.childQualityEvaluationSum = averageSum;
+        this.childQualityEvaluationCount = count;
+    }
+
     public void addGradeAverageTreeToAverageCalculation(GradeAverage newGradeAverage) {
         var childAvg = getChildQualityEvaluationAverage();
         if (childAvg.isEmpty()) {
