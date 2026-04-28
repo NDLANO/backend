@@ -8,8 +8,8 @@
 package no.ndla.taxonomy.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Identifies a unique context for any node. A context is a position for a node in the structure, identified by root
@@ -44,7 +44,7 @@ public record TaxonomyContext(
         LanguageField<String> rootName,
         String path,
         LanguageField<List<String>> breadcrumbs,
-        Optional<String> contextType,
+        String contextType,
         List<String> parentIds,
         List<String> parentContextIds,
         boolean isVisible,
@@ -55,4 +55,5 @@ public record TaxonomyContext(
         String contextId,
         int rank,
         String connectionId,
-        List<TaxonomyCrumb> parents) {}
+        List<TaxonomyCrumb> parents)
+        implements Serializable {}

@@ -10,6 +10,7 @@ package no.ndla.taxonomy.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import java.io.Serializable;
 
 /**
  * Represents the parents for the contexts of a node.
@@ -26,4 +27,5 @@ public record TaxonomyCrumb(
         @Enumerated(EnumType.STRING) NodeType nodeType,
         String contextId,
         LanguageField<String> name,
-        String path) {}
+        String path)
+        implements Serializable {}

@@ -348,7 +348,7 @@ public class NodeTest extends AbstractIntegrationTest {
                 LanguageField.fromNode(node),
                 node.getPathPart(),
                 LanguageField.listFromNode(node),
-                Optional.empty(),
+                null,
                 List.of(),
                 List.of(),
                 true,
@@ -370,7 +370,7 @@ public class NodeTest extends AbstractIntegrationTest {
                 LanguageField.listFromLists(
                         LanguageField.listFromLists(LanguageField.listFromNode(root), LanguageField.fromNode(parent1)),
                         LanguageField.fromNode(node)),
-                Optional.empty(),
+                null,
                 List.of(root.getPublicId().toString(), parent1.getPublicId().toString()),
                 List.of(context1.contextId()),
                 true,
@@ -392,7 +392,7 @@ public class NodeTest extends AbstractIntegrationTest {
                 LanguageField.listFromLists(
                         LanguageField.listFromLists(LanguageField.listFromNode(root), LanguageField.fromNode(parent2)),
                         LanguageField.fromNode(node)),
-                Optional.empty(),
+                null,
                 List.of(root.getPublicId().toString(), parent2.getPublicId().toString()),
                 List.of(context1.contextId(), context2.contextId()),
                 true,
