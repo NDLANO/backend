@@ -95,10 +95,10 @@ object SharedDependencies {
   def jave: Seq[Dep]     = Seq(mvn"ws.schild:jave-core:3.5.0", mvn"ws.schild:jave-all-deps:3.5.0")
 
   // Spring Boot / taxonomy-api stack
-  val SpringBootV       = "3.5.9"
+  val SpringBootV       = "3.5.14"
   val SpringCloudV      = "2025.1.0"
-  val SpringDocV        = "2.8.15"
-  val HypersistenceV    = "3.14.1"
+  val SpringDocV        = "2.8.17"
+  val HypersistenceV    = "3.15.2"
   val PreLiquibaseV     = "1.6.1"
   val JavaJwtV          = "4.5.0"
   val JwksRsaV          = "0.23.0"
