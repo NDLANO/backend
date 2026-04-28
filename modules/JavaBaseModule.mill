@@ -2,14 +2,49 @@ package build.modules
 
 import mill.*
 import mill.scalalib.*
+import mill.kotlinlib.KotlinMavenModule
 import mill.javalib.spotless.SpotlessModule
 
-trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, GithubWorkflowPlugin, SpotlessModule {
+trait JavaBaseModule
+    extends KotlinMavenModule, AutoEnvLoading, OpenAPITSPlugin, GithubWorkflowPlugin, SpotlessModule {
   def moduleName: String
-  def test: JavaTests
+  def test: TestBase
+
+  override def kotlinVersion: T[String] = Task { SharedDependencies.KotlinV }
 
   override def javacOptions: T[Seq[String]] = Task {
     super.javacOptions() ++ Seq("-parameters")
+  }
+
+  override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:${kotlinVersion()}",
+      mvn"org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:${kotlinVersion()}",
+    )
+  }
+
+  override def kotlincOptions: T[Seq[String]] = Task {
+    super.kotlincOptions() ++ Seq(
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.stereotype.Component",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.transaction.annotation.Transactional",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.scheduling.annotation.Async",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.cache.annotation.Cacheable",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.boot.test.context.SpringBootTest",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.persistence.Entity",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.persistence.MappedSuperclass",
+      "-P", "plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.persistence.Embeddable",
+      "-P", "plugin:org.jetbrains.kotlin.noarg:annotation=jakarta.persistence.Entity",
+      "-P", "plugin:org.jetbrains.kotlin.noarg:annotation=jakarta.persistence.MappedSuperclass",
+      "-P", "plugin:org.jetbrains.kotlin.noarg:annotation=jakarta.persistence.Embeddable",
+      "-P", "plugin:org.jetbrains.kotlin.noarg:invokeInitializers=true",
+    )
+  }
+
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps() ++ Seq(
+      mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}",
+      mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}",
+    )
   }
 
   // Mill's `resolvedMvnDeps` uses Maven `compile` scope, which drops transitive deps
@@ -30,7 +65,7 @@ trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, Githu
     spotless(mainargs.Flag(false))()
   }
 
-  trait TestBase extends MavenTests, TestModule.Junit5 {
+  trait TestBase extends KotlinMavenTests, TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
       super.forkArgs() ++ Seq("-XX:+EnableDynamicAgentLoading", "-Xshare:off")
     }
