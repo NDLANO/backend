@@ -36,6 +36,8 @@ ARG MODULE
 
 WORKDIR /app
 
+RUN apk add fontconfig && apk add ttf-dejavu
+
 # Set up custom JRE
 ENV JAVA_HOME=/opt/java/openjdk
 COPY --from=builder /javaruntime $JAVA_HOME
