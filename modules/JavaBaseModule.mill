@@ -24,6 +24,12 @@ trait JavaBaseModule extends KotlinMavenModule, AutoEnvLoading, OpenAPITSPlugin,
     )
   }
 
+  // NOTE: Since CI calls `_.semanticDbData` and we don't want to run that for java modules
+  //       We simply override this with some nonsense
+  override def semanticDbData: T[PathRef] = Task {
+    PathRef(os.pwd)
+  }
+
   override def kotlincOptions: T[Seq[String]] = Task {
     super.kotlincOptions() ++ Seq(
       "-P",
