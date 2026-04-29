@@ -9,6 +9,7 @@ package no.ndla.taxonomy.rest.v1.dtos.searchapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.net.URI;
 
 @Schema(
@@ -28,4 +29,5 @@ public record TaxonomyCrumbDTO(
         String path,
 
         @JsonProperty @Schema(description = "The context url")
-        String url) {}
+        String url)
+        implements Serializable {}

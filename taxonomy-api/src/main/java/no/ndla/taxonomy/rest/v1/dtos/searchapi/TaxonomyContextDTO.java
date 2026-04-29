@@ -9,6 +9,7 @@ package no.ndla.taxonomy.rest.v1.dtos.searchapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -104,4 +105,5 @@ public record TaxonomyContextDTO(
         String defaultUrl,
 
         @JsonProperty @Schema(description = "List of all parents to this context. Empty if node is fetched as child")
-        List<TaxonomyCrumbDTO> parents) {}
+        List<TaxonomyCrumbDTO> parents)
+        implements Serializable {}

@@ -360,7 +360,7 @@ public class NodeService {
                                 })
                                 .toList();
                         var url = PrettyUrlUtil.createPrettyUrl(
-                                        Optional.of(context.rootName()),
+                                        Optional.ofNullable(context.rootName()),
                                         LanguageField.fromNode(node),
                                         language,
                                         context.contextId(),
@@ -368,7 +368,7 @@ public class NodeService {
                                 .orElse(context.path());
 
                         var defaultUrl = PrettyUrlUtil.createPrettyUrl(
-                                        Optional.of(context.rootName()),
+                                        Optional.ofNullable(context.rootName()),
                                         LanguageField.fromNode(node),
                                         Constants.DefaultLanguage,
                                         context.contextId(),
@@ -382,7 +382,7 @@ public class NodeService {
                                 LanguageFieldDTO.fromLanguageField(context.rootName()),
                                 context.path(),
                                 LanguageFieldDTO.fromLanguageFieldList(breadcrumbs),
-                                context.contextType(),
+                                Optional.ofNullable(context.contextType()),
                                 URI.create(context.relevanceId()),
                                 LanguageFieldDTO.fromLanguageField(relevanceName),
                                 resourceTypes,
