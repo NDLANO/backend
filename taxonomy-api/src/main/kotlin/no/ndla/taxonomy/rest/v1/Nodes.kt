@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import no.ndla.taxonomy.config.Constants
 import no.ndla.taxonomy.domain.Node
-import no.ndla.taxonomy.domain.NodeConnection
 import no.ndla.taxonomy.domain.NodeConnectionType
 import no.ndla.taxonomy.domain.NodeType
 import no.ndla.taxonomy.domain.exceptions.NotFoundException
@@ -29,7 +28,6 @@ import no.ndla.taxonomy.service.QualityEvaluationService
 import no.ndla.taxonomy.service.RecursiveNodeTreeService
 import no.ndla.taxonomy.service.SearchService
 import no.ndla.taxonomy.service.TreeSorter
-import no.ndla.taxonomy.service.UpdatableDto
 import no.ndla.taxonomy.service.dtos.ConnectionDTO
 import no.ndla.taxonomy.service.dtos.MetadataDTO
 import no.ndla.taxonomy.service.dtos.NodeChildDTO
@@ -66,7 +64,7 @@ class Nodes(
     private val treeSorter: TreeSorter,
     private val qualityEvaluationService: QualityEvaluationService,
     private val searchService: SearchService,
-) : BaseCrudController<Node> {
+) {
 
     private val location: String by lazy { controllerLocation(javaClass) }
 
@@ -83,7 +81,7 @@ class Nodes(
         if (contentURI.isEmpty && contextId.isEmpty && isContext.isEmpty && !metadataFilters.hasFilters()) {
             return listOf(NodeType.TOPIC, NodeType.NODE, NodeType.SUBJECT, NodeType.PROGRAMME)
         }
-        return NodeType.values().toList()
+        return NodeType.entries.toList()
     }
 
     @GetMapping
@@ -430,7 +428,7 @@ class Nodes(
     @PreAuthorize("hasAuthority('TAXONOMY_WRITE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
-    override fun deleteEntity(@PathVariable("id") id: URI) {
+    fun deleteEntity(@PathVariable("id") id: URI) {
         nodeService.delete(id)
     }
 
@@ -556,7 +554,7 @@ class Nodes(
     }
 
     @Transactional
-    override fun createEntity(entity: Node, command: UpdatableDto<Node>): ResponseEntity<Unit> {
+    fun createEntity(entity: Node, command: UpdatableDto<Node>): ResponseEntity<Unit> {
         return try {
             val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
             validateAndAssignId(entity, command)
@@ -574,7 +572,7 @@ class Nodes(
     }
 
     @Transactional
-    override fun updateEntity(id: URI, command: UpdatableDto<Node>): Node {
+    fun updateEntity(id: URI, command: UpdatableDto<Node>): Node {
         val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
         val entity = nodeRepository.getByPublicId(id)
         validateUrn(id, entity)

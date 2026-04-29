@@ -20,7 +20,6 @@ import no.ndla.taxonomy.TestSeeder;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.rest.v1.commands.NodePostPut;
 import no.ndla.taxonomy.rest.v1.dtos.NodeConnectionPOST;
-import no.ndla.taxonomy.rest.v1.dtos.NodeResourcePOST;
 import no.ndla.taxonomy.service.dtos.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1331,21 +1330,21 @@ public class NodesTest extends RestTest {
         assertEquals(Optional.of(Grade.One), cloned3.getQualityEvaluationGrade());
 
         { // Connect cloned resources to urn:topic:2
-            var connectBody1 = new NodeResourcePOST();
-            connectBody1.nodeId = URI.create("urn:topic:2");
-            connectBody1.resourceId = cloned1Id;
+            var connectBody1 = new NodeConnectionPOST();
+            connectBody1.parentId = URI.create("urn:topic:2");
+            connectBody1.childId = cloned1Id;
 
-            var connectBody2 = new NodeResourcePOST();
-            connectBody2.nodeId = URI.create("urn:topic:2");
-            connectBody2.resourceId = cloned2Id;
+            var connectBody2 = new NodeConnectionPOST();
+            connectBody2.parentId = URI.create("urn:topic:2");
+            connectBody2.childId = cloned2Id;
 
-            var connectBody3 = new NodeResourcePOST();
-            connectBody3.nodeId = URI.create("urn:topic:2");
-            connectBody3.resourceId = cloned3Id;
+            var connectBody3 = new NodeConnectionPOST();
+            connectBody3.parentId = URI.create("urn:topic:2");
+            connectBody3.childId = cloned3Id;
 
-            testUtils.createResource("/v1/node-resources/", connectBody1);
-            testUtils.createResource("/v1/node-resources/", connectBody2);
-            testUtils.createResource("/v1/node-resources/", connectBody3);
+            testUtils.createResource("/v1/node-connections/", connectBody1);
+            testUtils.createResource("/v1/node-connections/", connectBody2);
+            testUtils.createResource("/v1/node-connections/", connectBody3);
         }
 
         var topic2 = nodeRepository.getByPublicId(URI.create("urn:topic:2"));

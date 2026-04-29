@@ -40,7 +40,7 @@ import java.net.URI
 class ResourceTypes(
     private val resourceTypeRepository: ResourceTypeRepository,
     private val resourceTypeService: ResourceTypeService,
-) : BaseCrudController<ResourceType> {
+) {
 
     private val location: String by lazy { controllerLocation(javaClass) }
 
@@ -144,7 +144,7 @@ class ResourceTypes(
     @PreAuthorize("hasAuthority('TAXONOMY_WRITE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
-    override fun deleteEntity(@PathVariable("id") id: URI) {
+    fun deleteEntity(@PathVariable("id") id: URI) {
         val entity = resourceTypeRepository.getByPublicId(id)
         resourceTypeRepository.delete(entity)
         resourceTypeRepository.flush()
@@ -152,7 +152,7 @@ class ResourceTypes(
     }
 
     @Transactional
-    override fun createEntity(entity: ResourceType, command: UpdatableDto<ResourceType>): ResponseEntity<Unit> {
+    fun createEntity(entity: ResourceType, command: UpdatableDto<ResourceType>): ResponseEntity<Unit> {
         return try {
             validateAndAssignId(entity, command)
             command.apply(entity)
@@ -165,7 +165,7 @@ class ResourceTypes(
     }
 
     @Transactional
-    override fun updateEntity(id: URI, command: UpdatableDto<ResourceType>): ResourceType {
+    fun updateEntity(id: URI, command: UpdatableDto<ResourceType>): ResourceType {
         val entity = resourceTypeRepository.getByPublicId(id)
         validateUrn(id, entity)
         command.apply(entity)

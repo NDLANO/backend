@@ -203,8 +203,7 @@ public class NodeConnectionsTest extends RestTest {
             }
         });
 
-        MockHttpServletResponse response =
-                testUtils.getResource("/v1/subjects/" + subject.getPublicId() + "/topics?recursive=true");
+        var response = testUtils.getResource("/v1/nodes/" + subject.getPublicId() + "/nodes?recursive=true");
         TopicSubtopicDTO[] topics = testUtils.getObject(TopicSubtopicDTO[].class, response);
 
         assertEquals(electricity.getPublicId(), topics[0].id);
