@@ -306,7 +306,23 @@ class Nodes(
     @Transactional
     fun createNode(
         @Parameter(name = "connection", description = "The new node") @RequestBody command: NodePostPut,
-    ): ResponseEntity<Unit> = createEntity(Node(command.nodeType), command)
+    ): ResponseEntity<Unit> {
+        try {
+            val entity = Node(command.nodeType)
+            val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
+            validateAndAssignId(entity, command)
+            val oldGrade = entity.qualityEvaluationGrade
+            command.apply(entity)
+            nodeRepository.saveAndFlush(entity)
+            contextUpdaterService.updateContexts(entity)
+            if (locked) {
+                qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(entity, oldGrade, command)
+            }
+            return ResponseEntity.created(URI.create("$location/${entity.publicId}")).build()
+        } catch (e: DataIntegrityViolationException) {
+            handleDuplicateId(command)
+        }
+    }
 
     @PutMapping("/{id}")
     @Operation(
@@ -322,7 +338,15 @@ class Nodes(
         @RequestBody
         command: NodePostPut,
     ) {
-        updateEntity(id, command)
+        val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
+        val entity = nodeRepository.getByPublicId(id)
+        validateUrn(id, entity)
+        val oldGrade = entity.qualityEvaluationGrade
+        command.apply(entity)
+        contextUpdaterService.updateContexts(entity)
+        if (locked) {
+            qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(entity, oldGrade, command)
+        }
     }
 
     @PutMapping("/{id}/publish")
@@ -553,35 +577,5 @@ class Nodes(
         return MetadataDTO(result)
     }
 
-    @Transactional
-    fun createEntity(entity: Node, command: UpdatableDto<Node>): ResponseEntity<Unit> {
-        return try {
-            val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
-            validateAndAssignId(entity, command)
-            val oldGrade = entity.qualityEvaluationGrade
-            command.apply(entity)
-            nodeRepository.saveAndFlush(entity)
-            contextUpdaterService.updateContexts(entity)
-            if (locked) {
-                qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(entity, oldGrade, command)
-            }
-            ResponseEntity.created(URI.create("$location/${entity.publicId}")).build()
-        } catch (e: DataIntegrityViolationException) {
-            handleDuplicateId(command)
-        }
-    }
 
-    @Transactional
-    fun updateEntity(id: URI, command: UpdatableDto<Node>): Node {
-        val locked = qualityEvaluationService.lockQualityEvaluationIfNeeded(command)
-        val entity = nodeRepository.getByPublicId(id)
-        validateUrn(id, entity)
-        val oldGrade = entity.qualityEvaluationGrade
-        command.apply(entity)
-        contextUpdaterService.updateContexts(entity)
-        if (locked) {
-            qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(entity, oldGrade, command)
-        }
-        return entity
-    }
 }
