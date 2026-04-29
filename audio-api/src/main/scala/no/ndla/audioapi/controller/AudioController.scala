@@ -55,7 +55,9 @@ class AudioController(using
   private val language = query[Option[LanguageCode]]("language")
     .description("The ISO 639-1 language code describing language.")
     .default(Some(LanguageCode(Language.AllLanguages)))
-  private val license  = query[Option[String]]("license").description("Return only audio with provided license.")
+  private val license = query[Option[String]]("license").description(
+    "Return only audio with provided license. Specifying 'all' gives all audio regardless of license."
+  )
   private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
   private val pageSize = query[Option[Int]]("page-size").description(
     s"The number of search hits to display for each page. Defaults to ${props.DefaultPageSize} and max is ${props.MaxPageSize}."

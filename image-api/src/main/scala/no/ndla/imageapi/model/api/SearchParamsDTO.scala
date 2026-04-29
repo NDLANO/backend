@@ -18,7 +18,7 @@ import sttp.tapir.Schema.annotations.{deprecated, description}
 case class SearchParamsDTO(
     @description("Return only images with titles, alt-texts or tags matching the specified query.")
     query: Option[String],
-    @description("Return only images with provided license.")
+    @description("Return only images with provided license. Specifying 'all' gives all images regardless of license.")
     license: Option[String],
     @description("The ISO 639-1 language code describing language used in query-params")
     language: Option[LanguageCode],

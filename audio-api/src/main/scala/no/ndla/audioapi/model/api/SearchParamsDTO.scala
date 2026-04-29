@@ -18,7 +18,7 @@ import io.circe.{Decoder, Encoder}
 case class SearchParamsDTO(
     @description("Return only audio with titles, alt-texts or tags matching the specified query.")
     query: Option[String],
-    @description("Return only audio with provided license.")
+    @description("Return only audio with provided license. Specifying 'all' gives all audio regardless of license.")
     license: Option[String],
     @description("The ISO 639-1 language code describing language used in query-params")
     language: Option[LanguageCode],

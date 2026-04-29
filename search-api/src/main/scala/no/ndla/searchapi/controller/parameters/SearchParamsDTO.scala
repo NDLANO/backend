@@ -39,7 +39,7 @@ case class SearchParamsDTO(
     fallback: Option[Boolean],
     @description("The ISO 639-1 language code describing language.")
     language: Option[LanguageCode],
-    @description("Return only results with provided license.")
+    @description("Return only results with provided license. Specifying 'all' gives all results regardless of license.")
     license: Option[String],
     @description("The sorting used on results.")
     sort: Option[Sort],

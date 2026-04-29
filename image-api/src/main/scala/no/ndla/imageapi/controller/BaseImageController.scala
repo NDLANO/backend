@@ -39,8 +39,9 @@ trait BaseImageController(using props: Props) {
   val fallback: EndpointInput.Query[Boolean] = query[Boolean]("fallback")
     .description("Fallback to existing language if language is specified.")
     .default(false)
-  val license: EndpointInput.Query[Option[String]] =
-    query[Option[String]]("license").description("Return only images with provided license.")
+  val license: EndpointInput.Query[Option[String]] = query[Option[String]]("license").description(
+    "Return only images with provided license. Specifying 'all' gives all images regardless of license."
+  )
   val includeCopyrighted: EndpointInput.Query[Boolean] = query[Boolean]("includeCopyrighted")
     .description("Return copyrighted images. May be omitted.")
     .deprecated()

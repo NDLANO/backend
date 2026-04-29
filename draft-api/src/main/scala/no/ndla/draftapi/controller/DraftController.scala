@@ -86,7 +86,9 @@ class DraftController(using
     .default(LanguageCode(Language.AllLanguages))
   private val pathLanguage =
     path[LanguageCode]("language").description("The ISO 639-1 language code describing language.")
-  private val license  = query[Option[String]]("license").description("Return only results with provided license.")
+  private val license = query[Option[String]]("license").description(
+    "Return only results with provided license. Specifying 'all' gives all results regardless of license."
+  )
   private val fallback = query[Boolean]("fallback")
     .description("Fallback to existing language if language is specified.")
     .default(false)

@@ -18,7 +18,9 @@ case class ArticleSearchParamsDTO(
     query: Option[String],
     @description("The ISO 639-1 language code describing language used in query-params")
     language: Option[LanguageCode],
-    @description("Return only articles with provided license.")
+    @description(
+      "Return only articles with provided license. Specifying 'all' gives all articles regardless of license."
+    )
     license: Option[String],
     @description("The page number of the search hits to display.")
     page: Option[Int],
