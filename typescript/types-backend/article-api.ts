@@ -273,7 +273,7 @@ export type components = {
             query?: string;
             /** @description The ISO 639-1 language code describing language used in query-params */
             language?: string;
-            /** @description Return only articles with provided license. */
+            /** @description Return only articles with provided license. Specifying 'all' gives all articles regardless of license. */
             license?: string;
             /**
              * Format: int32

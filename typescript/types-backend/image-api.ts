@@ -688,7 +688,7 @@ export type components = {
         SearchParamsDTO: {
             /** @description Return only images with titles, alt-texts or tags matching the specified query. */
             query?: string;
-            /** @description Return only images with provided license. */
+            /** @description Return only images with provided license. Specifying 'all' gives all images regardless of license. */
             license?: string;
             /** @description The ISO 639-1 language code describing language used in query-params */
             language?: string;
@@ -937,7 +937,7 @@ export interface operations {
                 language?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
-                /** @description Return only images with provided license. */
+                /** @description Return only images with provided license. Specifying 'all' gives all images regardless of license. */
                 license?: string;
                 /**
                  * @description The sorting used on results.
@@ -1510,7 +1510,7 @@ export interface operations {
                 language?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
-                /** @description Return only images with provided license. */
+                /** @description Return only images with provided license. Specifying 'all' gives all images regardless of license. */
                 license?: string;
                 /**
                  * @deprecated

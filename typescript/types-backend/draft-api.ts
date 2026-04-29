@@ -697,7 +697,7 @@ export type components = {
             query?: string;
             /** @description The ISO 639-1 language code describing language used in query-params */
             language?: string;
-            /** @description Return only articles with provided license. */
+            /** @description Return only articles with provided license. Specifying 'all' gives all articles regardless of license. */
             license?: string;
             /**
              * Format: int32
@@ -1634,7 +1634,7 @@ export interface operations {
                 ids?: number[];
                 /** @description The ISO 639-1 language code describing language. */
                 language?: string;
-                /** @description Return only results with provided license. */
+                /** @description Return only results with provided license. Specifying 'all' gives all results regardless of license. */
                 license?: string;
                 /** @description The page number of the search hits to display. */
                 page?: number;

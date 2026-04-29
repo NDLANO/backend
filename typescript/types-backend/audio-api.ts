@@ -628,7 +628,7 @@ export type components = {
         SearchParamsDTO: {
             /** @description Return only audio with titles, alt-texts or tags matching the specified query. */
             query?: string;
-            /** @description Return only audio with provided license. */
+            /** @description Return only audio with provided license. Specifying 'all' gives all audio regardless of license. */
             license?: string;
             /** @description The ISO 639-1 language code describing language used in query-params */
             language?: string;
@@ -914,7 +914,7 @@ export interface operations {
                 query?: string;
                 /** @description The ISO 639-1 language code describing language. */
                 language?: string;
-                /** @description Return only audio with provided license. */
+                /** @description Return only audio with provided license. Specifying 'all' gives all audio regardless of license. */
                 license?: string;
                 /**
                  * @description The sorting used on results.

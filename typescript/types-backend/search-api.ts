@@ -224,7 +224,7 @@ export type components = {
             ids?: number[];
             /** @description Return only resources of specific type(s). */
             resourceTypes?: string[];
-            /** @description Return only results with provided license. */
+            /** @description Return only results with provided license. Specifying 'all' gives all results regardless of license. */
             license?: string;
             /** @description Return only results with content matching the specified query. */
             query?: string;
@@ -855,7 +855,7 @@ export type components = {
             fallback?: boolean;
             /** @description The ISO 639-1 language code describing language. */
             language?: string;
-            /** @description Return only results with provided license. */
+            /** @description Return only results with provided license. Specifying 'all' gives all results regardless of license. */
             license?: string;
             sort?: components["schemas"]["Sort"];
             /** @description Return only learning resources that have one of the provided ids. */
