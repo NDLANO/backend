@@ -38,8 +38,4 @@ public class HashUtil {
     public static String fullHash(Object original) {
         return generateHash(original, 0);
     }
-
-    static String kotlinSmoke() {
-        return KotlinInterop.greet("hash");
-    }
 }
