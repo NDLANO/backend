@@ -898,4 +898,40 @@
         </update>
     </changeSet>
 
+    <changeSet id="20260420 Sort resources according to resourcetype rank" author="Gunnar Velle">
+        <sql>
+            -- Add customfield for numbered resources for all old ungrouped.
+            update node n set customfields = n.customfields || '{"numbered":"true"}' where n.node_type = 'TOPIC' and n.customfields @> '{"topic-resources":"ungrouped"}';
+
+            -- Remove customfield.
+            update node n set customfields = n.customfields - 'topic-resources' where n.node_type = 'TOPIC';
+
+            -- Use new numbered customfield to set order for all resources.
+            -- Rerank node_connections based on resource_type order for TOPIC parents with numbered not set
+            UPDATE node_connection nc
+            SET rank = ranked.new_rank
+            FROM (
+                SELECT
+                    nc_inner.id as connection_id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY nc_inner.parent_id
+                        ORDER BY
+                            COALESCE(MIN(rt.order), 999),
+                            nc_inner.rank NULLS LAST,
+                            nc_inner.id
+                    ) - 1 as new_rank
+                FROM node_connection nc_inner
+                INNER JOIN node parent ON parent.id = nc_inner.parent_id
+                INNER JOIN node child ON child.id = nc_inner.child_id
+                LEFT JOIN resource_resource_type rrt ON rrt.resource_id = nc_inner.child_id
+                LEFT JOIN resource_type rt ON rt.id = rrt.resource_type_id
+                WHERE parent.node_type = 'TOPIC'
+                AND child.node_type = 'RESOURCE'
+                  AND NOT (parent.customfields @> '{"numbered":"true"}')
+                GROUP BY nc_inner.id, nc_inner.parent_id, nc_inner.rank
+            ) ranked
+            WHERE nc.id = ranked.connection_id;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
