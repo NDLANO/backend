@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController
 @Deprecated("Use /v1/node-resources")
 class TopicResources {
 
-    @RequestMapping(value = ["", "/**"])
-    fun redirect(request: HttpServletRequest): ResponseEntity<Unit> {
-        val rest = request.requestURI.substringAfter("/v1/topic-resources").trimStart('/')
-        val path = if (rest.isEmpty()) "/v1/node-resources" else "/v1/node-resources/$rest"
-        return permanentRedirect(path, request.queryString)
-    }
+  @RequestMapping(value = ["", "/**"])
+  fun redirect(request: HttpServletRequest): ResponseEntity<Unit> {
+    val rest = request.requestURI.substringAfter("/v1/topic-resources").trimStart('/')
+    val path = if (rest.isEmpty()) "/v1/node-resources" else "/v1/node-resources/$rest"
+    return permanentRedirect(path, request.queryString)
+  }
 }
