@@ -69,10 +69,7 @@ trait JavaBaseModule extends KotlinMavenModule, AutoEnvLoading, OpenAPITSPlugin,
   }
 
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-    super.mandatoryMvnDeps() ++ Seq(
-      mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}",
-      mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}",
-    )
+    super.mandatoryMvnDeps() ++ Seq(mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}")
   }
 
   // Mill's `resolvedMvnDeps` uses Maven `compile` scope, which drops transitive deps
