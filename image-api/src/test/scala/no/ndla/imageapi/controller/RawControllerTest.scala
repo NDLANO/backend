@@ -296,4 +296,17 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     res.code.code should be(200)
     res.body should be(TestData.ndlaLogoImageS3Object.stream.readAllBytes())
   }
+
+  test("that GET /image.jpeg?download | /id/1?download sets Content-Disposition") {
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
+    val res1 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/image.jpg?download"))
+
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
+    val res2 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/1?download"))
+
+    res1.code.code should be(200)
+    res2.code.code should be(200)
+    res1.headers.find(_.is("content-disposition")).get.value should be("attachment")
+    res2.headers.find(_.is("content-disposition")).get.value should be("attachment")
+  }
 }

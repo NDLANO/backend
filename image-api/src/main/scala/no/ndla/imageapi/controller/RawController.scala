@@ -76,12 +76,18 @@ class RawController(using
     .serverLogicPure { (fileName, variantName) =>
       imageStorage
         .getRaw(s"$fileName/$variantName")
-        .map(s3Object => ImageResponse(s3Object.stream, s3Object.contentType, s3Object.contentLength.toString))
+        .map(s3Object => ImageResponse(s3Object.stream, s3Object.contentType, s3Object.contentLength.toString, None))
     }
 
   private def getImageResponse(fileName: String, imageParams: ImageParams): Try[ImageResponse] =
     getRawImage(fileName, imageParams).map { imageStream =>
-      ImageResponse(imageStream.stream, imageStream.contentType.toString, imageStream.contentLength.toString)
+      val contentDisposition = imageParams.download.map(_ => "attachment")
+      ImageResponse(
+        imageStream.stream,
+        imageStream.contentType.toString,
+        imageStream.contentLength.toString,
+        contentDisposition,
+      )
     }
 
   private def getRawImage(imageName: String, imageParams: ImageParams): Try[ImageStream] = {
