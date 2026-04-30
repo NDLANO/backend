@@ -1,9 +1,15 @@
 [
   {
-    "includes": ["glob:**.java"],
+    "includes": [
+      "glob:**.java"
+    ],
     "steps": [
-      { "$type": "TrimTrailingWhitespace" },
-      { "$type": "RemoveUnusedImports" },
+      {
+        "$type": "TrimTrailingWhitespace"
+      },
+      {
+        "$type": "RemoveUnusedImports"
+      },
       {
         "$type": "CleanthatJava",
         "sourceJdkVersion": "25",
@@ -14,7 +20,27 @@
           "LiteralsFirstInComparisons"
         ]
       },
-      { "$type": "PalantirJavaFormat", "version": "2.90.0" },
+      {
+        "$type": "PalantirJavaFormat",
+        "version": "2.90.0"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) ",
+        "header": {
+          "content": "/*\n * Part of NDLA taxonomy-api\n * Copyright (C) $YEAR NDLA\n *\n * See LICENSE\n */\n\n"
+        }
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.{kt,kts}"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
       {
         "$type": "LicenseHeader",
         "delimiter": "(package|import|public|class|module) ",
