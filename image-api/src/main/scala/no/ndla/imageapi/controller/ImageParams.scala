@@ -47,9 +47,14 @@ case class ImageParams(
   ratio: Option[Double],
   @query
   @description("The wanted aspect ratio, defined as width/height. To be used together with the focal parameters. If used the width and height is ignored and derived from the aspect ratio instead.")
-  language: Option[String]
-)
+  language: Option[String],
+  @query
+  @description("Whether the image should be downloaded or not. Only the presence of this parameter is needed.")
+  download: Option[String],
 // format: on
+) {
+  def isEmpty: Boolean = this == ImageParams.empty
+}
 
 object ImageParams {
   def empty: ImageParams = ImageParams(
@@ -65,5 +70,6 @@ object ImageParams {
     focalY = None,
     ratio = None,
     language = None,
+    download = None,
   )
 }

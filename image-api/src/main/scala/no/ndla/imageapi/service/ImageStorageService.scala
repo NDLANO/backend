@@ -52,6 +52,8 @@ class ImageStorageService(using
 
   def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)
 
+  def getUrl(bucketKey: String): Try[String] = s3Client.getUrl(bucketKey)
+
   def uploadFromStream(
       storageKey: String,
       stream: InputStream,

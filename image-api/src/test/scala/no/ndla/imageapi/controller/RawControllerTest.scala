@@ -48,18 +48,10 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     when(clock.now()).thenCallRealMethod()
   }
 
-  test("That GET /image.jpg returns 200 if image was found") {
-    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName"))
-    res.code.code should be(200)
-
-    val image = ImageIO.read(new ByteArrayInputStream(res.body))
-    image.getWidth should equal(189)
-    image.getHeight should equal(60)
-  }
-
-  test("That GET /image.jpg returns 404 if image was not found") {
+  test("That GET /image.jpg with image params returns 404 if image was not found") {
     when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
-    val res = simpleHttpClient.send[Array[Byte]](req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName"))
+    val res =
+      simpleHttpClient.send[Array[Byte]](req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?width=100"))
     res.code.code should be(404)
   }
 
@@ -109,17 +101,9 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     image.getHeight should equal(15)
   }
 
-  test("GET /id/1 returns 200 if the image was found") {
-    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id"))
-    res.code.code should be(200)
-    val image = ImageIO.read(new ByteArrayInputStream(res.body))
-    image.getWidth should equal(189)
-    image.getHeight should equal(60)
-  }
-
-  test("That GET /id/1 returns 404 if image was not found") {
+  test("That GET /id/1 with image params returns 404 if image was not found") {
     when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
-    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id"))
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?width=100"))
     res.code.code should be(404)
   }
 
@@ -271,8 +255,47 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   test("that image is found by filename with non-ASCII characters") {
     val fileNameWithNonAsciiChars = "file æøå.svg"
     when(imageStorage.get(eqTo(fileNameWithNonAsciiChars))).thenReturn(Success(ccLogoSvgImageStream))
-    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$fileNameWithNonAsciiChars"))
+    val res = simpleHttpClient.send(
+      req.get(uri"http://localhost:$serverPort/image-api/raw/$fileNameWithNonAsciiChars?width=420")
+    )
     res.code.code should equal(200)
     res.body should equal(ccLogoSvgImageStream.stream.readAllBytes())
+  }
+
+  test("that GET /image.jpg without image params returns a redirect") {
+    val s3Url = "https://s3.eu-west-1.amazonaws.com/test.images.2.ndla/image.jpg"
+    when(imageStorage.getUrl(eqTo("image.jpg"))).thenReturn(Success(s3Url))
+
+    val res =
+      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/image.jpg").followRedirects(false))
+
+    res.code.code should be(302)
+    val location = res.headers.find(_.is("location")).get
+    location.value should be(s3Url)
+  }
+
+  test("that GET /id/1 without image params returns a redirect") {
+    val s3Url = s"https://s3.eu-west-1.amazonaws.com/test.images.2.ndla/${TestData.bjorn.images.head.fileName}"
+    when(imageStorage.getUrl(any)).thenReturn(Success(s3Url))
+
+    val res =
+      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/image.jpg").followRedirects(false))
+
+    res.code.code should be(302)
+    val location = res.headers.find(_.is("location")).get
+    location.value should be(s3Url)
+  }
+
+  test("that GET /image.jpeg?download | /id/1?download sets Content-Disposition") {
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
+    val res1 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/image.jpg?download"))
+
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
+    val res2 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/1?download"))
+
+    res1.code.code should be(200)
+    res2.code.code should be(200)
+    res1.headers.find(_.is("content-disposition")).get.value should be("attachment")
+    res2.headers.find(_.is("content-disposition")).get.value should be("attachment")
   }
 }

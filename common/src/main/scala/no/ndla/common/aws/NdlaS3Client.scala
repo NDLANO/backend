@@ -62,6 +62,11 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
       }
   }
 
+  def getUrl(key: String): Try[String] = Try {
+    val gur = GetUrlRequest.builder().bucket(bucket).key(key).build()
+    client.utilities().getUrl(gur).toString
+  }
+
   def deleteObject(key: String): Try[DeleteObjectResponse] = Try.throwIfInterrupted {
     val dor = DeleteObjectRequest.builder().key(key).bucket(bucket).build()
     client.deleteObject(dor)
