@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import java.net.URI
-import java.util.concurrent.atomic.AtomicInteger
 import no.ndla.taxonomy.domain.NodeConnectionType
 import no.ndla.taxonomy.domain.Relevance
 import no.ndla.taxonomy.domain.exceptions.NotFoundException
@@ -55,14 +54,11 @@ class NodeConnections(
   @Transactional(readOnly = true)
   fun getAllNodeConnections(): List<NodeConnectionDTO> {
     val ids = nodeConnectionRepository.findAllIds()
-    val counter = AtomicInteger()
     val toReturn = mutableListOf<NodeConnectionDTO>()
-    ids.groupBy { counter.getAndIncrement() / 1000 }
-        .values
-        .forEach { idChunk ->
-          val connections = nodeConnectionRepository.findByIds(idChunk)
-          toReturn.addAll(connections.map { NodeConnectionDTO(it) })
-        }
+    ids.chunked(1000).forEach { idChunk ->
+      val connections = nodeConnectionRepository.findByIds(idChunk)
+      toReturn.addAll(connections.map { NodeConnectionDTO(it) })
+    }
     return toReturn
   }
 
