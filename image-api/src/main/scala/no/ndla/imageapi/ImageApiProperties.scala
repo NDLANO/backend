@@ -34,8 +34,9 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val ValidMimeTypes: Seq[ImageContentType] = ImageContentType.values
 
-  val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching
-  val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
+  val IsoMappingCacheAgeInMs: Int       = 1000 * 60 * 60 // 1 hour caching
+  val LicenseMappingCacheAgeInMs: Int   = 1000 * 60 * 60 // 1 hour caching
+  val RawControllerCacheControl: String = "max-age=31536000, stale-while-revalidate=86400, stale-if-error=86400"
 
   val MaxImageFileSizeBytes: Int    = 1024 * 1024 * 40 // 40 MiB
   val ImageScalingUltraMinSize: Int = propOrElse("IMAGE_SCALING_ULTRA_MIN_SIZE", "640").toInt

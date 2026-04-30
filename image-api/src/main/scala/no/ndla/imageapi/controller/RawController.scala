@@ -10,15 +10,15 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.errors.{MissingBucketKeyException, ValidationException, ValidationMessage}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ImageStream, ProcessableImage}
 import no.ndla.imageapi.service.*
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.*
+import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
-import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 class RawController(using
@@ -28,6 +28,7 @@ class RawController(using
     errorHandling: ErrorHandling,
     readService: ReadService,
     myNDLAApiClient: MyNDLAApiClient,
+    props: Props,
 ) extends TapirController {
   import errorHandling.*
   import errorHelpers.*
@@ -37,14 +38,6 @@ class RawController(using
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getImageFileById, getImageFile)
 
-  private def toImageResponse(image: ImageStream): Either[AllErrors, (DynamicHeaders, InputStream)] = {
-    val headers = DynamicHeaders.fromValues(
-      "Content-Type"   -> image.contentType.toString,
-      "Content-Length" -> image.contentLength.toString,
-    )
-    Right(headers -> image.stream)
-  }
-
   def getImageFile: ServerEndpoint[Any, Eff] = endpoint
     .get
     .summary("Fetch an image with options to resize and crop")
@@ -52,14 +45,8 @@ class RawController(using
     .in(path[String]("image_name").description("The name of the image"))
     .in(EndpointInput.derived[ImageParams])
     .errorOut(errorOutputsFor(404))
-    .out(EndpointOutput.derived[DynamicHeaders])
-    .out(inputStreamBody)
-    .serverLogicPure { case (filePath, imageParams) =>
-      getRawImage(filePath, imageParams) match {
-        case Failure(ex)  => returnLeftError(ex)
-        case Success(img) => toImageResponse(img)
-      }
-    }
+    .out(ImageResponse.endpointOutput)
+    .serverLogicPure(getImageResponse)
 
   def getImageFileById: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -68,17 +55,18 @@ class RawController(using
     .in("id" / path[Long]("image_id").description("The ID of the image"))
     .in(EndpointInput.derived[ImageParams])
     .errorOut(errorOutputsFor(404))
-    .out(EndpointOutput.derived[DynamicHeaders])
-    .out(inputStreamBody)
+    .out(ImageResponse.endpointOutput)
     .serverLogicPure { case (imageId, imageParams) =>
       readService.getImageFileName(imageId, imageParams.language) match {
-        case Success(Some(fileName)) => getRawImage(fileName, imageParams) match {
-            case Failure(ex)  => returnLeftError(ex)
-            case Success(img) => toImageResponse(img)
-          }
-        case Success(None) => notFoundWithMsg(s"Image with id $imageId not found").asLeft
-        case Failure(ex)   => returnLeftError(ex)
+        case Success(Some(fileName)) => getImageResponse(fileName, imageParams)
+        case Success(None)           => notFoundWithMsg(s"Image with id $imageId not found").asLeft
+        case Failure(ex)             => returnLeftError(ex)
       }
+    }
+
+  private def getImageResponse(fileName: String, imageParams: ImageParams): Try[ImageResponse] =
+    getRawImage(fileName, imageParams).map { imageStream =>
+      ImageResponse(imageStream.stream, imageStream.contentType.toString, imageStream.contentLength.toString)
     }
 
   private def getRawImage(imageName: String, imageParams: ImageParams): Try[ImageStream] = {
