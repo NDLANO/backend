@@ -53,7 +53,8 @@ public class PrettyUrlUtil {
             case SUBJECT -> "/f";
             case TOPIC, CASE -> "/e";
             case RESOURCE -> "/r";
-            default -> "";
+            case PROGRAMME -> "/utdanning";
+            case NODE -> "";
         };
     }
 
