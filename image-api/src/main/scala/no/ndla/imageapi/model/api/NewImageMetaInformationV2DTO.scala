@@ -11,6 +11,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.CopyrightDTO
+import no.ndla.common.model.domain.AiGenerated
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -22,7 +23,8 @@ case class NewImageMetaInformationV2DTO(
     @description("Searchable tags for the image") tags: Seq[String],
     @description("Caption for the image") caption: String,
     @description("ISO 639-1 code that represents the language used in the caption") language: String,
-    @description("Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no'") modelReleased: Option[String]
+    @description("Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no'") modelReleased: Option[String],
+    @description("Describes whether the image is AI generated") aiGenerated: AiGenerated,
 )
 
 object NewImageMetaInformationV2DTO{

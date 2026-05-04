@@ -9,6 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -41,6 +42,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val WantingImageMetaInformation = new ImageMetaInformation(
@@ -58,6 +60,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val MultiLangImage = new ImageMetaInformation(
@@ -75,6 +78,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
