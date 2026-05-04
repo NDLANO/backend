@@ -927,7 +927,7 @@
                 LEFT JOIN resource_type rt ON rt.id = rrt.resource_type_id
                 WHERE parent.node_type = 'TOPIC'
                 AND child.node_type = 'RESOURCE'
-                  AND NOT (parent.customfields @> '{"numbered":"true"}')
+                  AND NOT (COALESCE(parent.customfields, '{}'::jsonb) @> '{"numbered":"true"}')
                 GROUP BY nc_inner.id, nc_inner.parent_id, nc_inner.rank
             ) ranked
             WHERE nc.id = ranked.connection_id;
