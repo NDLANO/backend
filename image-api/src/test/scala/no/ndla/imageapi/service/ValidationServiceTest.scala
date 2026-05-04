@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, ContributorType, Tag, UploadedFile}
+import no.ndla.common.model.domain.{AiGenerated, Author, ContributorType, Tag, UploadedFile}
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -57,6 +57,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   override def beforeEach(): Unit = {

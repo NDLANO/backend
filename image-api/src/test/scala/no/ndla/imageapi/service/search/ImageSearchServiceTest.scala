@@ -12,7 +12,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, ContributorType, Tag}
+import no.ndla.common.model.domain.{AiGenerated, Author, ContributorType, Tag}
 import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -154,6 +154,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.NO,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.Yes,
   )
 
   val image2 = new ImageMetaInformation(
@@ -171,6 +172,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
     editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper")),
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val image3 = new ImageMetaInformation(
@@ -188,6 +190,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.Partial,
   )
 
   val image4 = new ImageMetaInformation(
@@ -205,6 +208,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val image5 = new ImageMetaInformation(
@@ -226,6 +230,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.Yes,
   )
 
   val image6 = new ImageMetaInformation(
@@ -247,6 +252,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = true,
+    aiGenerated = AiGenerated.No,
   )
 
   val image7 = new ImageMetaInformation(
@@ -264,6 +270,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val image8 = new ImageMetaInformation(
@@ -281,6 +288,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.Partial,
   )
 
   val image9 = new ImageMetaInformation(
@@ -298,6 +306,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   val image10 = new ImageMetaInformation(
@@ -315,6 +324,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   override def beforeAll(): Unit = {

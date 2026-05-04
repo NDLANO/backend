@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{AiGenerated, Tag}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.api.{
   ImageMetaSummaryDTO,
@@ -85,7 +85,8 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       |    "lel"
       |  ],
       |  "caption": "captionheredude",
-      |  "language": "no"
+      |  "language": "no",
+      |  "aiGenerated": "no"
       |}
     """.stripMargin
 
@@ -260,6 +261,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       modelReleased = ModelReleasedStatus.YES,
       editorNotes = Seq.empty,
       inactive = false,
+      aiGenerated = AiGenerated.No,
     )
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2DTO], any, any)).thenReturn(Success(sampleImageMeta))

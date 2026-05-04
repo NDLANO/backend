@@ -11,7 +11,7 @@ package no.ndla.imageapi.controller
 import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
-import no.ndla.common.model.domain.{Author, ContributorType}
+import no.ndla.common.model.domain.{AiGenerated, Author, ContributorType}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain.{
   ImageAltText,
@@ -70,6 +70,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     ModelReleasedStatus.NOT_APPLICABLE,
     Seq.empty,
     false,
+    AiGenerated.No,
   )
 
   test("that /health/readiness returns 200 on success") {
