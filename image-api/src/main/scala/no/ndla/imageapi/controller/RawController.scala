@@ -36,19 +36,10 @@ class RawController(using
   override val prefix: EndpointInput[Unit] = "image-api" / serviceName
   override val enableSwagger: Boolean      = true
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getImageFileById, getImageFile)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getImageById, getImageByFileName, getImageVariantByFileName)
 
-  def getImageFile: ServerEndpoint[Any, Eff] = endpoint
-    .get
-    .summary("Fetch an image with options to resize and crop")
-    .description("Fetches a image with options to resize and crop")
-    .in(path[String]("image_name").description("The name of the image"))
-    .in(EndpointInput.derived[ImageParams])
-    .errorOut(errorOutputsFor(404))
-    .out(ImageResponse.endpointOutput)
-    .serverLogicPure(getImageResponse)
-
-  def getImageFileById: ServerEndpoint[Any, Eff] = endpoint
+  def getImageById: ServerEndpoint[Any, Eff] = endpoint
     .get
     .summary("Fetch an image with options to resize and crop")
     .description("Fetches a image with options to resize and crop")
@@ -62,6 +53,30 @@ class RawController(using
         case Success(None)           => notFoundWithMsg(s"Image with id $imageId not found").asLeft
         case Failure(ex)             => returnLeftError(ex)
       }
+    }
+
+  def getImageByFileName: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch an image with options to resize and crop")
+    .description("Fetches a image with options to resize and crop")
+    .in(path[String]("image_name").description("The name of the image"))
+    .in(EndpointInput.derived[ImageParams])
+    .errorOut(errorOutputsFor(404))
+    .out(ImageResponse.endpointOutput)
+    .serverLogicPure(getImageResponse)
+
+  def getImageVariantByFileName: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch an image variant")
+    .description("Fetches a specific image variant size")
+    .in(path[String]("image_name").description("The name of the image (without file extension)").example("foobar"))
+    .in(path[String]("variant_size").description("Image variant size (with file extension)").example("medium.webp"))
+    .errorOut(errorOutputsFor(404))
+    .out(ImageResponse.endpointOutput)
+    .serverLogicPure { (fileName, variantName) =>
+      imageStorage
+        .getRaw(s"$fileName/$variantName")
+        .map(s3Object => ImageResponse(s3Object.stream, s3Object.contentType, s3Object.contentLength.toString))
     }
 
   private def getImageResponse(fileName: String, imageParams: ImageParams): Try[ImageResponse] =
