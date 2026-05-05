@@ -58,9 +58,9 @@ class NdlaClient {
         Success(response)
       } else {
         Failure(
-          new HttpRequestException(
+          HttpRequestException(
             s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
-            Some(response),
+            response,
           )
         )
       }
@@ -78,7 +78,7 @@ class NdlaClient {
             s"'${response.body.substring(0, 1000)}'... (Cut off)"
           else response.body
 
-        val newEx = new HttpRequestException(s"Could not parse response with body: $errBody", Some(response))
+        val newEx = HttpRequestException(s"Could not parse response with body: $errBody", response)
         Failure(newEx.initCause(err))
     }
   }

@@ -84,9 +84,9 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
   private def addLearningPathResourceType(resourceId: String, user: Option[TokenUser]): Try[String] = {
     val resourceType = ResourceResourceType(resourceId = resourceId, resourceTypeId = LearningPathResourceTypeId)
     postRaw[ResourceResourceType](s"$TaxonomyApiEndpoint/resource-resourcetypes", resourceType, user) match {
-      case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) => Success(resourceId)
-      case Failure(ex)                                                              => Failure(ex)
-      case Success(_)                                                               => Success(resourceId)
+      case Failure(ex: HttpRequestException) if ex.httpResponse.isSuccess => Success(resourceId)
+      case Failure(ex)                                                    => Failure(ex)
+      case Success(_)                                                     => Success(resourceId)
     }
   }
 
@@ -108,8 +108,8 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
           case _                                               => Failure(TaxonomyUpdateException("Could not get location after inserting resource"))
         }
 
-      case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
-        ex.httpResponse.flatMap(_.header("location")) match {
+      case Failure(ex: HttpRequestException) if ex.httpResponse.isSuccess =>
+        ex.httpResponse.header("location") match {
           case Some(locationHeader) if locationHeader.nonEmpty => Success(locationHeader)
           case _                                               => Failure(ex)
         }
@@ -203,9 +203,9 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
 
   def updateNode(node: Node, user: Option[TokenUser]): Try[Node] = {
     put[String, Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user) match {
-      case Success(_)                                                               => Success(node)
-      case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) => Success(node)
-      case Failure(ex)                                                              => Failure(ex)
+      case Success(_)                                                     => Success(node)
+      case Failure(ex: HttpRequestException) if ex.httpResponse.isSuccess => Success(node)
+      case Failure(ex)                                                    => Failure(ex)
     }
   }
 

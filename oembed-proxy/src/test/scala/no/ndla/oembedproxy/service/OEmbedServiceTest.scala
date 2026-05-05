@@ -15,6 +15,8 @@ import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.TryValues.*
+import sttp.client3.Response
+import sttp.model.StatusCode
 
 import scala.util.{Failure, Success}
 
@@ -66,7 +68,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
 
   test("That get returns a failure with HttpRequestException when receiving http error") {
     when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(
-      Failure(new HttpRequestException("An error occured"))
+      Failure(HttpRequestException("An error occured", Response("", StatusCode.InternalServerError)))
     )
     val oembedTry = oEmbedService.get("https://www.youtube.com/abc", None, None)
     oembedTry.isFailure should be(true)
