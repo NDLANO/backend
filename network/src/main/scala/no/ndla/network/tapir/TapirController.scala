@@ -12,6 +12,7 @@ import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.SchemaImplicits
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.{
@@ -95,25 +96,39 @@ abstract class TapirController(using
     }
   }
 
-  private implicit val userinfoCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
+  private implicit val feideUserWrapperCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
     .string
     .mapDecode(decodeFeideUserWrapper)(encodeFeideUserWrapper)
-  private val feideHeaderCodec                                                    = implicitly[Codec[List[String], Option[FeideUserWrapper], CodecFormat.TextPlain]]
-  private val authCodec: Codec[List[String], Option[FeideUserWrapper], TextPlain] = Codec
+  private val feideHeaderCodec                                                 = implicitly[Codec[List[String], FeideUserWrapper, CodecFormat.TextPlain]]
+  private val baseFeideAuthCodec: Codec[List[String], List[String], TextPlain] = Codec
     .id[List[String], CodecFormat.TextPlain](feideHeaderCodec.format, Schema.binary)
     .map(filterHeaders)(identity)
     .map(stringPrefixWithSpace)
+
+  private val feideRequiredAuthCodec = baseFeideAuthCodec
     .mapDecode(feideHeaderCodec.decode)(feideHeaderCodec.encode)
     .schema(feideHeaderCodec.schema)
 
-  private val feideWrapperAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.OAuth2] = {
-    EndpointInput.Auth(
-      input = sttp.tapir.header("FeideAuthorization")(using authCodec),
-      challenge = WWWAuthenticateChallenge.bearer,
-      authType = EndpointInput.AuthType.OAuth2(None, None, ListMap.empty, None),
-      info = AuthInfo.Empty.securitySchemeName("oauth2"),
-    )
-  }
+  private val feideOptionalAuthCodec: Codec[List[String], Option[FeideUserWrapper], TextPlain] = baseFeideAuthCodec
+    .mapDecode {
+      feideHeaderCodec.decode(_) match {
+
+        case DecodeResult.Value(v)                           => DecodeResult.Value(Some(v))
+        case DecodeResult.Error(v, _: AccessDeniedException) => DecodeResult.Value(None)
+        case f: DecodeResult.Failure                         => f
+      }
+    } {
+      case Some(v) => feideHeaderCodec.encode(v)
+      case None    => List.empty
+    }
+
+  private val feideRequiredAuth: EndpointInput.Auth[FeideUserWrapper, AuthType.Http] = TapirAuth
+    .bearer[FeideUserWrapper]()
+    .copy(input = header("FeideAuthorization")(using feideRequiredAuthCodec))
+
+  private val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = TapirAuth
+    .bearer[Option[FeideUserWrapper]]()
+    .copy(input = header("FeideAuthorization")(using feideOptionalAuthCodec))
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
     private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
@@ -133,18 +148,19 @@ abstract class TapirController(using
 
     def withFeideUser[F[_]]
         : PartialServerEndpoint[Option[FeideUserWrapper], FeideUserWrapper, I, AllErrors, O, R, F] = {
-      val newEndpoint                                                               = self.securityIn(feideWrapperAuth)
+      val newEndpoint                                                               = self.securityIn(feideRequiredAuth)
       val authFunc: Option[FeideUserWrapper] => Either[AllErrors, FeideUserWrapper] = {
         case Some(value) => value.asRight
         case None        => errorHelpers.unauthorized.asLeft
       }
       val securityLogic = (m: MonadError[F]) => (a: Option[FeideUserWrapper]) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
+//      PartialServerEndpoint(newEndpoint, securityLogic)
+      self.securityIn(feideRequiredAuth).serverSecurityLogicPure()
     }
 
     def withOptionalFeideUser[F[_]]
         : PartialServerEndpoint[Option[FeideUserWrapper], Option[FeideUserWrapper], I, AllErrors, O, R, F] = {
-      val newEndpoint                                                                       = self.securityIn(feideWrapperAuth)
+      val newEndpoint                                                                       = self.securityIn(feideOptionalAuth)
       val authFunc: Option[FeideUserWrapper] => Either[AllErrors, Option[FeideUserWrapper]] = {
         case None     => None.asRight
         case someUser => someUser.asRight
