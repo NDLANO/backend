@@ -32,9 +32,14 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
     learningPathRepository.allPublishedContributors.map(author => commonApi.AuthorDTO(author.`type`, author.name))
   }
 
-  def withOwnerV2(user: CombinedUserRequired, language: String, fallback: Boolean): List[LearningPathV2DTO] = {
+  def withOwnerV2(
+      user: CombinedUserRequired,
+      sort: Sort,
+      language: FeideID,
+      fallback: Boolean,
+  ): List[LearningPathV2DTO] = {
     learningPathRepository
-      .withOwner(user.id)
+      .withOwner(user.id, sort)
       .flatMap(value => converterService.asApiLearningpathV2(value, language, fallback, user).toOption)
   }
 
