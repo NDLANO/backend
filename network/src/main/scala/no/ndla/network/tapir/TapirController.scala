@@ -12,31 +12,22 @@ import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.SchemaImplicits
+import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAProvider
-import no.ndla.network.model.{
-  CombinedUser,
-  CombinedUserRequired,
-  CombinedUserWithBoth,
-  CombinedUserWithMyNDLAUser,
-  FeideUserWrapper,
-  HttpRequestException,
-  OptionalCombinedUser,
-}
+import no.ndla.network.model.*
+import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.*
-import sttp.tapir.server.{PartialServerEndpoint, ServerEndpoint}
-import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
-import no.ndla.network.tapir.auth.TokenUser.{filterHeaders, stringPrefixWithSpace}
-import sttp.model.headers.WWWAuthenticateChallenge
 import sttp.tapir.CodecFormat.TextPlain
-import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
+import sttp.tapir.EndpointInput.AuthType
+import sttp.tapir.server.{PartialServerEndpoint, ServerEndpoint}
 
-import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success}
 
 abstract class TapirController(using
@@ -90,29 +81,30 @@ abstract class TapirController(using
   private def encodeFeideUserWrapper(user: FeideUserWrapper): String            = user.token
   private def decodeFeideUserWrapper(s: String): DecodeResult[FeideUserWrapper] = {
     myNDLAApiClient.getDomainUser(s) match {
-      case Failure(ex)   => DecodeResult.Error(s, ex)
-      case Success(user) => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
+      case Success(user)                     => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
+      case Failure(_: AccessDeniedException) => DecodeResult.Value(FeideUserWrapper(s, None))
+      case Failure(ex)                       =>
+        logger.warn("Unforeseen error when fetching user during auth", ex)
+        DecodeResult.Value(FeideUserWrapper(s, None))
     }
   }
 
-  private implicit val userinfoCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
+  private implicit val feideUserWrapperCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
     .string
     .mapDecode(decodeFeideUserWrapper)(encodeFeideUserWrapper)
-  private val feideHeaderCodec                                                    = implicitly[Codec[List[String], Option[FeideUserWrapper], CodecFormat.TextPlain]]
-  private val authCodec: Codec[List[String], Option[FeideUserWrapper], TextPlain] = Codec
-    .id[List[String], CodecFormat.TextPlain](feideHeaderCodec.format, Schema.binary)
-    .map(filterHeaders)(identity)
-    .map(stringPrefixWithSpace)
-    .mapDecode(feideHeaderCodec.decode)(feideHeaderCodec.encode)
-    .schema(feideHeaderCodec.schema)
+  private val feideRequiredHeaderCodec = implicitly[Codec[List[String], FeideUserWrapper, TextPlain]]
+  private val feideOptionalHeaderCodec = implicitly[Codec[List[String], Option[FeideUserWrapper], TextPlain]]
 
-  private val feideWrapperAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.OAuth2] = {
-    EndpointInput.Auth(
-      input = sttp.tapir.header("FeideAuthorization")(using authCodec),
-      challenge = WWWAuthenticateChallenge.bearer,
-      authType = EndpointInput.AuthType.OAuth2(None, None, ListMap.empty, None),
-      info = AuthInfo.Empty.securitySchemeName("oauth2"),
-    )
+  private val feideRequiredAuth: EndpointInput.Auth[FeideUserWrapper, AuthType.Http] = {
+    val x = TapirAuth.bearer[FeideUserWrapper]()(using feideRequiredHeaderCodec)
+    // TODO: er dette støgt?
+    x.copy(input = x.input.asInstanceOf[EndpointIO.Header[FeideUserWrapper]].copy(name = "FeideAuthorization"))
+  }
+
+  private val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = {
+    val x = TapirAuth.bearer[Option[FeideUserWrapper]]()(using feideOptionalHeaderCodec)
+    // TODO: er dette støgt?
+    x.copy(input = x.input.asInstanceOf[EndpointIO.Header[Option[FeideUserWrapper]]].copy(name = "FeideAuthorization"))
   }
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
@@ -131,92 +123,59 @@ abstract class TapirController(using
       PartialServerEndpoint(newEndpoint, securityLogic)
     }
 
-    def withFeideUser[F[_]]
-        : PartialServerEndpoint[Option[FeideUserWrapper], FeideUserWrapper, I, AllErrors, O, R, F] = {
-      val newEndpoint                                                               = self.securityIn(feideWrapperAuth)
-      val authFunc: Option[FeideUserWrapper] => Either[AllErrors, FeideUserWrapper] = {
-        case Some(value) => value.asRight
-        case None        => errorHelpers.unauthorized.asLeft
+    def withFeideUser[F[_]]: PartialServerEndpoint[FeideUserWrapper, FeideUserWrapper, I, AllErrors, O, R, F] = self
+      .securityIn(feideRequiredAuth)
+      .serverSecurityLogicPure {
+        case user @ FeideUserWrapper(_, Some(_)) => user.asRight
+        case _                                   => errorHelpers.unauthorized.asLeft
       }
-      val securityLogic = (m: MonadError[F]) => (a: Option[FeideUserWrapper]) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
 
     def withOptionalFeideUser[F[_]]
-        : PartialServerEndpoint[Option[FeideUserWrapper], Option[FeideUserWrapper], I, AllErrors, O, R, F] = {
-      val newEndpoint                                                                       = self.securityIn(feideWrapperAuth)
-      val authFunc: Option[FeideUserWrapper] => Either[AllErrors, Option[FeideUserWrapper]] = {
-        case None     => None.asRight
-        case someUser => someUser.asRight
+        : PartialServerEndpoint[Option[FeideUserWrapper], Option[FeideUserWrapper], I, AllErrors, O, R, F] = self
+      .securityIn(feideOptionalAuth)
+      .serverSecurityLogicPure {
+        case user @ Some(FeideUserWrapper(_, Some(_))) => user.asRight
+        case _                                         => None.asRight
       }
-      val securityLogic = (m: MonadError[F]) => (a: Option[FeideUserWrapper]) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
+
+    private def getMyNdlaUser(token: String): Option[MyNDLAUserDTO] =
+      myNDLAApiClient.getUserWithFeideToken(token) match {
+        case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 => None
+        case Failure(ex)                                                           =>
+          logger.warn("Got unexpected exception when fetching myndla user", ex)
+          None
+        case Success(user) => Some(user)
+      }
 
     def withOptionalMyNDLAUserOrTokenUser[F[_]]
-        : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUser, I, AllErrors, O, R, F] = {
-      val newEndpoint = self.securityIn(TokenUser.oauth2Input(Seq.empty)).securityIn(AuthUtility.feideOauth())
-
-      val authFunc: ((Option[TokenUser], Option[String])) => Either[AllErrors, CombinedUser] =
-        (userInputOptions: (Option[TokenUser], Option[String])) => {
-          val maybeUser  = userInputOptions._1
-          val maybeToken = userInputOptions._2
-
-          val myndlaUser = maybeToken.flatMap { token =>
-            myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 => None
-              case Failure(ex)                                                           =>
-                logger.warn("Got unexpected exception when fetching myndla user", ex)
-                None
-              case Success(user) => Some(user)
-            }
-          }
-
-          val combinedUser = OptionalCombinedUser(maybeUser, myndlaUser)
-          Right(combinedUser)
-        }
-      val securityLogic = (m: MonadError[F]) => (a: (Option[TokenUser], Option[String])) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
+        : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUser, I, AllErrors, O, R, F] = self
+      .securityIn(TokenUser.oauth2Input(Seq.empty))
+      .securityIn(AuthUtility.feideOauth())
+      .serverSecurityLogicPure { (maybeUser, maybeToken) =>
+        val maybeMyNdlaUser = maybeToken.flatMap(getMyNdlaUser)
+        val combinedUser    = OptionalCombinedUser(maybeUser, maybeMyNdlaUser)
+        Right(combinedUser)
+      }
 
     def withRequiredMyNDLAUserOrTokenUser[F[_]]
-        : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUserRequired, I, AllErrors, O, R, F] = {
-      val newEndpoint = self.securityIn(TokenUser.oauth2Input(Seq.empty)).securityIn(AuthUtility.feideOauth())
-
-      val authFunc: ((Option[TokenUser], Option[String])) => Either[AllErrors, CombinedUserRequired] =
-        (userInputOptions: (Option[TokenUser], Option[String])) => {
-          val maybeUser  = userInputOptions._1
-          val maybeToken = userInputOptions._2
-
-          val myndlaUser = maybeToken.flatMap { token =>
-            myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 => None
-              case Failure(ex)                                                           =>
-                logger.warn("Got unexpected exception when fetching myndla user", ex)
-                None
-              case Success(user) => Some(user)
-            }
-          }
-
-          (maybeUser, myndlaUser) match {
-            case (Some(tokenUser), Some(ndlaUser)) => CombinedUserWithBoth(tokenUser, ndlaUser).asRight
-            case (Some(tokenUser), None)           => tokenUser.toCombined.asRight
-            case (None, Some(ndlaUser))            => CombinedUserWithMyNDLAUser(None, ndlaUser).asRight
-            case _                                 => errorHelpers.unauthorized.asLeft
-          }
+        : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUserRequired, I, AllErrors, O, R, F] = self
+      .securityIn(TokenUser.oauth2Input(Seq.empty))
+      .securityIn(AuthUtility.feideOauth())
+      .serverSecurityLogicPure { (maybeUser, maybeToken) =>
+        val maybeMyNdlaUser = maybeToken.flatMap(getMyNdlaUser)
+        (maybeUser, maybeMyNdlaUser) match {
+          case (Some(tokenUser), Some(ndlaUser)) => CombinedUserWithBoth(tokenUser, ndlaUser).asRight
+          case (Some(tokenUser), None)           => tokenUser.toCombined.asRight
+          case (None, Some(ndlaUser))            => CombinedUserWithMyNDLAUser(None, ndlaUser).asRight
+          case _                                 => errorHelpers.unauthorized.asLeft
         }
-      val securityLogic = (m: MonadError[F]) => (a: (Option[TokenUser], Option[String])) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
+      }
   }
 
   implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
-    def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
-      val newEndpoint   = self.securityIn(TokenUser.oauth2Input(Seq.empty))
-      val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]
-      val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
+    def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = self
+      .securityIn(TokenUser.oauth2Input(Seq.empty))
+      .serverSecurityLogicPure(Right(_))
   }
 
   private val zeroNoContentHeader: EndpointIO.FixedHeader[Unit] = header("Content-Length", "0")

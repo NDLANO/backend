@@ -15,9 +15,10 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.api.myndla as api
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.HttpRequestException
 import sttp.client3.quick.*
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends MyNDLAProvider with StrictLogging {
   private val statsEndpoint  = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
@@ -45,7 +46,12 @@ class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends My
   def getDomainUser(feideToken: String): Try[MyNDLAUser] = {
     val url = uri"$internEndpoint/get-user"
     val req = quickRequest.get(url).header("FeideAuthorization", s"Bearer $feideToken")
-    ndlaClient.fetch[MyNDLAUser](req)
+    ndlaClient.fetch[MyNDLAUser](req) match {
+      case Success(user)                                                         => Success(user)
+      case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 =>
+        Failure(FeideApiClient.accessDeniedException)
+      case Failure(ex) => Failure(ex)
+    }
   }
 }
 
