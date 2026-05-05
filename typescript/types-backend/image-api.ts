@@ -352,6 +352,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/image-api/raw/{image_name}/{variant_size}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch an image variant
+         * @description Fetches a specific image variant size
+         */
+        get: operations["getImage-apiRawImage_nameVariant_size"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 };
 export type webhooks = Record<string, never>;
 export type components = {
@@ -2300,6 +2320,63 @@ export interface operations {
             path: {
                 /** @description The name of the image */
                 image_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Content-Type": string;
+                    "Content-Length": string;
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": Blob;
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "getImage-apiRawImage_nameVariant_size": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The name of the image (without file extension)
+                 * @example foobar
+                 */
+                image_name: string;
+                /**
+                 * @description Image variant size (with file extension)
+                 * @example medium.webp
+                 */
+                variant_size: string;
             };
             cookie?: never;
         };
