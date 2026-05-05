@@ -82,34 +82,41 @@ abstract class TapirController(using
   private def encodeFeideUserWrapper(user: FeideUserWrapper): String            = user.token
   private def decodeFeideUserWrapper(s: String): DecodeResult[FeideUserWrapper] = {
     myNDLAApiClient.getDomainUser(s) match {
-      case Failure(ex)   => DecodeResult.Error(s, ex)
-      case Success(user) => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
+      case Success(user)                     => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
+      case Failure(_: AccessDeniedException) => DecodeResult.Value(FeideUserWrapper(s, None))
+      case Failure(ex)                       =>
+        logger.warn("Unforeseen error when fetching user during auth", ex)
+        DecodeResult.Value(FeideUserWrapper(s, None))
     }
   }
 
   private implicit val feideUserWrapperCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
     .string
     .mapDecode(decodeFeideUserWrapper)(encodeFeideUserWrapper)
-  private val feideHeaderCodec                                                         = implicitly[Codec[List[String], FeideUserWrapper, CodecFormat.TextPlain]]
-  private val feideAuthCodec: Codec[List[String], Option[FeideUserWrapper], TextPlain] = Codec
+
+  private val feideHeaderCodec                                                 = implicitly[Codec[List[String], FeideUserWrapper, TextPlain]]
+  private val feideAuthCodec: Codec[List[String], FeideUserWrapper, TextPlain] = Codec
     .id[List[String], CodecFormat.TextPlain](feideHeaderCodec.format, Schema.binary)
     .map(filterHeaders)(identity)
     .map(stringPrefixWithSpace)
-    .mapDecode {
-      feideHeaderCodec.decode(_) match {
+    .mapDecode(feideHeaderCodec.decode)(feideHeaderCodec.encode)
+    .schema(feideHeaderCodec.schema)
 
-        case DecodeResult.Value(v)                           => DecodeResult.Value(Some(v))
-        case DecodeResult.Error(v, _: AccessDeniedException) => DecodeResult.Value(None)
-        case f: DecodeResult.Failure                         => f
-      }
-    } {
-      case Some(v) => feideHeaderCodec.encode(v)
-      case None    => List.empty
-    }
+  private val feideOptionalHeaderCodec = implicitly[Codec[List[String], Option[FeideUserWrapper], TextPlain]]
+  private val feideOptionalAuthCodec   = Codec
+    .id[List[String], CodecFormat.TextPlain](feideOptionalHeaderCodec.format, Schema.binary)
+    .map(filterHeaders)(identity)
+    .map(stringPrefixWithSpace)
+    .mapDecode(feideOptionalHeaderCodec.decode)(feideOptionalHeaderCodec.encode)
+    .schema(feideOptionalHeaderCodec.schema)
 
-  private val feideAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = TapirAuth
+  private val feideRequiredAuth: EndpointInput.Auth[FeideUserWrapper, AuthType.Http] = TapirAuth
     .bearer[Option[FeideUserWrapper]]()
-    .copy(input = header("FeideAuthorization")(using feideAuthCodec))
+    .copy(input = header[FeideUserWrapper]("FeideAuthorization")(using feideAuthCodec))
+
+  private val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = TapirAuth
+    .bearer[Option[FeideUserWrapper]]()
+    .copy(input = header[Option[FeideUserWrapper]]("FeideAuthorization")(using feideOptionalAuthCodec))
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
     private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
@@ -127,20 +134,19 @@ abstract class TapirController(using
       PartialServerEndpoint(newEndpoint, securityLogic)
     }
 
-    def withFeideUser[F[_]]: PartialServerEndpoint[Option[FeideUserWrapper], FeideUserWrapper, I, AllErrors, O, R, F] =
-      self
-        .securityIn(feideAuth)
-        .serverSecurityLogicPure {
-          case Some(value) => value.asRight
-          case None        => errorHelpers.unauthorized.asLeft
-        }
+    def withFeideUser[F[_]]: PartialServerEndpoint[FeideUserWrapper, FeideUserWrapper, I, AllErrors, O, R, F] = self
+      .securityIn(feideRequiredAuth)
+      .serverSecurityLogicPure {
+        case user @ FeideUserWrapper(_, Some(_)) => user.asRight
+        case _                                   => errorHelpers.unauthorized.asLeft
+      }
 
     def withOptionalFeideUser[F[_]]
         : PartialServerEndpoint[Option[FeideUserWrapper], Option[FeideUserWrapper], I, AllErrors, O, R, F] = self
-      .securityIn(feideAuth)
+      .securityIn(feideOptionalAuth)
       .serverSecurityLogicPure {
-        case None     => None.asRight
-        case someUser => someUser.asRight
+        case user @ Some(FeideUserWrapper(_, Some(_))) => user.asRight
+        case _                                         => None.asRight
       }
 
     private def getMyNdlaUser(token: String): Option[MyNDLAUserDTO] =
