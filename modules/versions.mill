@@ -96,6 +96,7 @@ object SharedDependencies {
 
   // Spring Boot / taxonomy-api stack
   val SpringBootV       = "3.5.14"
+  val KotlinV           = "2.3.21"
   val SpringCloudV      = "2025.1.0"
   val SpringDocV        = "2.8.17"
   val HypersistenceV    = "3.15.2"

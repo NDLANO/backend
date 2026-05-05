@@ -19,7 +19,6 @@ import no.ndla.taxonomy.service.dtos.NodeDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
 
 public class ContextsTest extends RestTest {
     @Autowired
@@ -124,7 +123,7 @@ public class ContextsTest extends RestTest {
 
         contextUpdaterService.updateContexts(topic);
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/topics/urn:topic:1");
+        var response = testUtils.getResource("/v1/nodes/urn:topic:1");
         final var topicIndexDocument = testUtils.getObject(NodeDTO.class, response);
         assertAnyTrue(topicIndexDocument.getPaths(), p -> "/topic:1".equals(p));
     }

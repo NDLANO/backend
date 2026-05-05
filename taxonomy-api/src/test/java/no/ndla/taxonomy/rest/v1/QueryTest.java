@@ -37,7 +37,7 @@ public class QueryTest extends RestTest {
                         .contentUri("urn:article:345")
                         .resourceType(rt -> rt.name("Subject material")));
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/resources?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);
@@ -46,7 +46,7 @@ public class QueryTest extends RestTest {
 
     @Test
     public void no_resources_matching_contentURI() throws Exception {
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/resources?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(0, resources.length);
@@ -62,7 +62,7 @@ public class QueryTest extends RestTest {
 
         builder.node(NodeType.RESOURCE, r -> r.publicId("urn:resource:2").contentUri("urn:article:3"));
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/resources?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);
@@ -78,7 +78,7 @@ public class QueryTest extends RestTest {
                         .resourceType(rt -> rt.name("Subject material").order(1))
                         .resourceType(rt -> rt.name("Learning path").order(2)));
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/resources?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);
@@ -95,8 +95,7 @@ public class QueryTest extends RestTest {
                         .contentUri("urn:article:345")
                         .resourceType(rt -> rt.name("Subject material")));
 
-        MockHttpServletResponse response =
-                testUtils.getResource("/v1/queries/resources?contentURI=urn:article:345&language=nb");
+        var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345&language=nb");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);
@@ -114,7 +113,7 @@ public class QueryTest extends RestTest {
 
         builder.node(NodeType.TOPIC, r -> r.publicId("urn:topic:2").contentUri("urn:article:345"));
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/topics?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=TOPIC&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);
@@ -127,7 +126,7 @@ public class QueryTest extends RestTest {
 
         builder.node(NodeType.TOPIC, r -> r.publicId("urn:topic:3").contentUri("urn:article:345"));
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/topics?contentURI=urn:article:345");
+        var response = testUtils.getResource("/v1/nodes?nodeType=TOPIC&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(2, resources.length);
@@ -137,7 +136,7 @@ public class QueryTest extends RestTest {
 
     @Test
     public void no_topics_matching_contentURI() throws Exception {
-        MockHttpServletResponse response = testUtils.getResource("/v1/queries/topics?contentURI=urn:article:345");
+        MockHttpServletResponse response = testUtils.getResource("/v1/nodes?nodeType=TOPIC&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(0, resources.length);
@@ -152,8 +151,7 @@ public class QueryTest extends RestTest {
                         .translation("nb", tr -> tr.name("Emne"))
                         .contentUri("urn:article:345"));
 
-        MockHttpServletResponse response =
-                testUtils.getResource("/v1/queries/topics?contentURI=urn:article:345&language=nb");
+        var response = testUtils.getResource("/v1/nodes?nodeType=TOPIC&contentURI=urn:article:345&language=nb");
         var resources = testUtils.getObject(NodeDTO[].class, response);
 
         assertEquals(1, resources.length);

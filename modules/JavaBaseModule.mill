@@ -2,14 +2,74 @@ package build.modules
 
 import mill.*
 import mill.scalalib.*
+import mill.kotlinlib.KotlinMavenModule
 import mill.javalib.spotless.SpotlessModule
 
-trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, GithubWorkflowPlugin, SpotlessModule {
+trait JavaBaseModule extends KotlinMavenModule, AutoEnvLoading, OpenAPITSPlugin, GithubWorkflowPlugin, SpotlessModule {
   def moduleName: String
-  def test: JavaTests
+  def test: TestBase
+
+  override def kotlinVersion: T[String] = Task {
+    SharedDependencies.KotlinV
+  }
 
   override def javacOptions: T[Seq[String]] = Task {
     super.javacOptions() ++ Seq("-parameters")
+  }
+
+  // Kotlin classes are `final` by default, but Spring (CGLIB proxies for @Component,
+  // @Transactional, @Async, @Cacheable) and Hibernate (lazy-loading proxies for JPA
+  // entities) need to subclass them at runtime. The allopen plugin makes classes
+  // carrying the listed annotations non-final. The noarg plugin synthesizes a no-arg
+  // constructor for JPA entities, which Hibernate requires to instantiate them via
+  // reflection before populating fields.
+  override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:${kotlinVersion()}",
+      mvn"org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:${kotlinVersion()}",
+    )
+  }
+
+  // NOTE: Since CI calls `_.semanticDbData` and we don't want to run that for java modules
+  //       We simply override this with some nonsense
+  override def semanticDbData: T[PathRef] = Task {
+    PathRef(os.pwd)
+  }
+
+  // Annotations whose classes should be made `open` so Spring/Hibernate can proxy them.
+  // SpringBootTest is included so test configuration classes can be subclassed by the
+  // test framework.
+  def openAnnotationArguments: Seq[String] = Seq(
+    "org.springframework.stereotype.Component",
+    "org.springframework.transaction.annotation.Transactional",
+    "org.springframework.scheduling.annotation.Async",
+    "org.springframework.cache.annotation.Cacheable",
+    "org.springframework.boot.test.context.SpringBootTest",
+    "jakarta.persistence.Entity",
+    "jakarta.persistence.MappedSuperclass",
+    "jakarta.persistence.Embeddable",
+  ).flatMap(a => Seq("-P", s"plugin:org.jetbrains.kotlin.allopen:annotation=$a"))
+
+  // JPA spec requires a no-arg constructor on entities; Kotlin primary constructors
+  // with required params don't satisfy this, so the noarg plugin generates a synthetic
+  // one for these annotations.
+  def noArgAnnotations: Seq[String] =
+    Seq("jakarta.persistence.Entity", "jakarta.persistence.MappedSuperclass", "jakarta.persistence.Embeddable").flatMap(
+      a => Seq("-P", s"plugin:org.jetbrains.kotlin.noarg:annotation=$a")
+    )
+
+  override def kotlincOptions: T[Seq[String]] = Task {
+    // invokeInitializers=true makes the synthetic no-arg constructor run property
+    // initializers (e.g. `val foo: List<X> = mutableListOf()`), so Hibernate-created
+    // instances aren't left with null fields that the Kotlin type system says are non-null.
+    super.kotlincOptions() ++ openAnnotationArguments ++ noArgAnnotations ++ Seq(
+      "-P",
+      "plugin:org.jetbrains.kotlin.noarg:invokeInitializers=true",
+    )
+  }
+
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps() ++ Seq(mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}")
   }
 
   // Mill's `resolvedMvnDeps` uses Maven `compile` scope, which drops transitive deps
@@ -30,7 +90,7 @@ trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, Githu
     spotless(mainargs.Flag(false))()
   }
 
-  trait TestBase extends MavenTests, TestModule.Junit5 {
+  trait TestBase extends KotlinMavenTests, TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
       super.forkArgs() ++ Seq("-XX:+EnableDynamicAgentLoading", "-Xshare:off")
     }
