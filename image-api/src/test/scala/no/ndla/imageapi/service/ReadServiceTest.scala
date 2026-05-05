@@ -11,6 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageFileData, ImageMetaInformation, ModelReleasedStatus}
@@ -73,7 +74,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
          |  },
          |  "tags":{"tags":["rovdyr","elg"],"language":"nb"},
          |  "caption":{"caption":"Elg i busk","language":"nb"},
-         |  "supportedLanguages":["nb"]
+         |  "supportedLanguages":["nb"],
+         |  "aiGenerated": "No"
          |}""".stripMargin
 
     val expectedObject: ImageMetaInformationV2DTO = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
@@ -111,6 +113,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       modelReleased = ModelReleasedStatus.YES,
       editorNotes = Seq.empty,
       inactive = false,
+      aiGenerated = AiGenerated.No,
     )
 
     when(imageRepository.withId(1)).thenReturn(Success(Some(imageElg)))

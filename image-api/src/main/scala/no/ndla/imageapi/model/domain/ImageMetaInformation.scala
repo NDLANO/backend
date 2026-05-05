@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{AiGenerated, Tag}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.Props
 import scalikejdbc.*
@@ -34,6 +34,7 @@ case class ImageMetaInformation(
     modelReleased: ModelReleasedStatus.Value,
     editorNotes: Seq[EditorNote],
     inactive: Boolean,
+    aiGenerated: AiGenerated,
 )
 
 object ImageMetaInformation {

@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi}
@@ -91,6 +92,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.Yes,
   )
 
   override def beforeEach(): Unit = {

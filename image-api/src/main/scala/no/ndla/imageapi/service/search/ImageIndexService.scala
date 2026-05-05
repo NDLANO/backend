@@ -68,6 +68,7 @@ class ImageIndexService(using
       textField("editorNotes"),
       keywordField("podcastFriendly"),
       keywordField("users"),
+      keywordField("aiGenerated"),
       nestedField("imageFiles").fields(
         intField("imageSize"),
         textField("previewUrl"),

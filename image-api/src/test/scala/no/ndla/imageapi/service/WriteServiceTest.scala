@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.article.Copyright as DomainCopyright
-import no.ndla.common.model.domain.{ContributorType, UploadedFile}
+import no.ndla.common.model.domain.{AiGenerated, ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
@@ -40,6 +40,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "",
     "en",
     Some(ModelReleasedStatus.YES.toString),
+    AiGenerated.No,
   )
   val userId                        = "ndla124"
   val userWithWriteScope: TokenUser = TokenUser(userId, Set(IMAGE_API_WRITE), None)
@@ -76,6 +77,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
+    aiGenerated = AiGenerated.No,
   )
 
   override def beforeEach(): Unit = {
@@ -256,7 +258,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing      = TestData.elg.copy(updated = date, updatedBy = user)
     val existingImage = existing.images.head
     val toUpdate      =
-      UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None, None)
+      UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None, None, None)
     val expectedResult = existing.copy(
       titles = List(existing.titles.head, domain.ImageTitle("Title", "en")),
       images = List(existingImage, existingImage.copy(language = "en")),
@@ -275,7 +277,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate =
-      UpdateImageMetaInformationDTO("nb", Some("Title"), UpdateWith("AltText"), None, None, None, None, None)
+      UpdateImageMetaInformationDTO("nb", Some("Title"), UpdateWith("AltText"), None, None, None, None, None, None)
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
@@ -312,6 +314,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some("Caption"),
       Some(ModelReleasedStatus.NO.toString),
       Some(true),
+      None,
     )
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
@@ -361,7 +364,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         updatedBy = user,
         images = Seq(image),
       )
-    val toUpdate       = UpdateImageMetaInformationDTO("nn", None, Missing, None, None, None, None, None)
+    val toUpdate       = UpdateImageMetaInformationDTO("nn", None, Missing, None, None, None, None, None, None)
     val expectedResult = existing.copy(images = Seq(image, image.copy(language = "nn")))
 
     val result = writeService.mergeImageMeta(existing, toUpdate, userWithWriteScope).failIfFailure
@@ -492,6 +495,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       caption = None,
       modelReleased = None,
       inactive = None,
+      aiGenerated = None,
     )
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
@@ -575,6 +579,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       caption = None,
       modelReleased = None,
       inactive = None,
+      aiGenerated = None,
     )
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",

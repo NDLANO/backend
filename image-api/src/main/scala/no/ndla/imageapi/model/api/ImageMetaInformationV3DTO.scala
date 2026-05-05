@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
+import no.ndla.common.model.domain.AiGenerated
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
@@ -44,6 +45,8 @@ case class ImageMetaInformationV3DTO(
     image: ImageFileDTO,
     @description("Describes if the image is inactive or not")
     inactive: Boolean,
+    @description("Describes whether the image is AI generated")
+    aiGenerated: AiGenerated,
 )
 
 object ImageMetaInformationV3DTO {
