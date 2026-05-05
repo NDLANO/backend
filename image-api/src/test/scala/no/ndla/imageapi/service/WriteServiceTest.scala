@@ -14,16 +14,20 @@ import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.imageapi.model.api.*
+import no.ndla.imageapi.model.api.bulk.{BulkUploadItemDTO, BulkUploadItemStatus, BulkUploadStateDTO, BulkUploadStatus}
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation, ImageVariantSize, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
+import java.nio.file.{Files, Path}
+import java.util.UUID
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -806,5 +810,143 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       variant.bucketKey should endWith(s"/${variant.size.entryName}.webp")
     }
     originalDate should be(None)
+  }
+
+  private def setupHappyPathStoreNewImage(): Unit = {
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
+    when(fileMock1.createStream()).thenAnswer((_: InvocationOnMock) => TestData.ndlaLogoImageStream.stream)
+    when(validationService.validateImageFile(any)).thenReturn(None)
+    when(validationService.validate(any[ImageMetaInformation], any)).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageStorage.objectExists(any[String])).thenReturn(false)
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenAnswer(i =>
+      Success(i.getArgument(0).asInstanceOf[ImageMetaInformation].copy(id = Some(1L)))
+    )
+    when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+  }
+
+  private def stagingDirFor(uploadId: UUID): Path = Files.createTempDirectory(s"image-bulk-upload-test-$uploadId-")
+
+  private def bulkInitialState(items: List[(NewImageMetaInformationV2DTO, UploadedFile)]): BulkUploadStateDTO =
+    BulkUploadStateDTO(
+      status = BulkUploadStatus.Pending,
+      total = items.size,
+      completed = 0,
+      failed = 0,
+      items = items.map { case (_, file) =>
+        BulkUploadItemDTO(file.fileName, BulkUploadItemStatus.Pending, None, None)
+      },
+      error = None,
+    )
+
+  test("batchStoreImages persists initial state and submits work to the executor") {
+    val uploadId   = UUID.randomUUID()
+    val stagingDir = stagingDirFor(uploadId)
+    val states     = scala.collection.mutable.ListBuffer.empty[BulkUploadStateDTO]
+    reset(bulkUploadStore)
+    when(bulkUploadStore.set(any[UUID], any[BulkUploadStateDTO])).thenAnswer { i =>
+      states.synchronized {
+        states += i.getArgument[BulkUploadStateDTO](1)
+      }
+      Success(())
+    }
+    setupHappyPathStoreNewImage()
+
+    val result =
+      writeService.batchStoreImages(uploadId, List((newImageMeta, fileMock1)), stagingDir, userWithWriteScope)
+
+    result should be(Success(()))
+
+    // The worker runs on a background executor. Wait for it to finish so it does not race with the next test's
+    // beforeEach stubbing of fileMock1 (mockito's `when(...).thenReturn(...)` tracking is not thread-safe).
+    blockUntil(() =>
+      states.synchronized {
+        states.lastOption.exists(s => s.status == BulkUploadStatus.Complete || s.status == BulkUploadStatus.Failed)
+      }
+    )
+
+    val captor: ArgumentCaptor[BulkUploadStateDTO] = ArgumentCaptor.forClass(classOf[BulkUploadStateDTO])
+    verify(bulkUploadStore, org.mockito.Mockito.atLeastOnce()).set(eqTo(uploadId), captor.capture())
+    val firstState = captor.getAllValues.get(0)
+    firstState.status should be(BulkUploadStatus.Pending)
+    firstState.total should be(1)
+    firstState.completed should be(0)
+    firstState.items.head.fileName should be(fileMock1.fileName)
+  }
+
+  test("runBulkUpload marks the session as Complete on success and cleans up the staging dir") {
+    val uploadId   = UUID.randomUUID()
+    val stagingDir = stagingDirFor(uploadId)
+    val sentinel   = Files.createFile(stagingDir.resolve("sentinel.txt"))
+    val items      = List((newImageMeta, fileMock1), (newImageMeta, fileMock1))
+    val states     = scala.collection.mutable.ListBuffer.empty[BulkUploadStateDTO]
+    reset(bulkUploadStore)
+    when(bulkUploadStore.set(any[UUID], any[BulkUploadStateDTO])).thenAnswer { i =>
+      states += i.getArgument[BulkUploadStateDTO](1)
+      Success(())
+    }
+    setupHappyPathStoreNewImage()
+
+    writeService.runBulkUpload(uploadId, items, stagingDir, userWithWriteScope, bulkInitialState(items))
+
+    val finalState = states.last
+    finalState.status should be(BulkUploadStatus.Complete)
+    finalState.completed should be(2)
+    finalState.failed should be(0)
+    finalState.items.foreach(item => item.status should be(BulkUploadItemStatus.Done))
+    finalState.items.foreach(item => item.image should not be None)
+    Files.exists(sentinel) should be(false)
+    Files.exists(stagingDir) should be(false)
+  }
+
+  test("runBulkUpload rolls back already-stored images and marks Failed on error") {
+    val uploadId    = UUID.randomUUID()
+    val stagingDir  = stagingDirFor(uploadId)
+    val items       = List((newImageMeta, fileMock1), (newImageMeta, fileMock1))
+    val storeStates = scala.collection.mutable.ListBuffer.empty[BulkUploadStateDTO]
+
+    reset(bulkUploadStore)
+    when(bulkUploadStore.set(any[UUID], any[BulkUploadStateDTO])).thenAnswer { i =>
+      storeStates += i.getArgument[BulkUploadStateDTO](1)
+      Success(())
+    }
+
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
+    when(fileMock1.createStream()).thenAnswer((_: InvocationOnMock) => TestData.ndlaLogoImageStream.stream)
+    when(validationService.validateImageFile(any)).thenReturn(None)
+    when(validationService.validate(any[ImageMetaInformation], any)).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageStorage.objectExists(any[String])).thenReturn(false)
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
+    when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageIndexService.deleteDocument(any[Long])).thenAnswer(i => Success(i.getArgument(0)))
+    when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    when(tagIndexService.deleteDocument(any[Long])).thenAnswer(i => Success(i.getArgument(0)))
+
+    var insertCount = 0
+    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenAnswer { i =>
+      insertCount += 1
+      if (insertCount == 1) Success(i.getArgument[ImageMetaInformation](0).copy(id = Some(42L)))
+      else Failure(new RuntimeException("boom"))
+    }
+    when(imageRepository.withId(eqTo(42L))).thenAnswer(_ =>
+      Success(Some(domainImageMeta.copy(id = Some(42L), images = Seq(TestData.clownfishFileData))))
+    )
+    when(imageRepository.delete(eqTo(42L))).thenReturn(Success(42L))
+
+    writeService.runBulkUpload(uploadId, items, stagingDir, userWithWriteScope, bulkInitialState(items))
+
+    val finalState = storeStates.last
+    finalState.status should be(BulkUploadStatus.Failed)
+    finalState.failed should be(1)
+    finalState.error should not be None
+    finalState.items.head.status should be(BulkUploadItemStatus.Done)
+    finalState.items(1).status should be(BulkUploadItemStatus.Failed)
+
+    // The first inserted image was rolled back via deleteImageAndFiles
+    verify(imageRepository, times(1)).delete(eqTo(42L))
+    Files.exists(stagingDir) should be(false)
   }
 }

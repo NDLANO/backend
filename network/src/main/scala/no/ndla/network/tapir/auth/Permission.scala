@@ -29,6 +29,7 @@ object Permission extends Enum[Permission] with CirceEnum[Permission] {
   case object FRONTPAGE_API_ADMIN      extends Permission("frontpage:admin")
   case object FRONTPAGE_API_WRITE      extends Permission("frontpage:write")
   case object IMAGE_API_WRITE          extends Permission("images:write")
+  case object IMAGE_API_BATCH          extends Permission("images:batch")
   case object LEARNINGPATH_API_ADMIN   extends Permission("learningpath:admin")
   case object LEARNINGPATH_API_PUBLISH extends Permission("learningpath:publish")
   case object LEARNINGPATH_API_WRITE   extends Permission("learningpath:write")

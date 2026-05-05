@@ -21,6 +21,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
+import no.ndla.imageapi.model.api.bulk.{BulkUploadItemDTO, BulkUploadItemStatus, BulkUploadStateDTO, BulkUploadStatus}
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
   ImageMetaInformationV3DTO,
@@ -37,7 +38,9 @@ import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
-import java.util.concurrent.Executors
+import java.nio.file.{Files, Path}
+import java.util.UUID
+import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Using.Releasable
@@ -56,6 +59,7 @@ class WriteService(using
     clock: Clock,
     random: Random,
     props: Props,
+    bulkUploadStore: BulkUploadStore,
 ) extends StrictLogging {
 
   def deleteImageLanguageVersionV2(
@@ -221,6 +225,160 @@ class WriteService(using
   ): Try[ImageMetaInformation] = permitTry {
     val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
     insertAndStoreImage(toInsert, file, None, newImage.language)
+  }
+
+  private val bulkUploadExecutor: ExecutorService = Executors.newSingleThreadExecutor(r => {
+    val t = new Thread(r, "image-bulk-upload-worker")
+    t.setDaemon(true)
+    t
+  })
+
+  /** Starts a bulk image upload session. Initializes Redis state under `uploadId`, schedules the upload work on a
+    * background worker, and returns immediately. Progress (and the eventual result or failure) is tracked through the
+    * Redis state.
+    *
+    * The worker processes items sequentially. If any item fails the entire batch is rolled back: previously stored
+    * images are deleted and the upload state is marked as Failed. On success the state is marked Complete with each
+    * stored image attached to its corresponding item.
+    *
+    * `stagingDir` and the files inside it are deleted by the worker once processing is finished, regardless of outcome.
+    */
+  def batchStoreImages(
+      uploadId: UUID,
+      items: List[(NewImageMetaInformationV2DTO, UploadedFile)],
+      stagingDir: Path,
+      user: TokenUser,
+  ): Try[Unit] = {
+    val initialItems = items.map { case (_, file) =>
+      BulkUploadItemDTO(fileName = file.fileName, status = BulkUploadItemStatus.Pending, image = None, error = None)
+    }
+    val initialState = BulkUploadStateDTO(
+      status = BulkUploadStatus.Pending,
+      total = items.size,
+      completed = 0,
+      failed = 0,
+      items = initialItems,
+      error = None,
+    )
+    implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(
+      bulkUploadExecutor,
+      ex => logger.error(s"Bulk upload $uploadId: failed to process item", ex),
+    )
+
+    bulkUploadStore
+      .set(uploadId, initialState)
+      .map { _ =>
+        logger.info(s"Bulk upload $uploadId: queued ${items.size} item(s) for processing")
+        Future(runBulkUpload(uploadId, items, stagingDir, user, initialState)): Unit
+      }
+  }
+
+  private[service] def runBulkUpload(
+      uploadId: UUID,
+      items: List[(NewImageMetaInformationV2DTO, UploadedFile)],
+      stagingDir: Path,
+      user: TokenUser,
+      initialState: BulkUploadStateDTO,
+  ): Unit = {
+    val total     = items.size
+    val startedAt = System.currentTimeMillis()
+    val running   = initialState.copy(status = BulkUploadStatus.Running)
+    persistState(uploadId, running)
+    logger.info(s"Bulk upload $uploadId: starting processing of $total item(s)")
+
+    val progress = items
+      .zipWithIndex
+      .foldLeft(BulkUploadProgress(running)) {
+        case (progress, _) if progress.hasFailed => progress
+        case (progress, ((meta, file), idx))     => processBulkItem(uploadId, total, idx, meta, file, user, progress)
+      }
+
+    val elapsedMs  = System.currentTimeMillis() - startedAt
+    val finalState = progress.failure match {
+      case None =>
+        logger.info(s"Bulk upload $uploadId: complete — $total item(s) stored in ${elapsedMs}ms")
+        progress.state.asComplete
+      case Some(ex) =>
+        logger.error(
+          s"Bulk upload $uploadId: failed after ${elapsedMs}ms; rolling back ${progress.stored.size} previously stored image(s)"
+        )
+        rollbackStoredImages(uploadId, progress.stored)
+        logger.error(s"Bulk upload $uploadId: marked as failed", ex)
+        progress.state.asFailed(ex)
+    }
+    persistState(uploadId, finalState)
+    cleanupStagingDir(stagingDir)
+  }
+
+  private def processBulkItem(
+      uploadId: UUID,
+      total: Int,
+      itemIdx: Int,
+      metadata: NewImageMetaInformationV2DTO,
+      file: UploadedFile,
+      user: TokenUser,
+      progress: BulkUploadProgress,
+  ): BulkUploadProgress = {
+    val uploading = progress.state.setUploading(itemIdx)
+    persistState(uploadId, uploading)
+
+    val whichImg = s"${itemIdx + 1}/$total"
+    val fileName = file.fileName.getOrElse("<unknown>")
+
+    logger.info(s"Bulk upload $uploadId: uploading item $whichImg (fileName = $fileName)")
+
+    val result = for {
+      stored <- storeNewImage(metadata, file, user)
+      dto    <- converterService.asApiImageMetaInformationV3(stored, None, Some(user))
+    } yield stored -> dto
+
+    result match {
+      case Success((domainImg, dto)) =>
+        val done = uploading.setDone(itemIdx, dto)
+        persistState(uploadId, done)
+        logger.info(s"Bulk upload $uploadId: completed item $whichImg")
+        progress.copy(state = done, stored = domainImg :: progress.stored)
+      case Failure(ex) =>
+        logger.error(s"Bulk upload $uploadId: failed on item $whichImg", ex)
+        val failed = uploading.setFailed(itemIdx, ex)
+        persistState(uploadId, failed)
+        progress.copy(state = failed, failure = Some(ex))
+    }
+  }
+
+  private case class BulkUploadProgress(
+      state: BulkUploadStateDTO,
+      stored: List[ImageMetaInformation] = Nil,
+      failure: Option[Throwable] = None,
+  ) {
+    def hasFailed: Boolean = failure.isDefined
+  }
+
+  private def persistState(uploadId: UUID, state: BulkUploadStateDTO): Unit =
+    bulkUploadStore.set(uploadId, state) match {
+      case Success(_)  => ()
+      case Failure(ex) => logger.error(s"Bulk upload $uploadId: failed to persist state to redis", ex)
+    }
+
+  private def rollbackStoredImages(uploadId: UUID, stored: List[ImageMetaInformation]): Unit = stored.foreach { img =>
+    img
+      .id
+      .foreach { id =>
+        deleteImageAndFiles(id) match {
+          case Success(_)  => ()
+          case Failure(ex) => logger.error(s"Bulk upload $uploadId: failed to roll back image $id", ex)
+        }
+      }
+  }
+
+  private def cleanupStagingDir(stagingDir: Path): Unit = {
+    Try {
+      if (Files.exists(stagingDir)) {
+        Files.walk(stagingDir).sorted(java.util.Comparator.reverseOrder()).forEach(Files.deleteIfExists(_): Unit)
+      }
+    }.recover { ex =>
+      logger.warn(s"Failed to clean up bulk upload staging dir $stagingDir", ex)
+    }: Unit
   }
 
   private def hasChangedMetadata(lhs: ImageMetaInformation, rhs: ImageMetaInformation): Boolean = {
