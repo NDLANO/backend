@@ -31,6 +31,7 @@ class ControllerErrorHandling(using props: Props, dataSource: => DataSource, err
     case v: ValidationException            => validationError(v)
     case a: AccessDeniedException          => forbiddenMsg(a.getMessage)
     case _: IndexNotFoundException         => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
+    case nfe: NotFoundException            => notFoundWithMsg(nfe.getMessage)
     case i: ImageNotFoundException         => notFoundWithMsg(i.getMessage)
     case b: ImportException                => errorBody(IMPORT_FAILED, b.getMessage, 422)
     case iu: InvalidUrlException           => errorBody(INVALID_URL, iu.getMessage, 400)
