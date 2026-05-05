@@ -48,7 +48,8 @@ import no.ndla.myndlaapi.service.{
   UserService,
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
@@ -74,7 +75,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
 
   given ndlaClient: NdlaClient                               = new NdlaClient
   implicit lazy val myndlaApiClient: InternalMyNDLAApiClient = new InternalMyNDLAApiClient
-  implicit lazy val redisClient: RedisClient                 = new RedisClient(props.RedisHost, props.RedisPort)
+  implicit lazy val redisClient: FeideRedisClient            = new FeideRedisClient(props.RedisHost, props.RedisPort)
   implicit lazy val feideApiClient: FeideApiClient           = new FeideApiClient
   implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
   given errorHelpers: ErrorHelpers                           = new ErrorHelpers
