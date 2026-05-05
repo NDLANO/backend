@@ -58,6 +58,7 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
   implicit lazy val tagSearchService: TagSearchService = mock[TagSearchService]
 
   implicit lazy val imageRepository: ImageRepository  = mock[ImageRepository]
+  implicit lazy val bulkUploadStore: BulkUploadStore  = mock[BulkUploadStore]
   implicit lazy val readService: ReadService          = mock[ReadService]
   implicit lazy val writeService: WriteService        = mock[WriteService]
   implicit lazy val imageStorage: ImageStorageService = mock[ImageStorageService]

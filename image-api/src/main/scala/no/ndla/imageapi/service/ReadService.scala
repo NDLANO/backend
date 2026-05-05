@@ -11,8 +11,9 @@ package no.ndla.imageapi.service
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl.*
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.implicits.toTry
+import no.ndla.imageapi.model.api.bulk.{BulkUploadStateDTO, BulkUploadStatus}
 import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO, ImageMetaInformationV3DTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
@@ -20,7 +21,10 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{SearchConverterService, TagSearchService}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
+import ox.flow.Flow
 
+import java.util.UUID
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.{Failure, Success, Try}
 
 class ReadService(using
@@ -28,7 +32,10 @@ class ReadService(using
     imageRepository: ImageRepository,
     tagSearchService: TagSearchService,
     searchConverterService: SearchConverterService,
+    bulkUploadStore: BulkUploadStore,
 ) extends StrictLogging {
+
+  private val bulkUploadPollInterval: FiniteDuration = 500.millis
 
   def withIdV3(
       imageId: Long,
@@ -135,5 +142,49 @@ class ReadService(using
           findByLanguageOrBestEffort(imageMeta.images, language).map(_.fileName.dropWhile(_ == '/'))
         }
       }
+  }
+
+  /** Streams the state of a bulk upload session. Polls Redis on a fixed interval and emits a new state whenever it
+    * changes. Once a terminal status (`Complete` or `Failed`) is observed it is emitted and the flow is closed.
+    *
+    * If no state is found for the given uploadId a [[NotFoundException]] is returned so the controller can map it to a
+    * 404.
+    */
+  def getStatusStreamOfBulkUpload(uploadId: UUID): Try[Flow[BulkUploadStateDTO]] = {
+    bulkUploadStore
+      .get(uploadId)
+      .flatMap {
+        case None          => Failure(NotFoundException(s"No bulk upload with id $uploadId"))
+        case Some(initial) =>
+          val pollFlow: Flow[BulkUploadStateDTO] = Flow
+            .tick(bulkUploadPollInterval)
+            .mapStateful(initial)((prevState, _) =>
+              bulkUploadStore.get(uploadId) match {
+                case Success(Some(state)) if state == prevState => prevState -> None
+                case Success(Some(state))                       => state     -> Some(state)
+                case Success(None)                              =>
+                  val failed = prevState.asFailed(s"Bulk upload $uploadId no longer exists")
+                  failed -> Some(failed)
+                case Failure(ex) =>
+                  logger.error(s"Bulk upload $uploadId: failed to read state from redis", ex)
+                  prevState -> None
+              }
+            )
+            .collect { case Some(state) =>
+              state
+            }
+            .takeWhile(state => !isTerminal(state), includeFirstFailing = true)
+
+          val combined =
+            if (isTerminal(initial)) Flow.fromValues(initial)
+            else Flow.fromValues(initial).concat(pollFlow)
+
+          Success(combined)
+      }
+  }
+
+  private def isTerminal(state: BulkUploadStateDTO): Boolean = state.status match {
+    case BulkUploadStatus.Complete | BulkUploadStatus.Failed => true
+    case BulkUploadStatus.Pending | BulkUploadStatus.Running => false
   }
 }

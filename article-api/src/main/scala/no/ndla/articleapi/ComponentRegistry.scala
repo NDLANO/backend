@@ -32,6 +32,7 @@ import no.ndla.common.Clock
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
+import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -41,7 +42,7 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController,
 }
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplication[ArticleApiProperties] {
@@ -58,7 +59,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given traitUtil: TraitUtil                           = new TraitUtil
   given articleRepository: ArticleRepository           = new ArticleRepository
   given converterService: ConverterService             = new ConverterService
-  given redisClient: RedisClient                       = new RedisClient(props.RedisHost, props.RedisPort)
+  given redisClient: FeideRedisClient                  = new FeideRedisClient(props.RedisHost, props.RedisPort)
   given ndlaClient: NdlaClient                         = new NdlaClient
   given searchApiClient: SearchApiClient               = new SearchApiClient(props.SearchApiUrl)
   given feideApiClient: FeideApiClient                 = new FeideApiClient

@@ -9,15 +9,18 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.CirceUtil
+import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
+import no.ndla.imageapi.model.api.bulk.{BulkUploadStateDTO, BulkUploadStatus}
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito.when
 
+import java.util.UUID
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
@@ -115,5 +118,51 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(imageRepository.withId(1)).thenReturn(Success(Some(imageElg)))
     readService.withId(1, None, None) should be(Success(Some(expectedObject)))
+  }
+
+  test("getStatusStreamOfBulkUpload returns NotFoundException when no state exists") {
+    val uploadId = UUID.randomUUID()
+    when(bulkUploadStore.get(uploadId)).thenReturn(Success(None))
+
+    readService.getStatusStreamOfBulkUpload(uploadId) match {
+      case Failure(_: NotFoundException) => succeed
+      case other                         => fail(s"Expected NotFoundException, got $other")
+    }
+  }
+
+  test("getStatusStreamOfBulkUpload emits a single complete state when the upload is already done") {
+    val uploadId   = UUID.randomUUID()
+    val finalState = BulkUploadStateDTO(
+      status = BulkUploadStatus.Complete,
+      total = 1,
+      completed = 1,
+      failed = 0,
+      items = List.empty,
+      error = None,
+    )
+    when(bulkUploadStore.get(uploadId)).thenReturn(Success(Some(finalState)))
+
+    val flow   = readService.getStatusStreamOfBulkUpload(uploadId).get
+    val states = flow.runToList()
+
+    states should be(List(finalState))
+  }
+
+  test("getStatusStreamOfBulkUpload emits the pending state as the first element") {
+    val uploadId     = UUID.randomUUID()
+    val pendingState = BulkUploadStateDTO(
+      status = BulkUploadStatus.Pending,
+      total = 2,
+      completed = 0,
+      failed = 0,
+      items = List.empty,
+      error = None,
+    )
+    when(bulkUploadStore.get(uploadId)).thenReturn(Success(Some(pendingState)))
+
+    val flow    = readService.getStatusStreamOfBulkUpload(uploadId).get
+    val initial = flow.take(1).runToList().head
+
+    initial should be(pendingState)
   }
 }

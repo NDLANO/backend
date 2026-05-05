@@ -15,6 +15,8 @@ import java.io.File
 
 case class MetaDataAndFileForm(metadata: Part[NewImageMetaInformationV2DTO], file: Part[File])
 
+case class BatchMetaDataAndFileForm(metadatas: List[Part[NewImageMetaInformationV2DTO]], files: List[Part[File]])
+
 case class CopyMetaDataAndFileForm(file: Part[File])
 
 case class UpdateMetaDataAndFileForm(metadata: Part[UpdateImageMetaInformationDTO], file: Option[Part[File]])
