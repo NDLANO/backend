@@ -9,16 +9,7 @@
 package no.ndla.network.tapir.auth
 
 import cats.implicits.*
-import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.{CombinedUserWithTokenUser, JWTClaims}
-import sttp.model.HeaderNames
-import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
-import sttp.tapir.CodecFormat.TextPlain
-import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
-import sttp.tapir.*
-
-import scala.collection.immutable.ListMap
-import scala.util.{Failure, Success, Try}
 
 case class TokenUser(id: String, permissions: Set[Permission], jwt: JWTClaims, originalToken: Option[String]) {
   def hasPermission(permission: Permission): Boolean             = permissions.contains(permission)
@@ -53,60 +44,7 @@ object TokenUser {
   val PublicUser: TokenUser = TokenUser("public", Set.empty, None)
   val SystemUser: TokenUser = TokenUser("system", Permission.values.toSet, None)
 
-  case class UserInfoException() extends RuntimeException("Could not build `TokenUser` from token.")
-
-  private def fromExtractor(jWTExtractor: JWTExtractor, token: String) = {
-    val userId   = jWTExtractor.extractUserId()
-    val roles    = jWTExtractor.extractUserRoles()
-    val userName = jWTExtractor.extractUserName()
-    val clientId = jWTExtractor.extractClientId()
-
-    userId.orElse(clientId).orElse(userName) match {
-      case Some(userInfoName) => Success(TokenUser(userInfoName, Permission.fromStrings(roles), Some(token)))
-      case None               => Failure(UserInfoException())
-    }
-  }
-
-  def fromToken(token: String): Try[TokenUser] = {
-    val jWTExtractor = JWTExtractor(token)
-    fromExtractor(jWTExtractor, token)
-  }
-
   extension (self: Option[TokenUser]) {
     def hasPermission(permission: Permission): Boolean = self.exists(user => user.hasPermission(permission))
-  }
-
-  def encode(user: TokenUser): String            = user.id
-  def decode(s: String): DecodeResult[TokenUser] = fromToken(s) match {
-    case Failure(ex)    => DecodeResult.Error(s, ex)
-    case Success(value) => DecodeResult.Value(value)
-  }
-
-  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain] = Codec.string.mapDecode(decode)(encode)
-  private val authScheme                                                  = AuthenticationScheme.Bearer.name
-  private val codec                                                       = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
-  def filterHeaders(headers: List[String]): List[String]                  =
-    headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
-  def stringPrefixWithSpace: Mapping[List[String], List[String]] =
-    Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
-  val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
-    .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
-    .map(filterHeaders)(identity)
-    .map(stringPrefixWithSpace)
-    .mapDecode(codec.decode)(codec.encode)
-    .schema(codec.schema)
-
-  def oauth2Input(permissions: Seq[Permission]): EndpointInput.Auth[Option[TokenUser], AuthType.ScopedOAuth2] = {
-    val authType: AuthType.ScopedOAuth2 = EndpointInput
-      .AuthType
-      .OAuth2(None, None, ListMap.from(permissions.map(p => p.entryName -> p.entryName)), None)
-      .requiredScopes(permissions.map(_.entryName))
-
-    EndpointInput.Auth(
-      input = sttp.tapir.header(HeaderNames.Authorization)(using authCodec),
-      challenge = WWWAuthenticateChallenge.bearer,
-      authType = authType,
-      info = AuthInfo.Empty.securitySchemeName("oauth2"),
-    )
   }
 }
