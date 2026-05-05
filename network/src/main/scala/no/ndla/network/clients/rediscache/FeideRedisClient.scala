@@ -6,48 +6,44 @@
  *
  */
 
-package no.ndla.network.clients
+package no.ndla.network.clients.rediscache
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.BaseProps
-import no.ndla.common.implicits.*
+import no.ndla.network.clients.rediscache.RedisStoredType
+import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
-class RedisClient(
-    host: String,
-    port: Int,
-    // default to 8 hours cache time
-    cacheTimeSeconds: Long = 60 * 60 * 8,
-)(using props: BaseProps)
-    extends StrictLogging {
-  val jedis                    = new ScalaJedis(host, port, props.Environment)
-  private val feideIdField     = "feideId"
-  private val feideUserField   = "feideUser"
-  private val feideGroupField  = "feideGroup"
-  private val feideGroupsField = "feideGroups"
+object FeideToken extends RedisStoredType {
+  override val cacheTime: Duration = 8.hours
+  override val prefix: String      = "feide"
 
-  private def getKeyExpireTime(key: String): Try[Long] = permitTry {
-    val existingExpireTime = jedis.ttl(key).?
-    val newExpireTime      =
-      if (existingExpireTime > 0) existingExpireTime
-      else cacheTimeSeconds
-    Success(newExpireTime)
-  }
+  val feideIdField     = "feideId"
+  val feideUserField   = "feideUser"
+  val feideGroupField  = "feideGroup"
+  val feideGroupsField = "feideGroups"
+}
 
-  private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
+class FeideRedisClient(host: String, port: Int)(using props: BaseProps) extends StrictLogging {
+  val jedis = new ScalaJedis(host, port, props.Environment)
+
+  import FeideToken.*
+
+  private def updateFeideCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
     for {
-      newExpireTime <- getKeyExpireTime(accessToken)
-      _             <- jedis.hset(accessToken, field, data)
-      _             <- jedis.expire(accessToken, newExpireTime)
+      newExpireTime <- jedis.getNewTTL(FeideToken, accessToken)
+      _             <- jedis.hset(FeideToken, accessToken, field, data)
+      _             <- jedis.expire(FeideToken, accessToken, newExpireTime)
     } yield ()
   }
 
   def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
     jedis
-      .hget(accessToken, feideUserField)
+      .hget(FeideToken, accessToken, feideUserField)
       .map {
         case Some(feideUser) => CirceUtil.tryParseAs[FeideExtendedUserInfo](feideUser) match {
             case Success(value) => Some(value)
@@ -63,25 +59,26 @@ class RedisClient(
       accessToken: FeideAccessToken,
       feideExtendedUser: FeideExtendedUserInfo,
   ): Try[FeideExtendedUserInfo] = {
-    updateCache(accessToken, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
+    updateFeideCache(accessToken, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
   }
 
-  def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] = jedis.hget(accessToken, feideIdField)
+  def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] =
+    jedis.hget(FeideToken, accessToken, feideIdField)
 
   def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = {
-    updateCache(accessToken, feideIdField, feideId).map(_ => feideId)
+    updateFeideCache(accessToken, feideIdField, feideId).map(_ => feideId)
   }
 
   def getOrganizationFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
-    jedis.hget(accessToken, feideGroupField)
+    jedis.hget(FeideToken, accessToken, feideGroupField)
 
   def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
-    updateCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
+    updateFeideCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
   }
 
   def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {
     jedis
-      .hget(accessToken, feideGroupsField)
+      .hget(FeideToken, accessToken, feideGroupsField)
       .map {
         case Some(feideGroups) => CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
             case Success(value) => Some(value)
@@ -94,7 +91,6 @@ class RedisClient(
   }
 
   def updateCacheAndReturnGroups(accessToken: FeideAccessToken, feideGroups: Seq[FeideGroup]): Try[Seq[FeideGroup]] = {
-    updateCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
+    updateFeideCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
   }
-
 }

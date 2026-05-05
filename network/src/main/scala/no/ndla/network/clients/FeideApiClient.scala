@@ -16,6 +16,7 @@ import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, N
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.implicits.*
+import no.ndla.network.clients.rediscache.FeideRedisClient
 import sttp.client3.Response
 import sttp.client3.quick.*
 import sttp.model.Uri
@@ -81,7 +82,7 @@ object FeideExtendedUserInfo {
   implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
 }
 
-class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
+class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging {
 
   private val feideTimeout           = 30.seconds
   private val openIdUserInfoEndpoint = uri"https://auth.dataporten.no/openid/userinfo"

@@ -19,7 +19,8 @@ import no.ndla.common.Clock
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.network.clients.rediscache.FeideRedisClient
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, SwaggerController, TapirController, TapirHealthController}
 import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
@@ -62,7 +63,7 @@ trait TestEnvironment extends MockitoSugar {
   implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   implicit lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   implicit lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
-  implicit lazy val redisClient: RedisClient                       = mock[RedisClient]
+  implicit lazy val redisClient: FeideRedisClient                  = mock[FeideRedisClient]
   implicit lazy val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
   implicit lazy val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
   implicit lazy val taxonomyApiClient: TaxonomyApiClient           = mock[TaxonomyApiClient]

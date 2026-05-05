@@ -14,7 +14,8 @@ import no.ndla.common.configuration.BaseProps
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBUtility, DatabaseProps}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient, TaxonomyApiClient}
+import no.ndla.network.clients.rediscache.FeideRedisClient
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{SwaggerController, TapirController, TapirHealthController}
 import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
@@ -48,7 +49,7 @@ trait TestEnvironment extends MockitoSugar with StrictLogging {
   implicit lazy val articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
   implicit lazy val draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
   implicit lazy val feideApiClient: FeideApiClient               = mock[FeideApiClient]
-  implicit lazy val redisClient: RedisClient                     = mock[RedisClient]
+  implicit lazy val redisClient: FeideRedisClient                = mock[FeideRedisClient]
   implicit lazy val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
   implicit lazy val DBUtil: DBUtility                            = DBUtilityStub()
   implicit lazy val searchLanguage: SearchLanguage               = mock[SearchLanguage]
