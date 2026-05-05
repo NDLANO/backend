@@ -10,7 +10,6 @@ package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.BaseProps
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{MyNDLABundleDTO, SingleResourceStatsDTO}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.api.myndla as api
