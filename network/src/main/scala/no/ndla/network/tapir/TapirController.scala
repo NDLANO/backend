@@ -19,7 +19,6 @@ import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.*
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
-import no.ndla.network.tapir.auth.TokenUser.{filterHeaders, stringPrefixWithSpace}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
 import sttp.model.StatusCode
@@ -93,30 +92,20 @@ abstract class TapirController(using
   private implicit val feideUserWrapperCodec: Codec[String, FeideUserWrapper, TextPlain] = Codec
     .string
     .mapDecode(decodeFeideUserWrapper)(encodeFeideUserWrapper)
-
-  private val feideHeaderCodec                                                 = implicitly[Codec[List[String], FeideUserWrapper, TextPlain]]
-  private val feideAuthCodec: Codec[List[String], FeideUserWrapper, TextPlain] = Codec
-    .id[List[String], CodecFormat.TextPlain](feideHeaderCodec.format, Schema.binary)
-    .map(filterHeaders)(identity)
-    .map(stringPrefixWithSpace)
-    .mapDecode(feideHeaderCodec.decode)(feideHeaderCodec.encode)
-    .schema(feideHeaderCodec.schema)
-
+  private val feideRequiredHeaderCodec = implicitly[Codec[List[String], FeideUserWrapper, TextPlain]]
   private val feideOptionalHeaderCodec = implicitly[Codec[List[String], Option[FeideUserWrapper], TextPlain]]
-  private val feideOptionalAuthCodec   = Codec
-    .id[List[String], CodecFormat.TextPlain](feideOptionalHeaderCodec.format, Schema.binary)
-    .map(filterHeaders)(identity)
-    .map(stringPrefixWithSpace)
-    .mapDecode(feideOptionalHeaderCodec.decode)(feideOptionalHeaderCodec.encode)
-    .schema(feideOptionalHeaderCodec.schema)
 
-  private val feideRequiredAuth: EndpointInput.Auth[FeideUserWrapper, AuthType.Http] = TapirAuth
-    .bearer[Option[FeideUserWrapper]]()
-    .copy(input = header[FeideUserWrapper]("FeideAuthorization")(using feideAuthCodec))
+  private val feideRequiredAuth: EndpointInput.Auth[FeideUserWrapper, AuthType.Http] = {
+    val x = TapirAuth.bearer[FeideUserWrapper]()(using feideRequiredHeaderCodec)
+    // TODO: er dette støgt?
+    x.copy(input = x.input.asInstanceOf[EndpointIO.Header[FeideUserWrapper]].copy(name = "FeideAuthorization"))
+  }
 
-  private val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = TapirAuth
-    .bearer[Option[FeideUserWrapper]]()
-    .copy(input = header[Option[FeideUserWrapper]]("FeideAuthorization")(using feideOptionalAuthCodec))
+  private val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.Http] = {
+    val x = TapirAuth.bearer[Option[FeideUserWrapper]]()(using feideOptionalHeaderCodec)
+    // TODO: er dette støgt?
+    x.copy(input = x.input.asInstanceOf[EndpointIO.Header[Option[FeideUserWrapper]]].copy(name = "FeideAuthorization"))
+  }
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
     private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
