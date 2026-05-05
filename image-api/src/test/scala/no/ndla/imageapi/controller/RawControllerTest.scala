@@ -43,7 +43,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   override def beforeEach(): Unit = {
     reset(clock)
     when(imageRepository.withId(id)).thenReturn(Success(Some(TestData.bjorn)))
-    when(imageStorage.get(any[String])).thenReturn(Success(TestData.ndlaLogoImageStream))
+    when(imageStorage.get(any[String])).thenAnswer(_ => Success(TestData.ndlaLogoImageStream))
     when(readService.getImageFileName(id, None)).thenReturn(Success(Some(TestData.bjorn.images.head.fileName)))
     when(clock.now()).thenCallRealMethod()
   }
@@ -274,5 +274,15 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$fileNameWithNonAsciiChars"))
     res.code.code should equal(200)
     res.body should equal(ccLogoSvgImageStream.stream.readAllBytes())
+  }
+
+  test("That GET /image.jpg | /id/1 sets Cache-Control headers") {
+    val res1 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName"))
+    val res2 = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id"))
+
+    res1.code.code should be(200)
+    res2.code.code should be(200)
+    res1.headers.find(_.is("cache-control")).get.value should be(props.RawControllerCacheControl)
+    res2.headers.find(_.is("cache-control")).get.value should be(props.RawControllerCacheControl)
   }
 }
