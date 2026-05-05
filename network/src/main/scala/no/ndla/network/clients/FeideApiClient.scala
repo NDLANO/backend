@@ -109,7 +109,7 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
       case Success(extracted) => Success(extracted)
       case Failure(ex)        =>
         logger.error("Could not parse response from feide.", ex)
-        Failure(new HttpRequestException(s"Could not parse response ${response.body}", Some(response)))
+        Failure(HttpRequestException(s"Could not parse response ${response.body}", response))
     }
   }
 
@@ -118,9 +118,9 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
       if (response.isSuccess) {
         Success(response)
       } else Failure(
-        new HttpRequestException(
+        HttpRequestException(
           s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
-          Some(response),
+          response,
         )
       )
     }
@@ -155,11 +155,8 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
 
   private def getFeideDataOrFail[T](feideResponse: Try[T]): Try[T] = {
     feideResponse match {
-      case Failure(ex: HttpRequestException) =>
-        val code = ex.httpResponse.map(_.code)
-        if (code.exists(_.code == 403) || code.exists(_.code == 401) || code.exists(_.code == 400)) {
-          Failure(FeideApiClient.accessDeniedException)
-        } else Failure(ex)
+      case Failure(ex: HttpRequestException) if ex.code == 403 || ex.code == 401 || ex.code == 400 =>
+        Failure(FeideApiClient.accessDeniedException)
       case Failure(ex)        => Failure(ex)
       case Success(feideData) => Success(feideData)
     }

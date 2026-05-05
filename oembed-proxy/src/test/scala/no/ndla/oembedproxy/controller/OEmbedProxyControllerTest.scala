@@ -18,7 +18,7 @@ import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
 import sttp.client3.Response
 import sttp.client3.quick.*
-import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
+import sttp.model.StatusCode
 
 import scala.util.{Failure, Success}
 
@@ -60,19 +60,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
   }
 
   test("h5p url should return 404 if not found") {
-    val responseMock = new Response[String](
-      body = "",
-      code = StatusCode.NotFound,
-      statusText = "",
-      headers = List.empty,
-      history = List.empty,
-      request = new RequestMetadata {
-        override def method: Method       = Method.GET
-        override def uri: Uri             = uri""
-        override def headers: Seq[Header] = Seq.empty
-      },
-    )
-    val exception = new HttpRequestException("bad", Some(responseMock))
+    val exception = HttpRequestException("bad", Response("", StatusCode.NotFound))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
@@ -82,9 +70,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
   }
 
   test("h5p url should return 502 if something bad happens during request") {
-    val exception = new HttpRequestException("bad", None) {
-      override def is404: Boolean = false
-    }
+    val exception = HttpRequestException("bad", Response("", StatusCode.InternalServerError))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")

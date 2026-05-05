@@ -16,30 +16,21 @@ import no.ndla.oembedproxy.model.{InvalidUrlException, ProviderNotSupportedExcep
 class ControllerErrorHandling(using clock: Clock, errorHelpers: ErrorHelpers) extends ErrorHandling {
   import errorHelpers.*
 
-  private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
-  private def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
-    exception.httpResponse.map(_.code.code) match {
-      case Some(value) if statusCodesToPassAlong.contains(value) => Some(value)
-      case _                                                     => None
-    }
+  private val statusCodesToPassAlong = List(401, 403, 404, 410)
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case ivu: InvalidUrlException            => ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
-    case pnse: ProviderNotSupportedException => ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
-    case hre: HttpRequestException           =>
-      val msg = hre
-        .httpResponse
-        .map(response => s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'")
-      getRequestExceptionStatusCode(hre) match {
-        case None =>
-          logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
-          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
-        case Some(statusCode) if statusCodesToPassAlong.contains(statusCode) =>
-          logger.info(s"Remote service returned $statusCode: '${hre.getMessage}'${msg.getOrElse("")}")
-          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
-        case Some(statusCode) =>
-          logger.error(s"Remote service returned $statusCode: '${hre.getMessage}'${msg.getOrElse("")}")
-          ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), statusCode)
+    case ivu: InvalidUrlException                       => ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
+    case pnse: ProviderNotSupportedException            => ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
+    case ex @ HttpRequestException(exMessage, response) =>
+      val statusCode = response.code.code
+      val msg        = s"'$exMessage': Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
+
+      if (statusCodesToPassAlong.contains(statusCode)) {
+        logger.info(s"Remote service returned $statusCode: $msg")
+        ErrorBody(REMOTE_ERROR, exMessage, clock.now(), statusCode)
+      } else {
+        logger.error(s"Could not fetch remote: $msg", ex)
+        ErrorBody(REMOTE_ERROR, exMessage, clock.now(), 502)
       }
   }
 }

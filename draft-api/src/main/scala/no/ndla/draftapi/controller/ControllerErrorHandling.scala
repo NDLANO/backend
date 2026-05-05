@@ -53,11 +53,12 @@ class ControllerErrorHandling(using
       logger.error(s"Got postgres exception: '${psql.getMessage}', attempting db reconnect", psql)
       dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
-    case h: HttpRequestException => h.httpResponse match {
-        case Some(resp) if resp.code.isClientError => ErrorBody(VALIDATION, resp.body, clock.now(), 400)
-        case _                                     =>
-          logger.error(s"Problem with remote service: ${h.getMessage}")
-          ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 502)
+    case h: HttpRequestException =>
+      if (h.httpResponse.code.isClientError) {
+        ErrorBody(VALIDATION, h.httpResponse.body, clock.now(), 400)
+      } else {
+        logger.error(s"Problem with remote service: ${h.getMessage}")
+        ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 502)
       }
     case NdlaSearchException(_, Some(rf), _, _)
         if rf

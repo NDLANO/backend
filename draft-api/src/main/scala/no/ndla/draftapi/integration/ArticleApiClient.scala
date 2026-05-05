@@ -84,13 +84,8 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
       ("import_validate", importValidate.toString),
     ) match {
       case Failure(ex: HttpRequestException) =>
-        val validationError = ex.httpResponse.map(r => CirceUtil.unsafeParseAs[ArticleApiValidationErrorDTO](r.body))
-        Failure(
-          new ValidationException(
-            "Failed to validate article in article-api",
-            validationError.map(_.messages).getOrElse(Seq.empty),
-          )
-        )
+        val validationError = CirceUtil.unsafeParseAs[ArticleApiValidationErrorDTO](ex.httpResponse.body)
+        Failure(new ValidationException("Failed to validate article in article-api", validationError.messages))
       case x => x
     }
   }
