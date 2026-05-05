@@ -2232,6 +2232,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "Content-Type": string;
+                    "Content-Length": string;
+                    "Cache-Control": string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2304,6 +2307,9 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "Content-Type": string;
+                    "Content-Length": string;
+                    "Cache-Control": string;
                     [name: string]: unknown;
                 };
                 content: {
