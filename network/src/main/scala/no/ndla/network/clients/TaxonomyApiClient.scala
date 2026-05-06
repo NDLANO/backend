@@ -29,9 +29,9 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
   def getSubjects(shouldUsePublishedTax: Boolean): Try[List[Node]] = {
     val params = Seq(
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
-      "nodeType"        -> NodeType.SUBJECT.entryName,
+      "filterProgrammes" -> "true",
+      "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
+      "nodeType"         -> NodeType.SUBJECT.entryName,
     )
 
     get[List[Node]](
