@@ -14,7 +14,13 @@ import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.imageapi.model.api.*
-import no.ndla.imageapi.model.api.bulk.{BulkUploadItemDTO, BulkUploadItemStatus, BulkUploadStateDTO, BulkUploadStatus}
+import no.ndla.imageapi.model.api.bulk.{
+  BulkUploadInput,
+  BulkUploadItemDTO,
+  BulkUploadItemStatus,
+  BulkUploadStateDTO,
+  BulkUploadStatus,
+}
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation, ImageVariantSize, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -828,17 +834,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   private def stagingDirFor(uploadId: UUID): Path = Files.createTempDirectory(s"image-bulk-upload-test-$uploadId-")
 
-  private def bulkInitialState(items: List[(NewImageMetaInformationV2DTO, UploadedFile)]): BulkUploadStateDTO =
-    BulkUploadStateDTO(
-      status = BulkUploadStatus.Pending,
-      total = items.size,
-      completed = 0,
-      failed = 0,
-      items = items.map { case (_, file) =>
-        BulkUploadItemDTO(file.fileName, BulkUploadItemStatus.Pending, None, None)
-      },
-      error = None,
-    )
+  private def bulkInitialState(items: List[BulkUploadInput]): BulkUploadStateDTO = BulkUploadStateDTO(
+    status = BulkUploadStatus.Pending,
+    total = items.size,
+    completed = 0,
+    failed = 0,
+    items = items.map { item =>
+      BulkUploadItemDTO(item.file.fileName, BulkUploadItemStatus.Pending, None, None)
+    },
+    error = None,
+  )
 
   test("batchStoreImages persists initial state and submits work to the executor") {
     val uploadId   = UUID.randomUUID()
@@ -853,8 +858,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     }
     setupHappyPathStoreNewImage()
 
-    val result =
-      writeService.batchStoreImages(uploadId, List((newImageMeta, fileMock1)), stagingDir, userWithWriteScope)
+    val result = writeService.batchStoreImages(
+      uploadId,
+      List(BulkUploadInput(newImageMeta, fileMock1)),
+      stagingDir,
+      userWithWriteScope,
+    )
 
     result should be(Success(()))
 
@@ -879,7 +888,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val uploadId   = UUID.randomUUID()
     val stagingDir = stagingDirFor(uploadId)
     val sentinel   = Files.createFile(stagingDir.resolve("sentinel.txt"))
-    val items      = List((newImageMeta, fileMock1), (newImageMeta, fileMock1))
+    val items      = List(BulkUploadInput(newImageMeta, fileMock1), BulkUploadInput(newImageMeta, fileMock1))
     val states     = scala.collection.mutable.ListBuffer.empty[BulkUploadStateDTO]
     reset(bulkUploadStore)
     when(bulkUploadStore.set(any[UUID], any[BulkUploadStateDTO])).thenAnswer { i =>
@@ -903,7 +912,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("runBulkUpload rolls back already-stored images and marks Failed on error") {
     val uploadId    = UUID.randomUUID()
     val stagingDir  = stagingDirFor(uploadId)
-    val items       = List((newImageMeta, fileMock1), (newImageMeta, fileMock1))
+    val items       = List(BulkUploadInput(newImageMeta, fileMock1), BulkUploadInput(newImageMeta, fileMock1))
     val storeStates = scala.collection.mutable.ListBuffer.empty[BulkUploadStateDTO]
 
     reset(bulkUploadStore)

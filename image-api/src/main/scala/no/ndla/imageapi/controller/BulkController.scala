@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.controller.multipart.BatchMetaDataAndFileForm
 import no.ndla.imageapi.model.api.bulk.{
+  BulkUploadInput,
   BulkUploadStartedDTO,
   BulkUploadStateDTO,
   BulkUploadStatus,
@@ -88,13 +89,13 @@ class BulkController(using
       formData => {
         val metas    = formData.metadatas.map(_.body)
         val uploadId = UUID.randomUUID()
-        val result   = for {
+        for {
           _                   <- validateSameLength(metas, formData.files)
           _                   <- formData.files.traverseSizeCheck
           (stagingDir, files) <- stageFiles(uploadId, formData.files)
-          _                   <- writeService.batchStoreImages(uploadId, metas.zip(files), stagingDir, user)
+          inputs               = metas.lazyZip(files).map(BulkUploadInput.apply)
+          _                   <- writeService.batchStoreImages(uploadId, inputs, stagingDir, user)
         } yield BulkUploadStartedDTO(uploadId)
-        result.handleErrorsOrOk
       }
     )
 

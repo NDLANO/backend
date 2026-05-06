@@ -21,7 +21,13 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
-import no.ndla.imageapi.model.api.bulk.{BulkUploadItemDTO, BulkUploadItemStatus, BulkUploadStateDTO, BulkUploadStatus}
+import no.ndla.imageapi.model.api.bulk.{
+  BulkUploadInput,
+  BulkUploadItemDTO,
+  BulkUploadItemStatus,
+  BulkUploadStateDTO,
+  BulkUploadStatus,
+}
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
   ImageMetaInformationV3DTO,
@@ -243,14 +249,14 @@ class WriteService(using
     *
     * `stagingDir` and the files inside it are deleted by the worker once processing is finished, regardless of outcome.
     */
-  def batchStoreImages(
-      uploadId: UUID,
-      items: List[(NewImageMetaInformationV2DTO, UploadedFile)],
-      stagingDir: Path,
-      user: TokenUser,
-  ): Try[Unit] = {
-    val initialItems = items.map { case (_, file) =>
-      BulkUploadItemDTO(fileName = file.fileName, status = BulkUploadItemStatus.Pending, image = None, error = None)
+  def batchStoreImages(uploadId: UUID, items: List[BulkUploadInput], stagingDir: Path, user: TokenUser): Try[Unit] = {
+    val initialItems = items.map { item =>
+      BulkUploadItemDTO(
+        fileName = item.file.fileName,
+        status = BulkUploadItemStatus.Pending,
+        image = None,
+        error = None,
+      )
     }
     val initialState = BulkUploadStateDTO(
       status = BulkUploadStatus.Pending,
@@ -275,7 +281,7 @@ class WriteService(using
 
   private[service] def runBulkUpload(
       uploadId: UUID,
-      items: List[(NewImageMetaInformationV2DTO, UploadedFile)],
+      items: List[BulkUploadInput],
       stagingDir: Path,
       user: TokenUser,
       initialState: BulkUploadStateDTO,
@@ -290,7 +296,7 @@ class WriteService(using
       .zipWithIndex
       .foldLeft(BulkUploadProgress(running)) {
         case (progress, _) if progress.hasFailed => progress
-        case (progress, ((meta, file), idx))     => processBulkItem(uploadId, total, idx, meta, file, user, progress)
+        case (progress, (item, idx))             => processBulkItem(uploadId, total, idx, item, user, progress)
       }
 
     val elapsedMs  = System.currentTimeMillis() - startedAt
@@ -314,8 +320,7 @@ class WriteService(using
       uploadId: UUID,
       total: Int,
       itemIdx: Int,
-      metadata: NewImageMetaInformationV2DTO,
-      file: UploadedFile,
+      item: BulkUploadInput,
       user: TokenUser,
       progress: BulkUploadProgress,
   ): BulkUploadProgress = {
@@ -323,12 +328,12 @@ class WriteService(using
     persistState(uploadId, uploading)
 
     val whichImg = s"${itemIdx + 1}/$total"
-    val fileName = file.fileName.getOrElse("<unknown>")
+    val fileName = item.file.fileName.getOrElse("<unknown>")
 
     logger.info(s"Bulk upload $uploadId: uploading item $whichImg (fileName = $fileName)")
 
     val result = for {
-      stored <- storeNewImage(metadata, file, user)
+      stored <- storeNewImage(item.metadata, item.file, user)
       dto    <- converterService.asApiImageMetaInformationV3(stored, None, Some(user))
     } yield stored -> dto
 
