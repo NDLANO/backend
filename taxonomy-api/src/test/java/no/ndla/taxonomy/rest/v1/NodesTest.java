@@ -800,6 +800,8 @@ public class NodesTest extends RestTest {
         assertEquals("node", node.getName());
         assertEquals(URI.create("urn:article:1"), node.getContentUri());
         assertTrue(node.isContext());
+        assertNotNull(node.getCreatedAt());
+        assertNotNull(node.getUpdatedAt());
     }
 
     @Test

@@ -192,9 +192,7 @@ public class NodeDTO {
 
         this.nodeType = entity.getNodeType();
         this.contextids = entity.getContextIds();
-        this.updatedAt = Optional.ofNullable(entity.getUpdatedAt())
-                .or(() -> Optional.of(entity.getCreatedAt()))
-                .get();
+        this.updatedAt = entity.getUpdatedAt();
 
         Set<TaxonomyContext> parentContexts = includeParents ? entity.getAllParentContexts() : Set.of();
         Optional<TaxonomyContext> selected =
@@ -366,10 +364,5 @@ public class NodeDTO {
 
     public Optional<TechnicalEvaluationDTO> getTechnicalEvaluation() {
         return technicalEvaluation;
-    }
-
-    // Only for test
-    void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

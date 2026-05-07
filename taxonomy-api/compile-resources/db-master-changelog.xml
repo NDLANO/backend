@@ -898,4 +898,12 @@
         </update>
     </changeSet>
 
+    <changeSet id="20260507 Set updated to created if not set" author="Gunnar Velle">
+        <sql>
+            UPDATE node
+            SET updated_at = created_at
+            WHERE updated_at IS NULL AND created_at IS NOT NULL
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
