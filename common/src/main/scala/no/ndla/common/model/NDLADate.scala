@@ -74,6 +74,7 @@ object NDLADate {
     List(
       "yyyy-MM-dd'T'HH:mm:ss'Z'",
       "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'",
+      "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
       "yyyy-MM-dd'T'HH:mm:ss",
       "yyyy-MM-dd'T'HH:mm:ss.SSS",
       "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS",

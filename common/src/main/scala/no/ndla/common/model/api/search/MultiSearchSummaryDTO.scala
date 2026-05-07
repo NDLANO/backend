@@ -56,6 +56,8 @@ case class NodeHitDTO(
     title: String,
     @description("The url to the frontend page of the taxonomy node")
     url: Option[String],
+    @description("When this node was last updated")
+    lastUpdated: NDLADate,
     @description("Subject page summary if the node is connected to a subject page")
     subjectPage: Option[SubjectPageSummaryDTO],
     @description("Primary context of the resource")

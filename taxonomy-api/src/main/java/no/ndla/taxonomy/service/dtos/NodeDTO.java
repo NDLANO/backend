@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URI;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import no.ndla.taxonomy.config.Constants;
@@ -33,6 +34,7 @@ import no.ndla.taxonomy.util.PrettyUrlUtil;
             "supportedLanguages",
             "breadcrumbs",
             "resourceTypes",
+            "updatedAt",
             "contexts",
             "contextids",
             "language",
@@ -130,6 +132,10 @@ public class NodeDTO {
     @Schema(description = "Url safe name for the node in the default language.")
     private String defaultUrlName;
 
+    @JsonProperty
+    @Schema(description = "When was this last updated.")
+    private Instant updatedAt;
+
     public NodeDTO() {}
 
     public NodeDTO(
@@ -186,6 +192,9 @@ public class NodeDTO {
 
         this.nodeType = entity.getNodeType();
         this.contextids = entity.getContextIds();
+        this.updatedAt = Optional.ofNullable(entity.getUpdatedAt())
+                .or(() -> Optional.of(entity.getCreatedAt()))
+                .get();
 
         Set<TaxonomyContext> parentContexts = includeParents ? entity.getAllParentContexts() : Set.of();
         Optional<TaxonomyContext> selected =
@@ -357,5 +366,10 @@ public class NodeDTO {
 
     public Optional<TechnicalEvaluationDTO> getTechnicalEvaluation() {
         return technicalEvaluation;
+    }
+
+    // Only for test
+    void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

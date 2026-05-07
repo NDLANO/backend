@@ -10,6 +10,7 @@ package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.SearchableLanguageValues
 import no.ndla.common.model.taxonomy.NodeType
 
@@ -24,6 +25,7 @@ case class SearchableNode(
     contexts: List[SearchableTaxonomyContext],
     grepContexts: List[SearchableGrepContext],
     typeName: List[String],
+    lastUpdated: NDLADate,
 )
 
 object SearchableNode {

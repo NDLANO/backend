@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 
 import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticApi.*
+import com.sksamuel.elastic4s.ElasticDsl.dateField
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
@@ -53,6 +54,7 @@ class NodeIndexService(using
       keywordField("grepContexts.code"),
       keywordField("status"),
       textField("grepContexts.title"),
+      dateField("lastUpdated"),
       getTaxonomyContextMapping("context"),
       getTaxonomyContextMapping("contexts"),
       ObjectField(

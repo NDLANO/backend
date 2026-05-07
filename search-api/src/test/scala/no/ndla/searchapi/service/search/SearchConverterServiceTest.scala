@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.common.model.taxonomy.*
 import no.ndla.common.util.TraitUtil
 import no.ndla.search.SearchLanguage
+import no.ndla.searchapi.TestData.today
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.*
@@ -74,6 +75,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.RESOURCE,
       List.empty,
+      today,
       List("asdf3456"),
       None,
       List.empty,
@@ -88,6 +90,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.TOPIC,
       List.empty,
+      today,
       List("asdf3457"),
       None,
       List.empty,
@@ -102,6 +105,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.SUBJECT,
       List.empty,
+      today,
       List("asdf3458"),
       None,
       List.empty,
