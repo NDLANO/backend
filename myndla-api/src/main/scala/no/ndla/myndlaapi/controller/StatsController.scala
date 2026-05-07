@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.controller
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.domain.ResourceType
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.StatsDTO
 import no.ndla.myndlaapi.service.FolderReadService
@@ -30,6 +31,7 @@ class StatsController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: InternalMyNDLAApiClient,
+    props: Props,
 ) extends TapirController {
   override val serviceName: String                   = "stats"
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

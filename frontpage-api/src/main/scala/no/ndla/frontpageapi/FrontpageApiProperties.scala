@@ -8,6 +8,7 @@
 
 package no.ndla.frontpageapi
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.database.DatabaseProps
@@ -30,4 +31,6 @@ class FrontpageApiProperties extends BaseProps with DatabaseProps {
   val BrightcovePlayer: Prop[String]    = prop("BRIGHTCOVE_PLAYER_ID")
 
   override def MetaMigrationLocation: String = "no/ndla/frontpageapi/db/migration"
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("frontpage")
 }

@@ -21,6 +21,7 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
@@ -54,11 +55,16 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given internController: InternController           = new InternController
   given healthController: TapirHealthController      = new TapirHealthController
 
+  given swaggerInfo: SwaggerInfo =
+    SwaggerInfo(prefix = "frontpage-api", description = "Service for fetching frontpage data")
   given swagger: SwaggerController = new SwaggerController(
-    List(subjectPageController, frontPageController, filmPageController, internController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo,
+    subjectPageController,
+    frontPageController,
+    filmPageController,
+    internController,
+    healthController,
   )
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

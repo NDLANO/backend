@@ -9,6 +9,7 @@
 package no.ndla.imageapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission.IMAGE_API_BATCH
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
@@ -25,7 +26,6 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.StreamingSSE
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.IMAGE_API_BATCH
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.Part
 import sttp.tapir.*

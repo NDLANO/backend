@@ -19,7 +19,7 @@ import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
-import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.common.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any

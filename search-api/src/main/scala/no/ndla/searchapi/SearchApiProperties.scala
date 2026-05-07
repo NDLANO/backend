@@ -9,6 +9,7 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.network.{AuthUser, Domains}
@@ -72,4 +73,6 @@ class SearchApiProperties extends BaseProps with StrictLogging {
     "learningpath-api" -> s"$Domain/learningpath-api/v2/learningpaths",
     "raw-image"        -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
   )
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Seq(Permission.DRAFT_API_WRITE)
 }

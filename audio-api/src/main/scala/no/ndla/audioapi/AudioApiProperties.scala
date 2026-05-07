@@ -9,6 +9,7 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
@@ -67,4 +68,6 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   override def MetaMigrationLocation: String      = "no/ndla/audioapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("audio")
 }

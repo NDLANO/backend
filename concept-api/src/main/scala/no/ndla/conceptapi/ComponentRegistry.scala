@@ -30,8 +30,6 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController,
 }
-import sttp.tapir.stringToPath
-import no.ndla.network.tapir.auth.Permission
 
 class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
   given props: ConceptApiProperties          = properties
@@ -74,18 +72,10 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
   given healthController: TapirHealthController                = new TapirHealthController
   given internController: InternController                     = new InternController
 
-  private val swaggerInfo = SwaggerInfo(
-    mountPoint = "concept-api" / "api-docs",
-    description = "Services for accessing concepts",
-    authUrl = props.Auth0LoginEndpoint,
-    scopes = Permission.toSwaggerMap(Permission.thatStartsWith("concept")),
-  )
+  given swaggerInfo: SwaggerInfo   = SwaggerInfo(prefix = "concept-api", description = "Services for accessing concepts")
+  given swagger: SwaggerController =
+    new SwaggerController(draftConceptController, publishedConceptController, healthController, internController)
 
-  given swagger: SwaggerController = new SwaggerController(
-    List(draftConceptController, publishedConceptController, healthController, internController),
-    swaggerInfo,
-  )
-
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

@@ -8,13 +8,14 @@
 
 package no.ndla.draftapi.repository
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Responsible, Status}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*

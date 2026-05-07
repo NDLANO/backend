@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.myndla.{
 }
 import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
+import no.ndla.common.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
 import java.util.UUID

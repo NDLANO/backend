@@ -12,23 +12,22 @@ import cats.implicits.*
 import io.circe.Json
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAProvider
-import sttp.apispec.openapi.{Components, Contact, Info, License}
-import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
+import sttp.apispec.openapi.{Contact, Info, License}
 import sttp.tapir.*
-import sttp.tapir.docs.openapi.{OpenAPIDocsInterpreter, OpenAPIDocsOptions}
+import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.server.ServerEndpoint
 
 import java.nio.file.{Files, Paths}
-import scala.collection.immutable.ListMap
 import scala.util.Try
 
-class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo)(using
-    props: BaseProps,
+class SwaggerController(services: TapirController*)(using
+    swaggerInfo: SwaggerInfo,
     myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: BaseProps,
 ) extends TapirController {
-  def getServices(): List[TapirController] = services :+ this
+  val allServices: List[TapirController] = services.toList :+ this
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
     errorHelpers.generic
@@ -52,34 +51,7 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     }
     .flatten
 
-  private val securityScheme: SecurityScheme = SecurityScheme(
-    `type` = "oauth2",
-    description = None,
-    name = None,
-    in = None,
-    scheme = None,
-    bearerFormat = None,
-    flows = OAuthFlows(`implicit` =
-      OAuthFlow(
-        authorizationUrl = swaggerInfo.authUrl.some,
-        tokenUrl = None,
-        refreshUrl = None,
-        scopes = swaggerInfo.scopes,
-      ).some
-    ).some,
-    openIdConnectUrl = None,
-  )
-
-  private val docs: Json = {
-    val options             = OpenAPIDocsOptions.default
-    val docs                = OpenAPIDocsInterpreter(options).serverEndpointsToOpenAPI(swaggerEndpoints, info)
-    val generatedComponents = docs.components.getOrElse(Components.Empty)
-    val newComponents       = generatedComponents.copy(securitySchemes =
-      generatedComponents.securitySchemes ++ ListMap("oauth2" -> Right(securityScheme))
-    )
-    val docsWithComponents = docs.components(newComponents).asJson
-    docsWithComponents.asJson
-  }
+  private val docs: Json = OpenAPIDocsInterpreter().serverEndpointsToOpenAPI(swaggerEndpoints, info).asJson
 
   def saveSwagger(): Try[Unit] = {
     Try(Files.write(Paths.get(s"${props.ApplicationName}.json"), docs.noSpaces.getBytes)).map(_ => ())
@@ -90,7 +62,7 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     else end
 
   override val enableSwagger: Boolean       = false
-  protected val prefix: EndpointInput[Unit] = swaggerInfo.mountPoint
+  protected val prefix: EndpointInput[Unit] = swaggerInfo.prefix / "api-docs"
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     addCorsHeaders(endpoint.get)

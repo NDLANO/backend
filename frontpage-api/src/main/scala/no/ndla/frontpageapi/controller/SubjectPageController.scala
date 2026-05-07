@@ -19,7 +19,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
+import no.ndla.common.auth.Permission.FRONTPAGE_API_WRITE
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint

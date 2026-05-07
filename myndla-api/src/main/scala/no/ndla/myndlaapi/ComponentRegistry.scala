@@ -18,7 +18,6 @@ import no.ndla.myndlaapi.controller.{
   InternController,
   RobotController,
   StatsController,
-  SwaggerDocControllerConfig,
   UserController,
 }
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
@@ -54,6 +53,7 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
@@ -105,18 +105,18 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given robotController: RobotController        = new RobotController
   given internController: InternController      = new InternController
 
+  given swaggerInfo: SwaggerInfo =
+    SwaggerInfo(prefix = "myndla-api", description = "NDLA API to manage users and groups related to MyNDLA")
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      healthController,
-      folderController,
-      robotController,
-      userController,
-      configController,
-      statsController,
-      internController,
-    ),
-    SwaggerDocControllerConfig.swaggerInfo,
+    userController,
+    statsController,
+    configController,
+    healthController,
+    folderController,
+    robotController,
+    internController,
   )
-  given services: List[TapirController] = swagger.getServices()
+
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

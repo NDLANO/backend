@@ -23,7 +23,7 @@ import no.ndla.common.implicits.*
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
-import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.common.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.NdlaE4sClient
 

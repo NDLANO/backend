@@ -9,6 +9,7 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
@@ -128,4 +129,6 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("drafts") :+ Permission.ARTICLE_API_WRITE
 }

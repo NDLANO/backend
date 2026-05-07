@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.clients.MyNDLAApiClient
@@ -21,6 +22,7 @@ class HealthController(using
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: Props,
 ) extends TapirHealthController {
   private def checkBucketAccess(): Either[String, Unit] = imageStorageService.checkBucketAccess() match {
     case Failure(ex) =>

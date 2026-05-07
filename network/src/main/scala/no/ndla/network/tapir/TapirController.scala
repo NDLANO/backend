@@ -12,12 +12,14 @@ import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.SchemaImplicits
+import no.ndla.common.auth.Permission
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.*
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
-import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth, Permission, TokenUser}
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth, TokenUser}
 import sttp.model.StatusCode
 import sttp.shared.Identity
 import sttp.tapir.*
@@ -29,6 +31,7 @@ abstract class TapirController(using
     myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: BaseProps,
 ) extends TapirErrorHandling,
       NdlaAuth,
       FeideAuth,

@@ -22,7 +22,7 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
-import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
+import no.ndla.common.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.when

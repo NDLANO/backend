@@ -8,10 +8,11 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.model.CombinedUser
-import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import no.ndla.common.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success}
 import scala.util.Try

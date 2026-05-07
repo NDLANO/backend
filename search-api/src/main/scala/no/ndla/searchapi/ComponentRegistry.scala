@@ -17,17 +17,13 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
 }
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.searchapi.controller.{
-  ControllerErrorHandling,
-  InternController,
-  SearchController,
-  SwaggerDocControllerConfig,
-}
+import no.ndla.searchapi.controller.{ControllerErrorHandling, InternController, SearchController}
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
@@ -68,11 +64,17 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given healthController: TapirHealthController = new TapirHealthController
   given internController: InternController      = new InternController
 
-  given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](searchController, internController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo,
+  given swaggerInfo: SwaggerInfo = SwaggerInfo(
+    prefix = "search-api",
+    description = "A common endpoint for searching across article, draft, learningpath, image and audio APIs.\n\n" +
+      "The Search API provides a common endpoint for searching across the article, draft, learningpath, image and audio APIs. " +
+      "The search does a free text search in data and metadata. It is also possible to search targeted at specific " +
+      "meta-data fields like language or license.\n" +
+      "Note that the query parameter is based on the Elasticsearch simple search language. For more information, see " +
+      "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html",
   )
+  given swagger: SwaggerController = new SwaggerController(searchController, healthController, internController)
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

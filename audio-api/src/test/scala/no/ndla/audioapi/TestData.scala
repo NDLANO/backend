@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.mapping.License
-import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
+import no.ndla.common.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
 object TestData {

@@ -21,7 +21,7 @@ import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirApplication}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, SwaggerInfo, TapirApplication}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
@@ -70,11 +70,21 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given healthController: HealthController               = new HealthController
   given transcriptionController: TranscriptionController = new TranscriptionController
 
+  given swaggerInfo: SwaggerInfo = SwaggerInfo(
+    prefix = "audio-api",
+    description = "Searching and fetching all audio used in the NDLA platform.\n\n" +
+      "The Audio API provides an endpoint for searching and fetching audio used in NDLA resources. " +
+      "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
+      "The media file is provided as an URL with the mime type.",
+  )
   given swagger: SwaggerController = new SwaggerController(
-    List(audioApiController, seriesController, internController, healthController, transcriptionController),
-    SwaggerDocControllerConfig.swaggerInfo,
+    internController,
+    audioApiController,
+    seriesController,
+    healthController,
+    transcriptionController,
   )
 
-  given services: List[no.ndla.network.tapir.TapirController] = swagger.getServices()
+  given services: List[no.ndla.network.tapir.TapirController] = swagger.allServices
   given routes: Routes                                        = new Routes
 }

@@ -8,6 +8,7 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.robot.{CreateRobotDefinitionDTO, ListOfRobotDefinitionsDTO, RobotDefinitionDTO}
 import no.ndla.myndlaapi.model.domain.RobotStatus
@@ -26,6 +27,7 @@ class RobotController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: InternalMyNDLAApiClient,
+    props: Props,
 ) extends TapirController {
   override val serviceName: String         = "robots"
   override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

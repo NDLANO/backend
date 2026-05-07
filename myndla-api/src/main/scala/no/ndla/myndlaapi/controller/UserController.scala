@@ -16,6 +16,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
@@ -27,6 +28,7 @@ class UserController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: InternalMyNDLAApiClient,
+    props: Props,
 ) extends TapirController {
   override val serviceName: String = "users"
 

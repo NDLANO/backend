@@ -12,7 +12,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.concept.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
+import no.ndla.common.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when

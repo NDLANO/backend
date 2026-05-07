@@ -8,10 +8,11 @@
 
 package no.ndla.draftapi.model.domain
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.service.SideEffect
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import no.ndla.common.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 
 case class StateTransition(
     from: DraftStatus,

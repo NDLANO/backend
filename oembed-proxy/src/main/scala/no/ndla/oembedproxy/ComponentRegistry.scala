@@ -15,12 +15,13 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
 }
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.oembedproxy.controller.{ControllerErrorHandling, OEmbedProxyController, SwaggerDocControllerConfig}
+import no.ndla.oembedproxy.controller.{ControllerErrorHandling, OEmbedProxyController}
 import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplication[OEmbedProxyProperties] {
@@ -35,9 +36,10 @@ class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplicat
   given healthController: TapirHealthController      = new TapirHealthController
   given oEmbedProxyController: OEmbedProxyController = new OEmbedProxyController
 
-  given swagger: SwaggerController =
-    new SwaggerController(List(oEmbedProxyController, healthController), SwaggerDocControllerConfig.swaggerInfo)
+  given swaggerInfo: SwaggerInfo =
+    SwaggerInfo(prefix = "oembed-proxy", description = "Convert any NDLA resource to an oEmbed embeddable resource.")
+  given swagger: SwaggerController = new SwaggerController(healthController, oEmbedProxyController)
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

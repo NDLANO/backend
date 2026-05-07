@@ -12,7 +12,7 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.api.config.ConfigMetaValueDTO
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
-import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
+import no.ndla.common.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.any

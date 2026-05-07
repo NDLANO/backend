@@ -13,6 +13,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.service.OEmbedService
 import sttp.tapir.*
@@ -26,6 +27,7 @@ class OEmbedProxyController(using
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: Props,
 ) extends TapirController {
   import errorHandling.*
   override val serviceName: String                       = "oembed"

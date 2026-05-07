@@ -19,7 +19,7 @@ import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
+import no.ndla.common.auth.Permission.AUDIO_API_WRITE
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.network.tapir.{ErrorHelpers, TapirController}

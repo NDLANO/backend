@@ -38,6 +38,7 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
@@ -91,11 +92,15 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V67__ComputeSearchTraitsAgain,
   )
 
-  given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](articleControllerV2, internController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo,
+  given swaggerInfo: SwaggerInfo = SwaggerInfo(
+    prefix = "article-api",
+    description = "Searching and fetching all articles published on the NDLA platform.\n\n" +
+      "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
+      "returned articles, and typical examples of this are language and license.\n" +
+      "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
   )
+  given swagger: SwaggerController = new SwaggerController(internController, articleControllerV2, healthController)
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

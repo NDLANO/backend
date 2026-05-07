@@ -8,6 +8,8 @@
 
 package no.ndla.myndlaapi
 
+import no.ndla.common.auth.Permission
+import no.ndla.common.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
 import no.ndla.network.AuthUser
@@ -39,4 +41,6 @@ class MyNdlaApiProperties extends BaseProps with DatabaseProps {
   def outgoingEmail: String          = propOrElse("NDLA_MYNDLA_EMAIL", s"noreply@$emailDomain")
   def MyNDLAContactEmail: String     = propOrElse("MYNDLA_CONTACT_EMAIL", "hjelp@ndla.no")
   def AWSEmailRegion: Option[String] = propOrNone("NDLA_AWS_EMAIL_REGION")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Seq(LEARNINGPATH_API_ADMIN)
 }

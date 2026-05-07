@@ -91,11 +91,11 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V81__ComputeSearchTraitsAgain,
   )
 
-  implicit lazy val swagger: SwaggerController = new SwaggerController(
-    List[TapirController](draftController, fileController, userDataController, internController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo,
-  )
+  given swaggerInfo: SwaggerInfo =
+    SwaggerInfo(prefix = "draft-api", description = "Services for accessing draft articles.")
+  implicit lazy val swagger: SwaggerController =
+    new SwaggerController(internController, draftController, fileController, userDataController, healthController)
 
-  implicit lazy val services: List[TapirController] = swagger.getServices()
+  implicit lazy val services: List[TapirController] = swagger.allServices
   implicit lazy val routes: Routes                  = new Routes
 }

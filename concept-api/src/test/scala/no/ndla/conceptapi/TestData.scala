@@ -11,7 +11,7 @@ package no.ndla.conceptapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain as common
 import no.ndla.conceptapi.model.api
-import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
+import no.ndla.common.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.Missing
