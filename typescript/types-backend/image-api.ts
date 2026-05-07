@@ -2237,6 +2237,8 @@ export interface operations {
                 ratio?: number;
                 /** @description The wanted aspect ratio, defined as width/height. To be used together with the focal parameters. If used the width and height is ignored and derived from the aspect ratio instead. */
                 language?: string;
+                /** @description Whether the image should be downloaded or not. Only the presence of this parameter is needed. */
+                download?: string;
             };
             header?: {
                 /** @description Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access. */
@@ -2254,6 +2256,7 @@ export interface operations {
                 headers: {
                     "Content-Type": string;
                     "Content-Length": string;
+                    "Content-Disposition"?: string;
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -2312,6 +2315,8 @@ export interface operations {
                 ratio?: number;
                 /** @description The wanted aspect ratio, defined as width/height. To be used together with the focal parameters. If used the width and height is ignored and derived from the aspect ratio instead. */
                 language?: string;
+                /** @description Whether the image should be downloaded or not. Only the presence of this parameter is needed. */
+                download?: string;
             };
             header?: {
                 /** @description Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access. */
@@ -2329,6 +2334,7 @@ export interface operations {
                 headers: {
                     "Content-Type": string;
                     "Content-Length": string;
+                    "Content-Disposition"?: string;
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
@@ -2386,6 +2392,7 @@ export interface operations {
                 headers: {
                     "Content-Type": string;
                     "Content-Length": string;
+                    "Content-Disposition"?: string;
                     "Cache-Control": string;
                     [name: string]: unknown;
                 };
