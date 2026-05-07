@@ -14,13 +14,19 @@ import sttp.tapir.*
 
 import java.io.InputStream
 
-case class ImageResponse(inputStream: InputStream, contentType: String, contentLength: String)
+case class ImageResponse(
+    inputStream: InputStream,
+    contentType: String,
+    contentLength: String,
+    contentDisposition: Option[String],
+)
 
 object ImageResponse {
   def endpointOutput(using props: Props): EndpointOutput[ImageResponse] = statusCode(StatusCode.Ok)
     .and(inputStreamBody)
     .and(header[String](HeaderNames.ContentType))
     .and(header[String](HeaderNames.ContentLength))
+    .and(header[Option[String]](HeaderNames.ContentDisposition))
     .and(header(HeaderNames.CacheControl, props.RawControllerCacheControl))
     .mapTo[ImageResponse]
 }
