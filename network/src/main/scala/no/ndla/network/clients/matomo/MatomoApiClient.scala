@@ -18,32 +18,33 @@ import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
 
 class MatomoApiClient(using props: MatomoProps, client: NdlaClient) extends StrictLogging {
+  import props.{MatomoSubjectDimensionName, MatomoUrl, MatomoSiteId, MatomoTokenAuth}
   private val timeout: FiniteDuration = 30.seconds
-  private val baseUrl                 = uri"${props.MatomoUrl}/index.php"
-  private val dimensionName           = "subjectId"
+  private val baseUrl                 = uri"$MatomoUrl/index.php"
 
   def getDimensionIdForSubjectId: Try[String] = {
     val params = Map[String, String](
       "module"     -> "API",
       "method"     -> "API.getReportMetadata",
-      "idSite"     -> props.MatomoSiteId,
+      "idSite"     -> MatomoSiteId,
       "format"     -> "JSON",
-      "token_auth" -> props.MatomoTokenAuth,
+      "token_auth" -> MatomoTokenAuth,
     )
     val request = quickRequest.post(baseUrl).body(params).readTimeout(timeout)
-    logger.info(s"Looking up Matomo dimension ID for dimension '$dimensionName'")
+    logger.info(s"Looking up Matomo dimension ID for dimension '$MatomoSubjectDimensionName'")
     client
       .fetch[List[MatomoReportMetadata]](request)
       .map { response =>
         for {
-          foundMeta   <- response.find(_.name == dimensionName)
+          foundMeta   <- response.find(_.name == MatomoSubjectDimensionName)
           parameters  <- foundMeta.parameters
           dimensionId <- parameters.idDimension
         } yield dimensionId
       } match {
       case Failure(ex)   => Failure(ex)
-      case Success(None) =>
-        Failure(new RuntimeException(s"No dimension with name '$dimensionName' found in Matomo report metadata"))
+      case Success(None) => Failure(
+          new RuntimeException(s"No dimension with name '$MatomoSubjectDimensionName' found in Matomo report metadata")
+        )
       case Success(Some(dimensionId)) => Success(dimensionId)
     }
   }
