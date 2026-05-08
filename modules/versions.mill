@@ -22,7 +22,7 @@ object SharedDependencies {
   val TestContainersV       = "2.0.2"
   val JsoupV                = "1.21.2"
   val JavaMelodyV           = "2.5.0"
-  val EnumeratumV           = "1.9.0"
+  val EnumeratumV           = "1.9.7"
   val FlexmarkV             = "0.64.8"
   val ScalaMetaVersion      = "4.13.9"
 
