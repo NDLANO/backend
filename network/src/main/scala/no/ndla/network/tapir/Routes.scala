@@ -29,7 +29,7 @@ import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTrans
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
-import sttp.tapir.server.interceptor.{CustomiseInterceptors, RequestInterceptor, RequestResult}
+import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
 import sttp.tapir.server.metrics.MetricLabels
 import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.model.ValuedEndpointOutput
@@ -163,8 +163,8 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       def apply[B](req: ServerRequest, result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
         if (req.attribute(activityTracked).contains(true)) {
           val code: Int = result match {
-            case RequestResult.Response(x) => x.code.code
-            case RequestResult.Failure(_)  => -1
+            case RequestResult.Response(response, _) => response.code.code
+            case RequestResult.Failure(failures)     => -1
           }
 
           val latency = req
@@ -244,19 +244,12 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
   private val tapirClosedErrorMessage             = "Client disconnected, request timed out, or request cancelled"
   private[tapir] val registry: PrometheusRegistry = new PrometheusRegistry()
   private val metricLabels: MetricLabels          = MetricLabels(
-    forRequest = List(
-      "path" -> { case (ep, _) =>
-        ep.showPathTemplate(showQueryParam = None)
-      },
-      "method" -> { case (_, req) =>
-        req.method.method
-      },
-    ),
+    forRequest = List("path" -> (req => req.pathSegments.mkString("/")), "method" -> (req => req.method.method)),
+    forEndpoint = List.empty,
     forResponse = List(
       "status" -> {
         case Right(r)                                                               => Some(r.code.code.toString)
         case Left(ex: RuntimeException) if ex.getMessage == tapirClosedErrorMessage =>
-          // TODO: Look at logs to determine if we still need to catch this case specifically
           logger.info("Mapping closed request exception to status code 499 for metrics")
           Some("499")
         case Left(ex) if TryUtil.containsInterruptedException(ex) => Some("499")
