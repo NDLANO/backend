@@ -84,7 +84,7 @@ object SharedDependencies {
 
   val tapirCirce: Seq[Dep] = circe ++ tapir
 
-  def jedis: Dep    = mvn"redis.clients:jedis:6.0.0"
+  def jedis: Dep    = mvn"redis.clients:jedis:7.5.0"
   def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
 
   def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"

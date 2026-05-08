@@ -9,13 +9,13 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import redis.clients.jedis.JedisPooled
+import redis.clients.jedis.RedisClient as JedisClient
 import redis.clients.jedis.exceptions.JedisConnectionException
 
 import scala.util.{Failure, Success, Try}
 
 class ScalaJedis(host: String, port: Int, environment: String) extends StrictLogging {
-  private val jedis = new JedisPooled(host, port)
+  private val jedis = JedisClient.create(host, port)
 
   private implicit class TryOps[T](t: Try[T]) {
     def handleJedisError(fallback: T): Try[T] = t.recoverWith {
