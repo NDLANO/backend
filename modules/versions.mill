@@ -4,27 +4,25 @@ import mill._, mill.scalalib._
 
 object SharedDependencies {
   val ScalaVersion          = "3.8.3"
-  val HikariConnectionPoolV = "6.3.0"
+  val HikariConnectionPoolV = "7.0.2"
   val ScalaLoggingV         = "3.9.5"
-  val ScalaTestV            = "3.2.19"
-  val Log4JV                = "2.25.0"
-  val AwsSdkV               = "2.31.64"
+  val ScalaTestV            = "3.2.20"
+  val Log4JV                = "2.26.0"
+  val AwsSdkV               = "2.44.4"
   val Elastic4sV            = "8.18.2"
-  val JacksonV              = "2.19.1"
+  val JacksonV              = "3.1.3"
   val CatsEffectV           = "3.6.1"
   val FlywayV               = "11.10.5"
-  val PostgresV             = "42.7.7"
+  val PostgresV             = "42.7.11"
   val TapirV                = "1.13.18"
   val ApiSpecV              = "0.11.10"
   val SttpV                 = "3.11.0"
-  val CirceV                = "0.14.14"
-  val ScalikeJDBCV          = "4.3.4"
-  val TestContainersV       = "2.0.2"
-  val JsoupV                = "1.21.2"
-  val JavaMelodyV           = "2.5.0"
+  val CirceV                = "0.14.15"
+  val ScalikeJDBCV          = "4.3.5"
+  val TestContainersV       = "2.0.5"
+  val JsoupV                = "1.22.2"
   val EnumeratumV           = "1.9.7"
-  val FlexmarkV             = "0.64.8"
-  val ScalaMetaVersion      = "4.13.9"
+  val ScalaMetaVersion      = "4.16.1"
 
   def logging: Seq[Dep] = Seq(
     mvn"org.apache.logging.log4j:log4j-api:$Log4JV",
@@ -34,15 +32,15 @@ object SharedDependencies {
     mvn"com.typesafe.scala-logging::scala-logging:$ScalaLoggingV",
     mvn"org.slf4j:slf4j-api:2.0.17",
     // We need jackson to load `log4j2.yaml`
-    mvn"com.fasterxml.jackson.core:jackson-core:$JacksonV",
-    mvn"com.fasterxml.jackson.core:jackson-databind:$JacksonV",
-    mvn"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
-    mvn"com.fasterxml.jackson.module::jackson-module-scala:$JacksonV",
+    mvn"tools.jackson.core:jackson-core:$JacksonV",
+    mvn"tools.jackson.core:jackson-databind:$JacksonV",
+    mvn"tools.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
+    mvn"tools.jackson.module::jackson-module-scala:$JacksonV",
   )
 
   def testing: Seq[Dep] = Seq(
     mvn"org.scalatest::scalatest:$ScalaTestV",
-    mvn"org.scalatestplus::mockito-5-18:3.2.19.0",
+    mvn"org.scalatestplus::mockito-5-23:3.2.20.0",
     mvn"org.testcontainers:testcontainers-elasticsearch:$TestContainersV",
     mvn"org.testcontainers:testcontainers:$TestContainersV",
     mvn"org.testcontainers:testcontainers-postgresql:$TestContainersV",
@@ -85,10 +83,10 @@ object SharedDependencies {
   val tapirCirce: Seq[Dep] = circe ++ tapir
 
   def jedis: Dep    = mvn"redis.clients:jedis:7.5.0"
-  def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
+  def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:11.0.4"
 
   def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"
-  def scalaUri: Dep = mvn"io.lemonlabs::scala-uri:4.0.3".exclude("org.typelevel" -> "cats-parse")
+  def scalaUri: Dep = mvn"com.indoorvivants::scala-uri:4.2.0".exclude("org.typelevel" -> "cats-parse")
 
   def elastic4s: Dep     = mvn"nl.gn0s1s::elastic4s-client-esjava:$Elastic4sV"
   def elastic4sTest: Dep = mvn"nl.gn0s1s::elastic4s-testkit:$Elastic4sV"
@@ -97,17 +95,16 @@ object SharedDependencies {
   // Spring Boot / taxonomy-api stack
   val SpringBootV       = "3.5.14"
   val KotlinV           = "2.3.21"
-  val SpringCloudV      = "2025.1.0"
+  val SpringCloudV      = "2025.1.1"
   val SpringDocV        = "2.8.17"
   val HypersistenceV    = "3.15.2"
   val PreLiquibaseV     = "1.6.1"
-  val JavaJwtV          = "4.5.0"
-  val JwksRsaV          = "0.23.0"
+  val JavaJwtV          = "4.5.2"
+  val JwksRsaV          = "0.24.0"
   val CommonsLang3V     = "3.20.0"
   val CommonsCompressV  = "1.28.0"
-  val JavaMelodySpringV = "2.5.0"
+  val JavaMelodySpringV = "2.7.0"
   val LogbackContribV   = "0.1.5"
-  val TaxonomyJsoupV    = "1.22.1"
 
   def springBootBoms: Seq[Dep] = Seq(
     mvn"org.springframework.boot:spring-boot-dependencies:$SpringBootV",
@@ -138,13 +135,13 @@ object SharedDependencies {
     mvn"com.auth0:jwks-rsa:$JwksRsaV",
     mvn"org.apache.commons:commons-lang3:$CommonsLang3V",
     mvn"commons-codec:commons-codec",
-    mvn"org.jsoup:jsoup:$TaxonomyJsoupV",
+    mvn"org.jsoup:jsoup:$JsoupV",
     mvn"net.bull.javamelody:javamelody-spring-boot-starter:$JavaMelodySpringV",
     mvn"io.micrometer:micrometer-registry-prometheus",
     mvn"ch.qos.logback:logback-core",
     mvn"ch.qos.logback.contrib:logback-json-classic:$LogbackContribV",
     mvn"ch.qos.logback.contrib:logback-jackson:$LogbackContribV",
-    mvn"org.jetbrains:annotations:26.0.2",
+    mvn"org.jetbrains:annotations:26.1.0",
   )
 
   def springBootAnnotationProcessors: Seq[Dep] = Seq(mvn"org.springframework.boot:spring-boot-configuration-processor")

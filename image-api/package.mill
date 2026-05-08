@@ -17,9 +17,9 @@ object `package` extends BaseModule, DockerComponent {
       SharedDependencies.awsS3,
       SharedDependencies.awsCloudfront,
       SharedDependencies.jsoup,
-      mvn"com.sksamuel.scrimage:scrimage-core:4.3.5",
-      mvn"com.sksamuel.scrimage:scrimage-webp:4.3.5",
-      mvn"commons-io:commons-io:2.19.0",
+      mvn"com.sksamuel.scrimage:scrimage-core:4.5.1",
+      mvn"com.sksamuel.scrimage:scrimage-webp:4.5.1",
+      mvn"commons-io:commons-io:2.22.0",
     )
   override def moduleDeps =
     Seq(build.common, build.network, build.mapping, build.language, build.search, build.database)
