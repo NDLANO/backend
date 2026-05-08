@@ -13,7 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.articleapi.Props
 import no.ndla.common.model.api.CopyrightDTO
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Try
 

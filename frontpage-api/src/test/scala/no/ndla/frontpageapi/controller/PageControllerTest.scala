@@ -15,7 +15,7 @@ import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
@@ -74,7 +74,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
       .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
       .readTimeout(Duration.Inf)
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(401)
   }
 
@@ -84,7 +84,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
       .readTimeout(Duration.Inf)
       .headers(Map("Authorization" -> authHeaderWithWrongRole))
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(403)
   }
 
@@ -94,7 +94,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
       .readTimeout(Duration.Inf)
       .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(403)
   }
 
@@ -107,7 +107,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
       .headers(Map("Authorization" -> authHeaderWithAdminRole))
       .body(sampleNewFrontPage)
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
   }
 
@@ -120,7 +120,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
       .headers(Map("Authorization" -> authHeaderWithAdminRole))
       .body(malformedNewFrontPage)
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(400)
   }
 
@@ -130,7 +130,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
     when(readService.getFrontPage).thenReturn(Success(frontPage))
     val request = quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
   }
 
@@ -138,7 +138,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
     when(readService.getFrontPage).thenReturn(Failure(common.NotFoundException("Front page was not found")))
     val request = quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(404)
   }
 }

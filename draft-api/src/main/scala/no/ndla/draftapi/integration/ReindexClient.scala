@@ -11,7 +11,7 @@ package no.ndla.draftapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}

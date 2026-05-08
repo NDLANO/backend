@@ -21,7 +21,7 @@ import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.{NdlaClient, TaxonomyData}
 import org.jsoup.Jsoup
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
@@ -168,7 +168,7 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
       .body(CirceUtil.toJsonString(data))
       .readTimeout(taxonomyTimeout)
       .header(props.TaxonomyVersionHeader, TaxonomyData.get)
-      .header("Content-Type", "application/json", replaceExisting = true)
+      .header("Content-Type", "application/json")
     ndlaClient.fetchRawWithForwardedAuth(request, Some(user)) match {
       case Success(_)  => Success(data)
       case Failure(ex) => Failure(ex)

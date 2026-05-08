@@ -16,7 +16,7 @@ import no.ndla.draftapi.model.api.H5PException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.quick._
+import sttp.client4.quick._
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.{Duration, DurationInt}

@@ -13,8 +13,8 @@ import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import sttp.client3.Response
-import sttp.client3.quick.*
+import sttp.client4.quick.*
+import sttp.client4.testing.ResponseStub
 import sttp.model.StatusCode
 
 import scala.util.{Failure, Success}
@@ -39,7 +39,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl        = "invalidUrl123"
-    val exceptionResponse = Response("foo", StatusCode.InternalServerError)
+    val exceptionResponse = ResponseStub("foo", StatusCode.InternalServerError)
     val expectedException = HttpRequestException("An error occured", exceptionResponse)
     when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(Failure(expectedException))
     val result = providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))

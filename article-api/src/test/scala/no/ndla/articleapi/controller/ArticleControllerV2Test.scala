@@ -16,7 +16,7 @@ import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirControll
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{never, reset, times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -63,8 +63,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       Success(domain.Cachable.yes(TestData.sampleArticleV2))
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
+      .send()
       .code
       .code should be(200)
   }
@@ -74,8 +75,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       Failure(NotFoundException("Not found"))
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
+      .send()
       .code
       .code should be(404)
   }
@@ -89,8 +91,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       Success(domain.Cachable.yes(TestData.sampleArticleV2))
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleUrnWithRevision"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleUrnWithRevision")
+      .send()
       .code
       .code should be(200)
   }
@@ -99,18 +102,16 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     val slug = "someslug"
 
     when(readService.getArticleBySlug(any, any, any)).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$slug"))
-      .code
-      .code should be(200)
+    quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$slug").send().code.code should be(200)
   }
 
   test("/<article_id> default behavior should be to find by slug") {
     val malformedUrn = s"urn:article:malformed#hue"
 
     when(readService.getArticleBySlug(any, any, any)).thenReturn(Failure(model.NotFoundException("Not found")))
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn")
+      .send()
       .code
       .code should be(404)
   }
@@ -125,7 +126,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     )
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    val resp = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/"))
+    val resp = quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/").send()
 
     resp.code.code should be(200)
     resp.body.contains(scrollId) should be(false)
@@ -142,9 +143,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    val resp = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=$scrollId")
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=$scrollId")
+      .send()
     resp.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
@@ -162,12 +163,11 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/article-api/v2/articles/search")
-        .body(s"""{"scrollId":"$scrollId"}""")
-        .header("content-type", "application/json")
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/article-api/v2/articles/search")
+      .body(s"""{"scrollId":"$scrollId"}""")
+      .header("content-type", "application/json")
+      .send()
     response.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
@@ -179,8 +179,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       Success(TestData.sampleApiTagsSearchResult)
     )
 
-    val response =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/").send()
     response.code.code should be(200)
   }
 
@@ -199,8 +198,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       Success(domain.Cachable.yes(result))
     )
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=initial"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=initial")
+      .send()
       .code
       .code should be(200)
 
@@ -225,8 +225,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     reset(readService)
     when(readService.getArticlesByIds(any, any, any, any, any, any)).thenReturn(Success(Seq.empty))
 
-    val response =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/ids/?ids=1,2,3"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/ids/?ids=1,2,3").send()
     verify(readService, times(1)).getArticlesByIds(eqTo(List(1L, 2L, 3L)), any, any, any, any, any)
     verify(readService, never).getArticleBySlug(any, any, any)
     verify(readService, never).withIdV2(any, any, any, any, any)

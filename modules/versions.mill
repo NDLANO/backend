@@ -16,7 +16,7 @@ object SharedDependencies {
   val PostgresV             = "42.7.11"
   val TapirV                = "1.13.18"
   val ApiSpecV              = "0.11.10"
-  val SttpV                 = "3.11.0"
+  val SttpV                 = "4.0.23"
   val CirceV                = "0.14.15"
   val ScalikeJDBCV          = "4.3.5"
   val TestContainersV       = "2.0.5"
@@ -58,7 +58,7 @@ object SharedDependencies {
   def enumeratum: Seq[Dep] =
     Seq(mvn"com.beachape::enumeratum:$EnumeratumV", mvn"com.beachape::enumeratum-circe:$EnumeratumV")
 
-  val sttp          = mvn"com.softwaremill.sttp.client3::core:$SttpV"
+  val sttp          = mvn"com.softwaremill.sttp.client4::core:$SttpV"
   val awsS3         = mvn"software.amazon.awssdk:s3:$AwsSdkV"
   val awsTranscribe = mvn"software.amazon.awssdk:transcribe:$AwsSdkV"
   val awsSesV2      = mvn"software.amazon.awssdk:sesv2:$AwsSdkV"

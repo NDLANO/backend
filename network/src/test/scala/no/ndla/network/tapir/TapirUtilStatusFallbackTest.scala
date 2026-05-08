@@ -14,7 +14,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
@@ -53,9 +53,7 @@ class TapirUtilStatusFallbackTest extends UnitTestSuite with TapirControllerTest
   }
 
   test("errorOutputsFor should preserve status code for undocumented errors") {
-    val response =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/tapir-util/undocumented-status"))
-
+    val response = quickRequest.get(uri"http://localhost:$serverPort/tapir-util/undocumented-status").send()
     response.code.code should be(409)
   }
 }

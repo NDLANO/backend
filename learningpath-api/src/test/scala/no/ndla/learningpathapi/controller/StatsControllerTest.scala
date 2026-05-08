@@ -12,7 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                    = mock[Clock]
@@ -27,9 +27,10 @@ class StatsControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("That getting stats redirects to the correct endpoint") {
-    val res = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v1/stats").followRedirects(false)
-    )
+    val res = quickRequest
+      .get(uri"http://localhost:$serverPort/learningpath-api/v1/stats")
+      .followRedirects(false)
+      .send()
     res.header("Location") should be(Some("/myndla-api/v1/stats"))
     res.code.code should be(301)
   }

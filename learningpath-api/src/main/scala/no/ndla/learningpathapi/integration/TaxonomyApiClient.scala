@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.model.domain.TaxonomyUpdateException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 import cats.implicits.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
@@ -23,7 +23,7 @@ import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.Response
+import sttp.client4.Response
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
@@ -230,7 +230,7 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
       .put(uri"$url".withParams(params*))
       .readTimeout(taxonomyTimeout)
       .body(CirceUtil.toJsonString(data))
-      .header("content-type", "application/json", replaceExisting = true)
+      .header("content-type", "application/json")
     ndlaClient.fetchWithForwardedAuth[A](request, user)
   }
 
@@ -245,7 +245,7 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
       .put(uri"$url".withParams(params*))
       .body(CirceUtil.toJsonString(data))
       .readTimeout(taxonomyTimeout)
-      .header("content-type", "application/json", replaceExisting = true)
+      .header("content-type", "application/json")
     ndlaClient.fetchRawWithForwardedAuth(request, user) match {
       case Success(_)  => Success(data)
       case Failure(ex) => Failure(ex)
@@ -263,7 +263,7 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
         .post(uri"$endpointUrl".withParams(params.toMap))
         .body(CirceUtil.toJsonString(data))
         .readTimeout(taxonomyTimeout)
-        .header("content-type", "application/json", replaceExisting = true),
+        .header("content-type", "application/json"),
       user,
     ) match {
       case Success(resp) => Success(resp)

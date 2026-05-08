@@ -24,7 +24,7 @@ import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirControll
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -51,27 +51,25 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   test("/<article_id> should return 200 if the cover was found withId") {
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
   test("/<article_id> should return 404 if the article was not found withId") {
     when(readService.withId(articleId, lang)).thenReturn(Failure(api.NotFoundException("not found yo")))
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(404)
   }
 
   test("/<article_id> should return 400 if the article was not found withId") {
-    val resp = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/one"))
+    val resp = quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/one").send()
     resp.code.code should be(400)
   }
 
@@ -81,8 +79,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
       .toSet
 
-    val resp =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses?filter=by"))
+    val resp = quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses?filter=by").send()
     resp.code.code should be(200)
     val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](resp.body)
     convertedBody should equal(creativeCommonlicenses)
@@ -90,7 +87,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
     val allLicenses = getLicenses.map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)).toSet
-    val resp        = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses"))
+    val resp        = quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses").send()
     resp.code.code should be(200)
     val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](resp.body)
     convertedBody should equal(allLicenses)
@@ -104,11 +101,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       ArticleSearchResultDTO(totalCount = 0, page = Some(1), pageSize = 100, results = List.empty)
     )
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?ids=1,2,3,4&page-size=10&language=nb")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?ids=1,2,3,4&page-size=10&language=nb")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
     verify(articleSearchService, times(1)).matchingQuery(
       TestData
@@ -125,80 +121,73 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("POST / should return 400 if body does not contain all required fields") {
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
-        .body(invalidArticle)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
+      .body(invalidArticle)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(400)
   }
 
   test("POST / should return 201 on created") {
     when(writeService.newArticle(any[api.NewArticleDTO], any[TokenUser])).thenReturn(Success(TestData.sampleArticleV2))
     val bodyStr = CirceUtil.toJsonString(TestData.newArticle)
-    val resp    = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
-        .body(bodyStr)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole, "Content-Type" -> "application/json"))
-    )
+    val resp    = quickRequest
+      .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
+      .body(bodyStr)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole, "Content-Type" -> "application/json"))
+      .send()
     resp.code.code should be(201)
   }
 
   test("That / returns a validation message if article is invalid") {
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(400)
   }
 
   test("That POST / returns 401 if no auth-header") {
-    val resp = simpleHttpClient.send(quickRequest.post(uri"http://localhost:$serverPort/draft-api/v1/drafts/"))
+    val resp = quickRequest.post(uri"http://localhost:$serverPort/draft-api/v1/drafts/").send()
     resp.code.code should be(401)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
-        .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
-    )
+    val resp = quickRequest
+      .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
+      .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
+      .send()
     resp.code.code should be(403)
   }
 
   test("That GET /<article_id> returns 403 if auth header does not have any roles") {
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-        .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+      .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
+      .send()
     resp.code.code should be(403)
   }
 
   test("That GET /<article_id> returns 200 if status is allowed even if auth header does not have any roles") {
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.apiArticleUserTest))
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-        .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+      .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
+      .send()
     resp.code.code should be(200)
 
     when(readService.withId(articleId, lang)).thenReturn(
       Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
-    val resp2 = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    val resp2 = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     resp2.code.code should be(200)
   }
 
@@ -206,9 +195,9 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(readService.withId(articleId, lang)).thenReturn(Success(TestData.apiArticleUserTest))
 
     {
-      val resp = simpleHttpClient.send(
-        quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-      )
+      val resp = quickRequest
+        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+        .send()
       resp.code.code should be(200)
     }
 
@@ -217,22 +206,20 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     )
 
     {
-      val resp = simpleHttpClient.send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
-          .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-      )
+      val resp = quickRequest
+        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/$articleId?language=$lang")
+        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+        .send()
       resp.code.code should be(200)
     }
   }
 
   test("That PATCH /:id returns a validation message if article is invalid") {
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
-        .body(invalidArticle)
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
+      .body(invalidArticle)
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(400)
   }
 
@@ -241,11 +228,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       Failure(AccessDeniedException("Not today"))
     )
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
-        .body(CirceUtil.toJsonString(TestData.sampleApiUpdateArticle))
-    )
+    val resp = quickRequest
+      .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
+      .body(CirceUtil.toJsonString(TestData.sampleApiUpdateArticle))
+      .send()
     resp.code.code should be(401)
   }
 
@@ -253,12 +239,11 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(writeService.updateArticle(any[Long], any[api.UpdatedArticleDTO], any[TokenUser])).thenReturn(
       Success(TestData.apiArticleWithHtmlFaultV2)
     )
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
-        .body(updateTitleJson)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/123")
+      .body(updateTitleJson)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
@@ -266,11 +251,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean], any)).thenReturn(
       Success(api.ContentIdDTO(1))
     )
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .put(uri"http://localhost:$serverPort/draft-api/v1/drafts/1/validate")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .put(uri"http://localhost:$serverPort/draft-api/v1/drafts/1/validate")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
@@ -282,11 +266,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
     resp.body.contains(scrollId) should be(false)
     resp.header("search-context") should be(Some(scrollId))
@@ -302,11 +285,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?search-context=$scrollId")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?search-context=$scrollId")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
 
     resp.code.code should be(200)
 
@@ -324,12 +306,11 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/search")
-        .body(s"""{"scrollId":"$scrollId"}""")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/search")
+      .body(s"""{"scrollId":"$scrollId"}""")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
@@ -341,11 +322,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       Success(TestData.sampleApiGrepCodesSearchResult)
     )
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/grep-codes/")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/grep-codes/")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
@@ -354,11 +334,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       Success(TestData.sampleApiGrepCodesSearchResult.copy(results = Seq.empty))
     )
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/grep-codes/")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/grep-codes/")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
@@ -367,11 +346,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       Success(TestData.sampleApiTagsSearchResult)
     )
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/tag-search/")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/tag-search/")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
   }
 
@@ -380,8 +358,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       Success(TestData.sampleApiTagsSearchResult.copy(results = Seq.empty))
     )
 
-    val resp =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/tag-search/"))
+    val resp = quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/tag-search/").send()
     resp.code.code should be(401)
   }
 
@@ -406,34 +383,31 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "alt-text")))
 
     {
-      val resp = simpleHttpClient.send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
-          .body(missing)
-          .headers(Map("Authorization" -> authHeaderWithWriteRole))
-      )
+      val resp = quickRequest
+        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
+        .body(missing)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+        .send()
 
       resp.code.code should be(200)
       verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(missingExpected), any[TokenUser])
     }
     {
-      val resp = simpleHttpClient.send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
-          .body(nullArtId)
-          .headers(Map("Authorization" -> authHeaderWithWriteRole))
-      )
+      val resp = quickRequest
+        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
+        .body(nullArtId)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+        .send()
       resp.code.code should be(200)
 
       verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(nullExpected), any[TokenUser])
     }
     {
-      val resp = simpleHttpClient.send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
-          .body(existingArtId)
-          .headers(Map("Authorization" -> authHeaderWithWriteRole))
-      )
+      val resp = quickRequest
+        .patch(uri"http://localhost:$serverPort/draft-api/v1/drafts/1")
+        .body(existingArtId)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+        .send()
       resp.code.code should be(200)
       verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(existingExpected), any[TokenUser])
     }
@@ -462,11 +436,10 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val resp = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?search-context=initial")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val resp = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/drafts/?search-context=initial")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     resp.code.code should be(200)
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
     verify(articleSearchService, times(0)).scroll(any[String], any[String])

@@ -15,7 +15,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.DomainDumpResults
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.*
 import scala.math.ceil

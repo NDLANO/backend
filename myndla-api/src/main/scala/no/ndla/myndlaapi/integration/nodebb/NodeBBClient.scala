@@ -15,8 +15,8 @@ import io.circe.parser.parse
 import no.ndla.common.implicits.*
 import no.ndla.myndlaapi.Props
 import no.ndla.network.model.FeideAccessToken
-import sttp.client3.Response
-import sttp.client3.quick.*
+import sttp.client4.Response
+import sttp.client4.quick.*
 import sttp.model.headers.CookieWithMeta
 
 import scala.annotation.tailrec
@@ -37,10 +37,8 @@ class NodeBBClient(using props: Props) extends StrictLogging {
   }
 
   @tailrec
-  private def doReq(request: sttp.client3.Request[String, Any], attempt: Int = 1): Try[Response[String]] = {
-    Try {
-      simpleHttpClient.send(request)
-    } match {
+  private def doReq(request: sttp.client4.Request[String], attempt: Int = 1): Try[Response[String]] = {
+    Try(request.send()) match {
       case Failure(ex) =>
         // NOTE: For some reason nodebb sometimes replies with GOAWAY if we do a few requests
         //       Not really sure why, but this works around that without too much hassle :^)

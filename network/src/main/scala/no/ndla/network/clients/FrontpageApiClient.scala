@@ -12,7 +12,7 @@ import io.circe.Decoder
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 import scala.concurrent.duration.*
 import scala.util.Try
 

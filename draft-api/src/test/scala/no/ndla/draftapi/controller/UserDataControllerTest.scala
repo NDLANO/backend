@@ -17,7 +17,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.postgresql.util.{PSQLException, PSQLState}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -38,31 +38,28 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirCo
   test("GET / should return 200 if user has access roles and the user exists in database") {
     when(readService.getUserData(any[String])).thenReturn(Success(TestData.emptyApiUserData))
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    val res = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     res.code.code should be(200)
   }
 
   test("GET / should return 403 if user has no access roles") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
-        .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
-    )
+    val res = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
+      .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
+      .send()
     res.code.code should be(403)
   }
 
   test("GET / should return 500 if there was error returning the data") {
     when(readService.getUserData(any[String])).thenReturn(Failure(new PSQLException("error", PSQLState.UNKNOWN_STATE)))
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    val res = quickRequest
+      .get(uri"http://localhost:$serverPort/draft-api/v1/user-data")
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     res.code.code should be(500)
   }
 
@@ -71,21 +68,19 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirCo
       Success(TestData.emptyApiUserData)
     )
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/draft-api/v1/user-data")
-        .body("{}")
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/draft-api/v1/user-data")
+      .body("{}")
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     res.code.code should be(200)
   }
 
   test("PATCH / should return 403 if user has no access roles") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/draft-api/v1/user-data")
-        .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/draft-api/v1/user-data")
+      .headers(Map("Authorization" -> TestData.authHeaderWithoutAnyRoles))
+      .send()
     res.code.code should be(403)
   }
 }

@@ -15,7 +15,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.annotation.unused

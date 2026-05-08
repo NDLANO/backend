@@ -27,7 +27,7 @@ import org.mockito.Mockito.{doNothing, reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.DBSession
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -140,13 +140,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     )
     val body = CirceUtil.toJsonString(newFolderData)
 
-    val newFolder = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newFolder = quickRequest
+      .post(uri"$myndlaApiFolderUrl/")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newFolder.isSuccess)
       fail(s"Failed to create folder $name failed with code ${newFolder.code} and body:\n${newFolder.body}")
 
@@ -157,13 +156,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(updatedFolder)
 
-    val updatedFolderResponse = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"$myndlaApiFolderUrl/$folderId")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val updatedFolderResponse = quickRequest
+      .patch(uri"$myndlaApiFolderUrl/$folderId")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!updatedFolderResponse.isSuccess) fail(
       s"Failed to update folder $folderId failed with code ${updatedFolderResponse.code} and body:\n${updatedFolderResponse.body}"
     )
@@ -175,7 +173,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     import io.circe.generic.auto.*
     var uri = uri"$myndlaApiFolderUrl/"
     if (includeSubfolders) uri = uri.addParam("include-subfolders", "true")
-    val folders = simpleHttpClient.send(quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId"))
+    val folders = quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId").send()
     if (!folders.isSuccess)
       fail(s"Fetching all folders for $feideId failed with code ${folders.code} and body:\n${folders.body}")
 
@@ -183,9 +181,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   def saveFolder(feideId: String, folderId: UUID): Unit = {
-    val savedResponse = simpleHttpClient.send(
-      quickRequest.post(uri"$myndlaApiFolderUrl/shared/$folderId/save").header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val savedResponse = quickRequest
+      .post(uri"$myndlaApiFolderUrl/shared/$folderId/save")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
 
     if (!savedResponse.isSuccess) fail(
       s"Saving folder $folderId for $feideId failed with code ${savedResponse.code} and body:\n${savedResponse.body}"
@@ -201,13 +200,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
       if (sortShared) uri"$myndlaApiFolderUrl/sort-saved"
       else uri"$myndlaApiFolderUrl/sort-subfolders"
 
-    val sortedFolders = simpleHttpClient.send(
-      quickRequest
-        .put(requestUrl)
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val sortedFolders = quickRequest
+      .put(requestUrl)
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!sortedFolders.isSuccess)
       fail(s"Sorting folders for $feideId failed with code ${sortedFolders.code} and body:\n${sortedFolders.body}")
   }
@@ -216,13 +214,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
-    val newResource = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/resources/root")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newResource = quickRequest
+      .post(uri"$myndlaApiFolderUrl/resources/root")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newResource.isSuccess)
       fail(s"Failed to create root resource, failed with code ${newResource.code} and body:\n${newResource.body}")
 
@@ -234,13 +231,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
-    val newResource = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/$folderId/resources")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newResource = quickRequest
+      .post(uri"$myndlaApiFolderUrl/$folderId/resources")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newResource.isSuccess)
       fail(s"Failed to create resource, failed with code ${newResource.code} and body:\n${newResource.body}")
 
@@ -248,11 +244,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   def getFolderResources(feideId: String, folderId: UUID): api.FolderDTO = {
-    val resources = simpleHttpClient.send(
-      quickRequest
-        .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
-        .header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val resources = quickRequest
+      .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
     if (!resources.isSuccess)
       fail(s"Fetching all resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
 
@@ -260,9 +255,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   def getRootResources(feideId: String): List[api.ResourceDTO] = {
-    val resources = simpleHttpClient.send(
-      quickRequest.get(uri"$myndlaApiFolderUrl/resources/root").header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val resources = quickRequest
+      .get(uri"$myndlaApiFolderUrl/resources/root")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
     if (!resources.isSuccess)
       fail(s"Fetching root resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
 
@@ -274,13 +270,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     val sortData = api.FolderSortRequestDTO(sortedIds = resourceIdsInOrder)
     val body     = CirceUtil.toJsonString(sortData)
 
-    val sortedResources = simpleHttpClient.send(
-      quickRequest
-        .put(uri"$myndlaApiFolderUrl/sort-resources/$folderId")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val sortedResources = quickRequest
+      .put(uri"$myndlaApiFolderUrl/sort-resources/$folderId")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!sortedResources.isSuccess) fail(
       s"Sorting resources in folder $folderId for $feideId failed with code ${sortedResources.code} and body:\n${sortedResources.body}"
     )
@@ -291,13 +286,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     val sortData = api.FolderSortRequestDTO(sortedIds = resourceIdsInOrder)
     val body     = CirceUtil.toJsonString(sortData)
 
-    val sortedResources = simpleHttpClient.send(
-      quickRequest
-        .put(uri"$myndlaApiFolderUrl/sort-resources/root")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val sortedResources = quickRequest
+      .put(uri"$myndlaApiFolderUrl/sort-resources/root")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!sortedResources.isSuccess) fail(
       s"Sorting root resources for $feideId failed with code ${sortedResources.code} and body:\n${sortedResources.body}"
     )
@@ -306,13 +300,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   def moveResource(feideId: String, dto: MoveResourceDTO, failOnError: Boolean = true): Int = {
     import io.circe.generic.auto.*
     val body     = CirceUtil.toJsonString(dto)
-    val response = simpleHttpClient.send(
-      quickRequest
-        .put(uri"$myndlaApiFolderUrl/resources/move")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val response = quickRequest
+      .put(uri"$myndlaApiFolderUrl/resources/move")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (failOnError && !response.isSuccess) fail(
       s"Moving resource ${dto.resourceId} from folder ${dto.fromFolderId} to folder ${dto.toFolderId} failed with code ${response.code} and body:\n${response.body}"
     )
@@ -320,22 +313,20 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   def deleteResourceFromFolder(feideId: String, folderId: UUID, resourceId: UUID): Unit = {
-    val response = simpleHttpClient.send(
-      quickRequest
-        .delete(uri"$myndlaApiFolderUrl/$folderId/resources/$resourceId")
-        .header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val response = quickRequest
+      .delete(uri"$myndlaApiFolderUrl/$folderId/resources/$resourceId")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
     if (!response.isSuccess) fail(
       s"Deleting resource $resourceId from folder $folderId for $feideId failed with code ${response.code} and body:\n${response.body}"
     )
   }
 
   def deleteRootResource(feideId: String, resourceId: UUID): Unit = {
-    val response = simpleHttpClient.send(
-      quickRequest
-        .delete(uri"$myndlaApiFolderUrl/resources/root/$resourceId")
-        .header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val response = quickRequest
+      .delete(uri"$myndlaApiFolderUrl/resources/root/$resourceId")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
 
     if (!response.isSuccess) fail(
       s"Deleting root resource $resourceId for $feideId failed with code ${response.code} and body:\n${response.body}"

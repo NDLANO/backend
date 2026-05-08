@@ -23,8 +23,8 @@ import org.mockito.Mockito.{when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
-import sttp.client3.{Identity, RequestT, Response}
-import sttp.client3.quick.*
+import sttp.client4.{Request, Response}
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -103,13 +103,12 @@ class LearningPathAndStepCreationTests
   val fakeToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJhcnRpY2xlczpwdWJsaXNoIiwiZHJhZnRzOndyaXRlIiwiZHJhZnRzOnNldF90b19wdWJsaXNoIiwiYXJ0aWNsZXM6d3JpdGUiLCJsZWFybmluZ3BhdGg6d3JpdGUiLCJsZWFybmluZ3BhdGg6cHVibGlzaCIsImxlYXJuaW5ncGF0aDphZG1pbiJdLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.XnP0ywYk-A0j9bGZJBCDNA5fZ4OuGRLkXFBBr3IYD50"
 
-  private def sendAuthed(request: RequestT[Identity, String, Any]): Response[String] = {
-    simpleHttpClient.send(
-      request
-        .header("Content-type", "application/json")
-        .header("Authorization", s"Bearer $fakeToken")
-        .readTimeout(10.seconds)
-    )
+  private def sendAuthed(request: Request[String]): Response[String] = {
+    request
+      .header("Content-type", "application/json")
+      .header("Authorization", s"Bearer $fakeToken")
+      .readTimeout(10.seconds)
+      .send()
   }
 
   private def parseAs[T: Decoder](res: Response[String]): T = {

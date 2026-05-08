@@ -11,7 +11,7 @@ package no.ndla.common.brightcove
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, Json}
 import io.circe.parser.*
-import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
+import sttp.client4.{DefaultSyncBackend, UriContext, basicRequest}
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.{
   TokenDecodingException,
@@ -29,7 +29,7 @@ object TokenResponse {
 }
 
 class NdlaBrightcoveClient(using props: BaseProps) {
-  private val backend = HttpClientSyncBackend()
+  private val backend = DefaultSyncBackend()
 
   def getToken(clientID: String, clientSecret: String): Try[String] = {
     val request = basicRequest
@@ -52,7 +52,7 @@ class NdlaBrightcoveClient(using props: BaseProps) {
     val videoSourceUrl = props.BrightCoveVideoUri(accountId, videoId)
     val request        = basicRequest.header("Authorization", s"Bearer $bearerToken").get(videoSourceUrl)
 
-    implicit val backend = HttpClientSyncBackend()
+    implicit val backend = DefaultSyncBackend()
 
     Try(request.send(backend).body) match {
       case Success(Right(jsonString)) => parse(jsonString) match {

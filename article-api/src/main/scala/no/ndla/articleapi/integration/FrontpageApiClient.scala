@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Try
 

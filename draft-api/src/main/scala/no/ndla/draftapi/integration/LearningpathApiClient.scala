@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.Title
 import no.ndla.draftapi.Props
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Try
 

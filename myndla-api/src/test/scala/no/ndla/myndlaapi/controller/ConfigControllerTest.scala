@@ -20,7 +20,7 @@ import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Success
 
@@ -37,20 +37,18 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
       Success(ConfigMetaDTO(ConfigKey.MyNDLAWriteRestricted.entryName, Left(true), NDLADate.now(), "someoneCool"))
     )
 
-    val response1 = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
-        .body("{\"value\": true}")
-        .header("Authorization", s"Bearer $adminScopeClientToken")
-    )
+    val response1 = quickRequest
+      .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
+      .body("{\"value\": true}")
+      .header("Authorization", s"Bearer $adminScopeClientToken")
+      .send()
     response1.code.code should be(200)
 
-    val response2 = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
-        .body("{\"value\": true}")
-        .header("Authorization", s"Bearer $adminAndWriteScopeClientToken")
-    )
+    val response2 = quickRequest
+      .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
+      .body("{\"value\": true}")
+      .header("Authorization", s"Bearer $adminAndWriteScopeClientToken")
+      .send()
     response2.code.code should be(200)
   }
 }

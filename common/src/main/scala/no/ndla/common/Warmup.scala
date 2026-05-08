@@ -9,7 +9,7 @@
 package no.ndla.common
 
 import com.typesafe.scalalogging.StrictLogging
-import sttp.client3.quick._
+import sttp.client4.quick._
 
 import scala.concurrent.duration.DurationInt
 
@@ -20,7 +20,7 @@ object Warmup extends StrictLogging {
 
     val request = quickRequest.get(url).readTimeout(15.seconds).header("X-Correlation-ID", "WARMUP")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     val time     = System.currentTimeMillis() - startTime
     logger.info(s"Warming up with $url -> (${response.code}) and it took ${time}ms")
   }

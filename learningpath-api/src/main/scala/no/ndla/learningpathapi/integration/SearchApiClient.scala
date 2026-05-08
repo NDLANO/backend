@@ -12,12 +12,12 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.model.NdlaRequest
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.Response
+import sttp.client4.Response
 
 import scala.annotation.unused
 import scala.concurrent.duration.DurationInt
@@ -43,7 +43,7 @@ class SearchApiClient(using ndlaClient: NdlaClient, props: Props) extends Strict
 
       val req = quickRequest
         .post(uri"http://${props.SearchApiHost}/intern/learningpath/")
-        .header("Content-Type", "application/json", replaceExisting = true)
+        .header("Content-Type", "application/json")
         .body(body)
         .readTimeout(IndexTimeout)
 

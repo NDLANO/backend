@@ -22,7 +22,7 @@ import no.ndla.oembedproxy.service.OEmbedConverterService.{
 }
 
 import scala.util.{Failure, Success, Try}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties) extends StrictLogging {
   val NdlaFrontendEndpoint: OEmbedEndpoint =
