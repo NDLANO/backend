@@ -379,7 +379,9 @@ class WriteService(using
   private def cleanupStagingDir(stagingDir: Path): Unit = {
     Try {
       if (Files.exists(stagingDir)) {
-        Files.walk(stagingDir).sorted(java.util.Comparator.reverseOrder()).forEach(Files.deleteIfExists(_): Unit)
+        Using(Files.walk(stagingDir)) { dirStream =>
+          dirStream.sorted(java.util.Comparator.reverseOrder()).forEach(Files.deleteIfExists(_): Unit)
+        }: Unit
       }
     }.recover { ex =>
       logger.warn(s"Failed to clean up bulk upload staging dir $stagingDir", ex)
