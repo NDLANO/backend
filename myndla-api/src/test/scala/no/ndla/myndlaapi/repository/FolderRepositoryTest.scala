@@ -240,9 +240,9 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 2, created)
     repository.createResourceConnection(folder2.toOption.map(_.id), resource2.get.id, 3, created)
 
-    folderResourcesCount() should be(3)
+    folderResourcesCount should be(3)
     repository.deleteFolder(folder1.get.id)
-    folderResourcesCount() should be(1)
+    folderResourcesCount should be(1)
   }
 
   test("that deleting a resource deletes folder-resource connection") {
@@ -270,12 +270,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.resourceConnectionCount(resource1.get.id).get should be(3)
     repository.resourceConnectionCount(resource2.get.id).get should be(1)
     rootResourcesCount should be(1)
-    folderResourcesCount() should be(3)
+    folderResourcesCount should be(3)
     repository.deleteResource(resource1.get.id)
-    folderResourcesCount() should be(1)
+    folderResourcesCount should be(1)
     rootResourcesCount should be(0)
     repository.deleteResource(resource2.get.id)
-    folderResourcesCount() should be(0)
+    folderResourcesCount should be(0)
   }
 
   test("that resourceWithPathAndFeideId works correctly") {
@@ -523,7 +523,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     val ids = Seq(folder1.get.id, folder2.get.id, folder3.get.id, folder4.get.id, folder5.get.id)
 
-    folderCount() should be(7)
+    folderCount should be(7)
     val result = repository.getFoldersAndSubfoldersIds(folder1.get.id)
     result.get.length should be(5)
     ids.sorted should be(result.get.sorted)
@@ -546,7 +546,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     val result = repository.updateFolderStatusInBulk(ids, FolderStatus.SHARED)
     result.get.length should be(5)
-    getAllFolders().map(folder => folder.status).distinct should be(List(FolderStatus.SHARED))
+    getAllFolders.map(folder => folder.status).distinct should be(List(FolderStatus.SHARED))
   }
 
   test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
@@ -735,8 +735,8 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.insertResource(feideId1, "", Article, NDLADate.now(), ResourceDocument(List(), "")).failIfFailure
 
     val numberOfUsers                  = userRepository.numberOfUsers().failIfFailure.getOrElse(0L)
-    val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites().failIfFailure.getOrElse(0L)
-    val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites().failIfFailure.getOrElse(0L)
+    val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites.failIfFailure.getOrElse(0L)
+    val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites.failIfFailure.getOrElse(0L)
 
     numberOfUsersWithFavourites should be(1)
     numberOfUsersWithoutFavourites should be(numberOfUsers - numberOfUsersWithFavourites)
@@ -935,7 +935,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     connections.size should be(3)
     connections.map(_.resourceId).toSet should be(Set(resource2.id))
-    connections.filter(_.folderId.isEmpty).size should be(1)
+    connections.count(_.folderId.isEmpty) should be(1)
 
   }
 

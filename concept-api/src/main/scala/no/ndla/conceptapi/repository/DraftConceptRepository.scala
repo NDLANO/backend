@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.network.tapir.ErrorHelpers
@@ -23,7 +22,7 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers, dbUtility: DBUtility, dbConcept: DBConcept)
+class DraftConceptRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility, dbConcept: DBConcept)
     extends StrictLogging
     with Repository[Concept] {
   def insert(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Concept = {
@@ -204,25 +203,6 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers, dbU
 
   def conceptCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select count(*) from ${dbConcept.table}".map(rs => rs.long("count")).runSingle().map(_.getOrElse(0L)).get
-
-  private def getHighestId(implicit session: DBSession = dbUtility.readOnlySession): Long =
-    tsql"select id from ${dbConcept.table} order by id desc limit 1"
-      .map(rs => rs.long("id"))
-      .runSingle()
-      .map(_.getOrElse(0L))
-      .get
-
-  def updateIdCounterToHighestId()(implicit session: DBSession = dbUtility.autoSession): Unit = {
-    val idToStartAt = SQLSyntax.createUnsafely(
-      (
-        getHighestId() + 1
-      ).toString
-    )
-    val sequenceName =
-      SQLSyntax.createUnsafely(s"${dbConcept.schemaName.getOrElse(props.MetaSchema)}.${dbConcept.tableName}_id_seq")
-
-    val _ = tsql"alter sequence $sequenceName restart with $idToStartAt;".execute()
-  }
 
   def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
       session: DBSession = dbUtility.autoSession
