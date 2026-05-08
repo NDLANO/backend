@@ -233,11 +233,7 @@ class WriteService(using
     insertAndStoreImage(toInsert, file, None, newImage.language)
   }
 
-  private val bulkUploadExecutor: ExecutorService = Executors.newSingleThreadExecutor(r => {
-    val t = new Thread(r, "image-bulk-upload-worker")
-    t.setDaemon(true)
-    t
-  })
+  private val bulkUploadExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
   /** Starts a bulk image upload session. Initializes Redis state under `uploadId`, schedules the upload work on a
     * background worker, and returns immediately. Progress (and the eventual result or failure) is tracked through the
