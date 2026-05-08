@@ -79,18 +79,27 @@ class RawController(using
         .map(s3Object => ImageResponse(s3Object.stream, s3Object.contentType, s3Object.contentLength.toString, None))
     }
 
-  private def getImageResponse(fileName: String, imageParams: ImageParams): Try[ImageResponse] =
-    getRawImage(fileName, imageParams).map { imageStream =>
-      val contentDisposition = imageParams.download.map(_ => "attachment")
-      ImageResponse(
-        imageStream.stream,
-        imageStream.contentType.toString,
-        imageStream.contentLength.toString,
-        contentDisposition,
-      )
+  private def getImageResponse(fileName: String, imageParams: ImageParams): Try[ImageResponse] = {
+    val contentDisposition = imageParams.download.map(_ => "attachment")
+    if (imageParams.isEmptyOrOnlyDownload) {
+      imageStorage
+        .getRaw(fileName)
+        .map(s3Object =>
+          ImageResponse(s3Object.stream, s3Object.contentType, s3Object.contentLength.toString, contentDisposition)
+        )
+    } else {
+      getAndProcessImage(fileName, imageParams).map { imageStream =>
+        ImageResponse(
+          imageStream.stream,
+          imageStream.contentType.toString,
+          imageStream.contentLength.toString,
+          contentDisposition,
+        )
+      }
     }
+  }
 
-  private def getRawImage(imageName: String, imageParams: ImageParams): Try[ImageStream] = {
+  private def getAndProcessImage(imageName: String, imageParams: ImageParams): Try[ImageStream] = {
     val dynamicCropOrResize = {
       val canDynamicCrop = canDoDynamicCrop(imageParams)
       if (canDynamicCrop) dynamicCrop
