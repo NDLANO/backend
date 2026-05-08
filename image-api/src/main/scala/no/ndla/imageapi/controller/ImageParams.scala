@@ -10,8 +10,8 @@ package no.ndla.imageapi.controller
 
 import sttp.tapir.EndpointIO.annotations.*
 
-// format: off
 case class ImageParams(
+// format: off
   @header("app-key")
   @description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access.")
   appKey: Option[String],
@@ -51,11 +51,13 @@ case class ImageParams(
   @query
   @description("Whether the image should be downloaded or not. Only the presence of this parameter is needed.")
   download: Option[String],
-)
 // format: on
+) {
+  def isEmptyOrOnlyDownload: Boolean = copy(download = None) == ImageParams.empty
+}
 
 object ImageParams {
-  def empty: ImageParams = ImageParams(
+  val empty: ImageParams = ImageParams(
     appKey = None,
     width = None,
     height = None,
