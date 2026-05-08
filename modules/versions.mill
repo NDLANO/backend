@@ -10,7 +10,7 @@ object SharedDependencies {
   val Log4JV                = "2.26.0"
   val AwsSdkV               = "2.44.4"
   val Elastic4sV            = "8.18.2"
-  val JacksonV              = "3.1.3"
+  val JacksonV              = "2.21.3"
   val CatsEffectV           = "3.6.1"
   val FlywayV               = "11.10.5"
   val PostgresV             = "42.7.11"
@@ -32,10 +32,10 @@ object SharedDependencies {
     mvn"com.typesafe.scala-logging::scala-logging:$ScalaLoggingV",
     mvn"org.slf4j:slf4j-api:2.0.17",
     // We need jackson to load `log4j2.yaml`
-    mvn"tools.jackson.core:jackson-core:$JacksonV",
-    mvn"tools.jackson.core:jackson-databind:$JacksonV",
-    mvn"tools.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
-    mvn"tools.jackson.module::jackson-module-scala:$JacksonV",
+    mvn"com.fasterxml.jackson.core:jackson-core:$JacksonV",
+    mvn"com.fasterxml.jackson.core:jackson-databind:$JacksonV",
+    mvn"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
+    mvn"com.fasterxml.jackson.module::jackson-module-scala:$JacksonV",
   )
 
   def testing: Seq[Dep] = Seq(
