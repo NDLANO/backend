@@ -264,8 +264,8 @@ class SearchService(using
           case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
           case _            => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
         }
-      case Sort.ByDurationAsc     => fieldSort("duration").order(SortOrder.Asc).missing("_last")
-      case Sort.ByDurationDesc    => fieldSort("duration").order(SortOrder.Desc).missing("_last")
+      case Sort.ByCreatedAsc      => fieldSort("created").order(SortOrder.Asc).missing("_last")
+      case Sort.ByCreatedDesc     => fieldSort("created").order(SortOrder.Desc).missing("_last")
       case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
       case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
       case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
