@@ -1,3 +1,4 @@
 # JVM options applied at runtime in both Mill (test/run) and Docker.
 # Java reads this via the @filename argument-file syntax.
 --enable-native-access=ALL-UNNAMED
+--sun-misc-unsafe-memory-access=allow
