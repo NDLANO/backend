@@ -55,6 +55,14 @@ trait ScalacOptions extends ScalaModule {
     Seq[NDLAScalaOption]("-Wvalue-discard", "-Wnonunit-statement").filterEnabled(scalaVersion())
   }
 
+  def runtimeJvmOptionsFile: T[PathRef] = Task.Source {
+    BuildCtx.workspaceRoot / "jvm-runtime-options"
+  }
+
+  def runtimeJavaOptions: T[Seq[String]] = Task {
+    os.read.lines(runtimeJvmOptionsFile().path).map(_.trim).filter(l => l.nonEmpty && !l.startsWith("#"))
+  }
+
   def testJavaOptions: T[Seq[String]] = Task {
     Seq[NDLAScalaOption]("-XX:+EnableDynamicAgentLoading", "-Xshare:off").filterEnabled(scalaVersion())
   }
