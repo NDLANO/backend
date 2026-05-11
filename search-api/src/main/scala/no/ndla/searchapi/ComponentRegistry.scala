@@ -11,7 +11,8 @@ package no.ndla.searchapi
 import no.ndla.common.Clock
 import no.ndla.common.util.TraitUtil
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient, TaxonomyApiClient}
+import no.ndla.network.clients.rediscache.FeideRedisClient
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
@@ -46,7 +47,7 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given draftConceptApiClient: DraftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
   given learningPathApiClient: LearningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
   given articleApiClient: ArticleApiClient           = new ArticleApiClient(props.ArticleApiUrl)
-  given redisClient: RedisClient                     = new RedisClient(props.RedisHost, props.RedisPort)
+  given redisClient: FeideRedisClient                = new FeideRedisClient(props.RedisHost, props.RedisPort)
   given feideApiClient: FeideApiClient               = new FeideApiClient
   given frontpageApiClient: FrontpageApiClient       = new FrontpageApiClient
 

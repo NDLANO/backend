@@ -29,6 +29,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
@@ -39,27 +40,29 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
 
-  given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
-  given cloudFrontClient: NdlaCloudFrontClient         = new NdlaCloudFrontClient
-  given ndlaClient: NdlaClient                         = new NdlaClient
-  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchLanguage: SearchLanguage                 = new SearchLanguage
-  given imageConverter: ImageConverter                 = new ImageConverter
-  given random: Random                                 = new Random
-  given converterService: ConverterService             = new ConverterService
-  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
-  given searchConverterService: SearchConverterService = new SearchConverterService
-  given dbUtility: DBUtility                           = new DBUtility
-  given dbImageMetaInformation: DBImageMetaInformation = new DBImageMetaInformation
-  given imageRepository: ImageRepository               = new ImageRepository
-  given imageIndexService: ImageIndexService           = new ImageIndexService
-  given imageSearchService: ImageSearchService         = new ImageSearchService
-  given tagIndexService: TagIndexService               = new TagIndexService
-  given tagSearchService: TagSearchService             = new TagSearchService
-  given validationService: ValidationService           = new ValidationService
-  given readService: ReadService                       = new ReadService
-  given imageStorage: ImageStorageService              = new ImageStorageService
-  given writeService: WriteService                     = new WriteService
+  implicit lazy val s3Client: NdlaS3Client                 = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  implicit lazy val cloudFrontClient: NdlaCloudFrontClient = new NdlaCloudFrontClient
+  given redisClient: FeideRedisClient                      = new FeideRedisClient(props.RedisHost, props.RedisPort)
+  given ndlaClient: NdlaClient                             = new NdlaClient
+  implicit lazy val e4sClient: NdlaE4sClient               = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchLanguage: SearchLanguage                     = new SearchLanguage
+  given imageConverter: ImageConverter                     = new ImageConverter
+  given random: Random                                     = new Random
+  given converterService: ConverterService                 = new ConverterService
+  implicit lazy val myndlaApiClient: MyNDLAApiClient       = new MyNDLAApiClient
+  given searchConverterService: SearchConverterService     = new SearchConverterService
+  given dbUtility: DBUtility                               = new DBUtility
+  given dbImageMetaInformation: DBImageMetaInformation     = new DBImageMetaInformation
+  given imageRepository: ImageRepository                   = new ImageRepository
+  implicit lazy val imageIndexService: ImageIndexService   = new ImageIndexService
+  implicit lazy val imageSearchService: ImageSearchService = new ImageSearchService
+  implicit lazy val tagIndexService: TagIndexService       = new TagIndexService
+  implicit lazy val tagSearchService: TagSearchService     = new TagSearchService
+  given validationService: ValidationService               = new ValidationService
+  given bulkUploadStore: BulkUploadStore                   = new BulkUploadStore
+  given readService: ReadService                           = new ReadService
+  implicit lazy val imageStorage: ImageStorageService      = new ImageStorageService
+  given writeService: WriteService                         = new WriteService
 
   given migrator: DBMigrator =
     DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors, new V25__FixUrlEncodedFileNames)
@@ -69,9 +72,17 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given rawController: RawController         = new RawController
   given internController: InternController   = new InternController
   given healthController: HealthController   = new HealthController
+  given bulkController: BulkController       = new BulkController
 
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](imageControllerV2, imageControllerV3, rawController, internController, healthController),
+    List[TapirController](
+      imageControllerV2,
+      imageControllerV3,
+      rawController,
+      internController,
+      healthController,
+      bulkController,
+    ),
     SwaggerDocControllerConfig.swaggerInfo,
   )
 

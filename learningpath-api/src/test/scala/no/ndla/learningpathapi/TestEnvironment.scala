@@ -19,7 +19,7 @@ import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -34,6 +34,7 @@ import no.ndla.network.tapir.TapirApplication
 import org.mockito.Mockito.{reset, spy}
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility
+import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.scalatestsuite.DBUtilityStub
 
 trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with MockitoSugar {
@@ -70,7 +71,7 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
   implicit lazy val searchApiClient: SearchApiClient                        = mock[SearchApiClient]
   implicit lazy val oembedProxyClient: OembedProxyClient                    = mock[OembedProxyClient]
   implicit lazy val feideApiClient: FeideApiClient                          = mock[FeideApiClient]
-  implicit lazy val redisClient: RedisClient                                = mock[RedisClient]
+  implicit lazy val redisClient: FeideRedisClient                           = mock[FeideRedisClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient                        = mock[MyNDLAApiClient]
   implicit lazy val DBUtil: DBUtility                                       = DBUtilityStub()
   implicit lazy val searchLanguage: SearchLanguage                          = mock[SearchLanguage]
