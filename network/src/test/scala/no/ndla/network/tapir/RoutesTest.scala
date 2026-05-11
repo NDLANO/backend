@@ -61,11 +61,15 @@ class RoutesTest extends UnitTestSuite, TapirControllerTest {
 
   def req: PartialRequest[Array[Byte]] = basicRequest.response(asByteArrayAlways)
 
-  private def getTapirRequestCounterDataPoints: Seq[CounterDataPointSnapshot] =
-    routes.registry.scrape().iterator().asScala.find(_.getMetadata.getPrometheusName == "tapir_request") match {
-      case Some(cs: CounterSnapshot) => cs.getDataPoints.asScala.toSeq
-      case _                         => fail("Could not find tapir_request counter in Prometheus registry")
-    }
+  private def getTapirRequestCounterDataPoints: Seq[CounterDataPointSnapshot] = NdlaPrometheusRegistry
+    .registry
+    .scrape()
+    .iterator()
+    .asScala
+    .find(_.getMetadata.getPrometheusName == "tapir_request") match {
+    case Some(cs: CounterSnapshot) => cs.getDataPoints.asScala.toSeq
+    case _                         => fail("Could not find tapir_request counter in Prometheus registry")
+  }
 
   test("that aborting the request only increases the 499 error code metric") {
     Try(req.get(uri"http://localhost:$serverPort/routes/aborted-request").readTimeout(500.millis).send())

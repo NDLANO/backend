@@ -10,8 +10,7 @@ package no.ndla.network.tapir
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
-import io.prometheus.metrics.model.registry.PrometheusRegistry
-import no.ndla.common.{RequestLogger, TryUtil}
+import no.ndla.common.RequestLogger
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
@@ -30,8 +29,6 @@ import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
 import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
-import sttp.tapir.server.metrics.MetricLabels
-import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.model.ValuedEndpointOutput
 import sttp.tapir.server.netty.NettyConfig
 import sttp.tapir.server.netty.sync.{NettySyncServer, NettySyncServerBinding, NettySyncServerOptions}
@@ -202,8 +199,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
   def startServerAndWait(name: String, port: Int, gracefulShutdownTimeout: FiniteDuration = 30.seconds)(
       onStartup: NettySyncServerBinding => Unit
   ): Unit = {
-    val prometheusMetrics =
-      PrometheusMetrics.default[Identity](namespace = "tapir", registry = registry, labels = metricLabels)
+    val prometheusMetrics = NdlaPrometheusRegistry.tapirPrometheusMetrics
 
     val options = NettySyncServerOptions
       .customiseInterceptors
@@ -240,21 +236,4 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       never
     }
   }
-
-  private val tapirClosedErrorMessage             = "Client disconnected, request timed out, or request cancelled"
-  private[tapir] val registry: PrometheusRegistry = new PrometheusRegistry()
-  private val metricLabels: MetricLabels          = MetricLabels(
-    forRequest = List("path" -> (req => req.pathSegments.mkString("/")), "method" -> (req => req.method.method)),
-    forEndpoint = List.empty,
-    forResponse = List(
-      "status" -> {
-        case Right(r)                                                               => Some(r.code.code.toString)
-        case Left(ex: RuntimeException) if ex.getMessage == tapirClosedErrorMessage =>
-          logger.info("Mapping closed request exception to status code 499 for metrics")
-          Some("499")
-        case Left(ex) if TryUtil.containsInterruptedException(ex) => Some("499")
-        case Left(_)                                              => Some("5xx")
-      }
-    ),
-  )
 }
