@@ -14,58 +14,6 @@ import no.ndla.common.DeriveHelpers
 import no.ndla.imageapi.model.api.ImageMetaInformationV3DTO
 import sttp.tapir.Schema
 
-enum BulkUploadStatus {
-  case Pending,
-    Running,
-    Complete,
-    Failed
-}
-
-object BulkUploadStatus {
-  implicit val schema: Schema[BulkUploadStatus]   = Schema.derivedEnumeration.defaultStringBased
-  implicit val encoder: Encoder[BulkUploadStatus] = Encoder.encodeString.contramap(_.toString)
-  implicit val decoder: Decoder[BulkUploadStatus] = Decoder
-    .decodeString
-    .emap { s =>
-      BulkUploadStatus.values.find(_.toString == s).toRight(s"Unknown BulkUploadStatus: $s")
-    }
-}
-
-enum BulkUploadItemStatus {
-  case Pending,
-    Uploading,
-    Done,
-    Failed
-}
-
-object BulkUploadItemStatus {
-  implicit val schema: Schema[BulkUploadItemStatus]   = Schema.derivedEnumeration.defaultStringBased
-  implicit val encoder: Encoder[BulkUploadItemStatus] = Encoder.encodeString.contramap(_.toString)
-  implicit val decoder: Decoder[BulkUploadItemStatus] = Decoder
-    .decodeString
-    .emap { s =>
-      BulkUploadItemStatus.values.find(_.toString == s).toRight(s"Unknown BulkUploadItemStatus: $s")
-    }
-}
-
-case class BulkUploadItemDTO(
-    fileName: Option[String],
-    status: BulkUploadItemStatus,
-    image: Option[ImageMetaInformationV3DTO],
-    error: Option[String],
-) {
-  def setDone(image: ImageMetaInformationV3DTO): BulkUploadItemDTO =
-    this.copy(status = BulkUploadItemStatus.Done, image = Some(image))
-  def setUploading(): BulkUploadItemDTO           = this.copy(status = BulkUploadItemStatus.Uploading)
-  def setFailed(ex: Throwable): BulkUploadItemDTO =
-    this.copy(status = BulkUploadItemStatus.Failed, error = Some(ex.getMessage))
-}
-
-object BulkUploadItemDTO {
-  implicit val encoder: Encoder[BulkUploadItemDTO] = deriveEncoder
-  implicit val decoder: Decoder[BulkUploadItemDTO] = deriveDecoder
-}
-
 case class BulkUploadStateDTO(
     status: BulkUploadStatus,
     total: Int,
