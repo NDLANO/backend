@@ -372,6 +372,46 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/image-api/v1/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a bulk image upload session
+         * @description Stages all uploaded images and starts an asynchronous bulk upload.
+         */
+        post: operations["postImage-apiV1Bulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/image-api/v1/bulk/status/{upload-id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream the status of a bulk upload session
+         * @description Returns Server-Sent Events with progress updates for the given upload-id.
+         */
+        get: operations["getImage-apiV1BulkStatusUpload-id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 };
 export type webhooks = Record<string, never>;
 export type components = {
@@ -387,6 +427,51 @@ export type components = {
             /** @description The name of the of the author */
             name: string;
         };
+        /** BatchMetaDataAndFileForm */
+        BatchMetaDataAndFileForm: {
+            metadatas: components["schemas"]["NewImageMetaInformationV2DTO"][];
+            files: Blob[];
+        };
+        /** BulkUploadItemDTO */
+        BulkUploadItemDTO: {
+            fileName?: string;
+            status: components["schemas"]["BulkUploadItemStatus"];
+            image?: components["schemas"]["ImageMetaInformationV3DTO"];
+            error?: string;
+        };
+        /**
+         * BulkUploadItemStatus
+         * @enum {string}
+         */
+        BulkUploadItemStatus: "Done" | "Failed" | "Pending" | "Uploading";
+        /**
+         * BulkUploadStartedDTO
+         * @description Identifier returned when a bulk upload session has been started
+         */
+        BulkUploadStartedDTO: {
+            /**
+             * Format: uuid
+             * @description Identifier used to track the bulk upload via the status endpoint
+             */
+            uploadId: string;
+        };
+        /** BulkUploadStateDTO */
+        BulkUploadStateDTO: {
+            status: components["schemas"]["BulkUploadStatus"];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            completed: number;
+            /** Format: int32 */
+            failed: number;
+            items: components["schemas"]["BulkUploadItemDTO"][];
+            error?: string;
+        };
+        /**
+         * BulkUploadStatus
+         * @enum {string}
+         */
+        BulkUploadStatus: "Complete" | "Failed" | "Pending" | "Running";
         /**
          * ContributorType
          * @description The description of the author. Eg. Photographer or Supplier
@@ -914,6 +999,12 @@ export type components = {
 };
 export type AllErrors = components['schemas']['AllErrors'];
 export type AuthorDTO = components['schemas']['AuthorDTO'];
+export type BatchMetaDataAndFileForm = components['schemas']['BatchMetaDataAndFileForm'];
+export type BulkUploadItemDTO = components['schemas']['BulkUploadItemDTO'];
+export type BulkUploadItemStatus = components['schemas']['BulkUploadItemStatus'];
+export type BulkUploadStartedDTO = components['schemas']['BulkUploadStartedDTO'];
+export type BulkUploadStateDTO = components['schemas']['BulkUploadStateDTO'];
+export type BulkUploadStatus = components['schemas']['BulkUploadStatus'];
 export type ContributorType = components['schemas']['ContributorType'];
 export type CopyMetaDataAndFileForm = components['schemas']['CopyMetaDataAndFileForm'];
 export type CopyrightDTO = components['schemas']['CopyrightDTO'];
@@ -2409,6 +2500,138 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "postImage-apiV1Bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["BatchMetaDataAndFileForm"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkUploadStartedDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "getImage-apiV1BulkStatusUpload-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                "upload-id": string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["BulkUploadStateDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
