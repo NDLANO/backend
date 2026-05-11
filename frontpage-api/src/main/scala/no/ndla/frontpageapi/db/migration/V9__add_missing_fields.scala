@@ -28,7 +28,7 @@ class V9__add_missing_fields extends BaseJavaMigration {
     sql"select id, document from subjectpage".map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document"))).list()
   }
 
-  implicit class JsonObjectOps(obj: JsonObject) {
+  extension (obj: JsonObject) {
     def addIfNotExists(key: String, value: Json): JsonObject = {
       if (obj.contains(key)) obj
       else obj.add(key, value)

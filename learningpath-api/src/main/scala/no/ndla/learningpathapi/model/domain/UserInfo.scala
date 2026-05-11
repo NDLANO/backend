@@ -23,7 +23,7 @@ object UserInfo {
     case _                                                       => Failure(AccessDeniedException("You do not have access to the requested resource."))
   }
 
-  implicit class LearningpathTokenUser(self: TokenUser) {
+  extension (self: TokenUser) {
     def isAdmin: Boolean     = self.permissions.contains(LEARNINGPATH_API_ADMIN)
     def isPublisher: Boolean = self.permissions.contains(LEARNINGPATH_API_PUBLISH)
     def isWriter: Boolean    = self.permissions.contains(LEARNINGPATH_API_WRITE)
@@ -32,7 +32,7 @@ object UserInfo {
     def isNdla: Boolean      = self.permissions.nonEmpty
   }
 
-  implicit class LearningpathCombinedUser(self: CombinedUser) {
+  extension (self: CombinedUser) {
     def id: Option[String] = {
       val tokenId = self.tokenUser.map(_.id)
       val feideId = self.myndlaUser.map(_.feideId)

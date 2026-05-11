@@ -8,6 +8,7 @@
 
 package no.ndla.network.tapir
 
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.util.{Failure, Success, Try}
@@ -18,8 +19,7 @@ trait TapirErrorHandling(using errorHandling: ErrorHandling) extends StrictLoggi
 
   def handleErrors: PartialFunction[Throwable, AllErrors] = errorHandling.handleErrors
 
-  implicit class handleErrorOrOkClass[T](t: Try[T]) {
-    import cats.implicits.*
+  extension [T](t: Try[T]) {
 
     /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
       * to a generic 500 error.

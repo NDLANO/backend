@@ -106,18 +106,18 @@ object OptLanguageFields {
     OptLanguageFields(underlyingMap)
   }
 
-  implicit class optStringLanguageFields(s: OptLanguageFields[String]) {
+  extension (s: OptLanguageFields[String]) {
     def withOptValue(value: Option[String], language: String): OptLanguageFields[String] = {
       value match {
         case Some("") => s.withUnwanted(language)
         case Some(v)  => s.withValue(v, language)
-        case None     => this.s
+        case None     => s
       }
     }
 
     def withOptValue(value: Option[String], language: Option[String]): OptLanguageFields[String] = language match {
-      case None       => this.s
-      case Some(lang) => this.withOptValue(value, lang)
+      case None       => s
+      case Some(lang) => s.withOptValue(value, lang)
     }
   }
 

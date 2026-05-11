@@ -161,7 +161,7 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
   }
 }
 
-implicit class PartialPublishArticleDTOImplicits(self: PartialPublishArticleDTO) {
+extension (self: PartialPublishArticleDTO) {
   def withLicense(license: Option[String]): PartialPublishArticleDTO              = self.copy(license = license)
   def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticleDTO             = self.copy(grepCodes = grepCodes.some)
   def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticleDTO =

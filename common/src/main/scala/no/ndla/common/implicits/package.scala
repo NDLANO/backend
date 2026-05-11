@@ -49,7 +49,7 @@ package object implicits {
     }
   }
 
-  implicit class ctxctx[A](self: Try[A]) {
+  extension [A](self: Try[A]) {
     def ?(using
         @unused("This parameter is only to make sure we dont throw exceptions outside of a caught context")
         ctx: PermittedTryContext
@@ -82,7 +82,7 @@ package object implicits {
     def unit: Try[Unit] = t.map(_ => ())
   }
 
-  implicit class StringOption(private val self: Option[String]) {
+  extension (self: Option[String]) {
     def emptySomeToNone: Option[String] = StringUtil.emptySomeToNone(self)
   }
 

@@ -115,10 +115,10 @@ abstract class TapirController(using
     )
   }
 
-  implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
-    private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
-    private val forbiddenErrorOutput    = errorOutputVariantFor(StatusCode.Forbidden.code)
+  private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
+  private val forbiddenErrorOutput    = errorOutputVariantFor(StatusCode.Forbidden.code)
 
+  extension [A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
     def requirePermission[F[_]](
         requiredPermission: Permission*
     ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
@@ -210,7 +210,7 @@ abstract class TapirController(using
     }
   }
 
-  implicit class authlessErrorlessEndpoint[A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
+  extension [A, I, E, O, R, X](self: Endpoint[Unit, I, X, O, R]) {
     def withOptionalUser[F[_]]: PartialServerEndpoint[Option[TokenUser], Option[TokenUser], I, X, O, R, F] = {
       val newEndpoint   = self.securityIn(TokenUser.oauth2Input(Seq.empty))
       val authFunc      = (tokenUser: Option[TokenUser]) => Right(tokenUser): Either[X, Option[TokenUser]]

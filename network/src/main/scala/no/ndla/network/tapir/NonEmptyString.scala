@@ -67,7 +67,7 @@ object NonEmptyString {
   implicit def circeEncoder: Encoder[NonEmptyString] = (a: NonEmptyString) => Json.fromString(a.underlying)
 
   /** Helpers that should make working with `Option[NonEmptyString]` a bit easier */
-  implicit class NonEmptyStringImplicit(self: Option[NonEmptyString]) {
+  extension (self: Option[NonEmptyString]) {
     def underlying: Option[String]                   = self.map(_.underlying)
     def underlyingOrElse(default: => String): String = self.map(_.underlying).getOrElse(default)
   }

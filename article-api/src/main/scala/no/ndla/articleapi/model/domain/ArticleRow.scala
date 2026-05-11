@@ -21,8 +21,8 @@ case class ArticleRow(
 
 object ArticleRow {
 
-  /** Implicit class to add helper methods to `Option[ArticleRow]` */
-  implicit class OptionalArticleRow(articleRow: Option[ArticleRow]) {
+  /** Extension methods to add helper methods to `Option[ArticleRow]` */
+  extension (articleRow: Option[ArticleRow]) {
     def toArticle: Option[Article] = articleRow.flatMap(_.article)
 
     def mapArticle(func: Article => Article): Option[ArticleRow] = {
@@ -30,8 +30,8 @@ object ArticleRow {
     }
   }
 
-  /** Implicit class to add helper methods to `List[ArticleRow]` */
-  implicit class ArticleRows(articleRows: Seq[ArticleRow]) {
+  /** Extension methods to add helper methods to `List[ArticleRow]` */
+  extension (articleRows: Seq[ArticleRow]) {
     def toArticles: Seq[Article] = articleRows.flatMap(_.article)
   }
 }

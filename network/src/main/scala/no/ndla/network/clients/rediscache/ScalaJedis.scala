@@ -18,8 +18,8 @@ import scala.util.{Failure, Success, Try}
 class ScalaJedis(host: String, port: Int, environment: String) extends StrictLogging {
   private val jedis = JedisClient.create(host, port)
 
-  private implicit class TryOps[T](t: Try[T]) {
-    def handleJedisError(fallback: T): Try[T] = t.recoverWith {
+  extension [T](t: Try[T]) {
+    private def handleJedisError(fallback: T): Try[T] = t.recoverWith {
       case jce: JedisConnectionException if environment == "local" =>
         logger.error("Could not connect to redis instance, but allowing since we are in local environment", jce)
         Success(fallback)
