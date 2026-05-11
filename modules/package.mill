@@ -27,6 +27,10 @@ trait BaseModule
   override def resources: T[Seq[PathRef]] =
     Task.Sources("src/main/resources", BuildCtx.workspaceRoot / "log4j" / "main")
 
+  override def forkArgs: T[Seq[String]] = Task {
+    super.forkArgs() ++ runtimeJavaOptions()
+  }
+
   def fmt(): Task.Command[Unit] = Task.Command {
     ScalafmtModule.reformatAll(Tasks(Seq(sources, test.sources)))()
   }
@@ -44,7 +48,7 @@ trait BaseModule
     }
 
     override def forkArgs: T[Seq[String]] = Task {
-      super.forkArgs() ++ testJavaOptions()
+      super.forkArgs() ++ runtimeJavaOptions() ++ testJavaOptions()
     }
   }
 

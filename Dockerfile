@@ -46,4 +46,5 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # Set up and run Scala app
 COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar /app/out.jar
 ENV LOG_APPENDER=Docker
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/out.jar"]
+COPY jvm-runtime-options /app/jvm-runtime-options
+ENTRYPOINT ["sh", "-c", "exec java @/app/jvm-runtime-options $JAVA_OPTS -jar /app/out.jar"]
