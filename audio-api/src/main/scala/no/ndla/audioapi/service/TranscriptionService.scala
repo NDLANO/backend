@@ -16,7 +16,8 @@ import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.common.model.domain.UploadedFile
 import software.amazon.awssdk.services.transcribe.model.TranscriptionJobStatus
-import sttp.client3.{HttpURLConnectionBackend, UriContext, asFile, basicRequest}
+import sttp.client4.{UriContext, asFile, basicRequest}
+import sttp.client4.httpurlconnection.HttpURLConnectionBackend
 import ws.schild.jave.{Encoder, MultimediaObject}
 import ws.schild.jave.encode.{AudioAttributes, EncodingAttributes}
 

@@ -15,7 +15,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.network.NdlaClient
 import org.jsoup.Jsoup
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}

@@ -11,7 +11,7 @@ package no.ndla.myndlaapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.myndlaapi.Props
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt

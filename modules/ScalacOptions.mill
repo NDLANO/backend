@@ -29,7 +29,7 @@ trait ScalacOptions extends ScalaModule {
 
   def sharedScalacOptions: T[Seq[String]] = Task {
     Seq[NDLAScalaOption](
-      "-Xfatal-warnings" -> CI(),
+      "-Werror" -> CI(),
       "-encoding",
       "utf8",
       "-feature",

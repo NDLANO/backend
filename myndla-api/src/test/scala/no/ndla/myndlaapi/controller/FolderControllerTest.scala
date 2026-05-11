@@ -18,7 +18,7 @@ import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.UUID
 import scala.util.Success
@@ -60,7 +60,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     val request = quickRequest
       .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/resources")
       .header("FeideAuthorization", s"Bearer $feideToken")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
 
     verify(folderReadService, times(1)).getAllResources(any, any[FeideUserWrapper])
     verify(folderReadService, times(0)).getSingleFolder(any, any, any, any[FeideUserWrapper])
@@ -91,7 +91,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     val request = quickRequest
       .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/${someId.toString}")
       .header("FeideAuthorization", s"Bearer $feideToken")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
 
     verify(folderReadService, times(0)).getAllResources(any, any[FeideUserWrapper])
     verify(folderReadService, times(1)).getSingleFolder(eqTo(someId), any, any, any[FeideUserWrapper])

@@ -12,7 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.learningpath
-import no.ndla.common.model.domain.learningpath.{LearningPath, StepStatus, LearningPathStatus as _}
+import no.ndla.common.model.domain.learningpath.{LearningPath, StepStatus}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser

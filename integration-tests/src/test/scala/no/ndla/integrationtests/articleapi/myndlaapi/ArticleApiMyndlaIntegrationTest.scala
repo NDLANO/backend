@@ -23,7 +23,7 @@ import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
 import org.scalatestplus.mockito.MockitoSugar
 import org.testcontainers.postgresql.PostgreSQLContainer
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -196,18 +196,16 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
 
     insertResult.isSuccess should be(true)
 
-    val teacherResponse = simpleHttpClient.send(
-      quickRequest
-        .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
-        .header("FeideAuthorization", s"Bearer $teacherFeideToken")
-    )
+    val teacherResponse = quickRequest
+      .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
+      .header("FeideAuthorization", s"Bearer $teacherFeideToken")
+      .send()
 
-    val studentResponse = simpleHttpClient.send(
-      quickRequest
-        .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
-        .header("FeideAuthorization", s"Bearer $studentFeideToken")
-    )
-    val unauthedResponse = simpleHttpClient.send(quickRequest.get(uri"$articleApiBaseUrl/article-api/v2/articles/123"))
+    val studentResponse = quickRequest
+      .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
+      .header("FeideAuthorization", s"Bearer $studentFeideToken")
+      .send()
+    val unauthedResponse = quickRequest.get(uri"$articleApiBaseUrl/article-api/v2/articles/123").send()
 
     teacherResponse.code.code should be(200)
     studentResponse.code.code should be(403)

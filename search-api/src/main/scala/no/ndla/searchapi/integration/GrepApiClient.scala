@@ -19,7 +19,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.grep.GrepStatusEncoderConfiguration
 import no.ndla.searchapi.model.grep.*
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.io.File
 import java.nio.file.Files
@@ -120,7 +120,7 @@ class GrepApiClient(using props: Props) extends StrictLogging {
     val outputFile = new File(tempDir, "grep-dump.zip")
     logger.info(s"Downloading grep dump from $grepDumpUrl to ${outputFile.getAbsolutePath}")
     val request = quickRequest.get(uri"$grepDumpUrl").response(asFile(outputFile))
-    Try(simpleHttpClient.send(request)) match {
+    Try(request.send()) match {
       case Success(response) if response.isSuccess => Success(outputFile)
       case Success(response)                       => Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${response.statusText}"))
       case Failure(ex)                             =>

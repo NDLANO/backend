@@ -27,7 +27,7 @@ import org.mockito.Mockito.*
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.DBSession
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -120,13 +120,12 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     )
     val body = CirceUtil.toJsonString(newFolderData)
 
-    val newFolder = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newFolder = quickRequest
+      .post(uri"$myndlaApiFolderUrl/")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newFolder.isSuccess)
       fail(s"Failed to create folder $name failed with code ${newFolder.code} and body:\n${newFolder.body}")
 
@@ -137,7 +136,7 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     import io.circe.generic.auto.*
     var uri = uri"$myndlaApiFolderUrl/"
     if (includeSubfolders) uri = uri.addParam("include-subfolders", "true")
-    val folders = simpleHttpClient.send(quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId"))
+    val folders = quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId").send()
     if (!folders.isSuccess)
       fail(s"Fetching all folders for $feideId failed with code ${folders.code} and body:\n${folders.body}")
 
@@ -148,13 +147,12 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
-    val newResource = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/resources/root")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newResource = quickRequest
+      .post(uri"$myndlaApiFolderUrl/resources/root")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newResource.isSuccess)
       fail(s"Failed to create root resource, failed with code ${newResource.code} and body:\n${newResource.body}")
 
@@ -166,13 +164,12 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
-    val newResource = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/$folderId/resources")
-        .header("FeideAuthorization", s"Bearer $feideId")
-        .contentType("application/json")
-        .body(body)
-    )
+    val newResource = quickRequest
+      .post(uri"$myndlaApiFolderUrl/$folderId/resources")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .contentType("application/json")
+      .body(body)
+      .send()
     if (!newResource.isSuccess)
       fail(s"Failed to create resource, failed with code ${newResource.code} and body:\n${newResource.body}")
 
@@ -180,11 +177,10 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
   }
 
   def getFolderResources(feideId: String, folderId: UUID): api.FolderDTO = {
-    val resources = simpleHttpClient.send(
-      quickRequest
-        .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
-        .header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val resources = quickRequest
+      .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
     if (!resources.isSuccess)
       fail(s"Fetching all resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
 
@@ -192,9 +188,10 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
   }
 
   def getRootResources(feideId: String): List[api.ResourceDTO] = {
-    val resources = simpleHttpClient.send(
-      quickRequest.get(uri"$myndlaApiFolderUrl/resources/root").header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val resources = quickRequest
+      .get(uri"$myndlaApiFolderUrl/resources/root")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
     if (!resources.isSuccess)
       fail(s"Fetching root resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
 
@@ -202,9 +199,10 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
   }
 
   def deleteUser(feideId: String): Unit = {
-    val response = simpleHttpClient.send(
-      quickRequest.delete(uri"$myndlaApiUserUrl/delete-personal-data").header("FeideAuthorization", s"Bearer $feideId")
-    )
+    val response = quickRequest
+      .delete(uri"$myndlaApiUserUrl/delete-personal-data")
+      .header("FeideAuthorization", s"Bearer $feideId")
+      .send()
 
     if (!response.isSuccess) fail(s"Deleting $feideId failed with code ${response.code} and body:\n${response.body}")
   }

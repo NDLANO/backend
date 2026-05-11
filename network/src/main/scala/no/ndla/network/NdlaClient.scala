@@ -13,13 +13,12 @@ import io.circe.parser.parse
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.{Response, SimpleHttpClient}
-import sttp.client3.quick.*
+import sttp.client4.{DefaultSyncBackend, Response, WebSocketSyncBackend}
 
 import scala.util.{Failure, Success, Try}
 
 class NdlaClient {
-  val client: SimpleHttpClient                 = simpleHttpClient
+  val client: WebSocketSyncBackend             = DefaultSyncBackend()
   private val ResponseErrorBodyCharacterCutoff = 1000
 
   def fetch[A](request: NdlaRequest)(implicit decoder: Decoder[A]): Try[A] = {
@@ -95,13 +94,12 @@ class NdlaClient {
   private def addForwardedFeideAuth(request: NdlaRequest, feideToken: Option[String]) = {
     feideToken match {
       case None        => request
-      case Some(token) => request.header("FeideAuthorization", s"Bearer $token", replaceExisting = true)
+      case Some(token) => request.header("FeideAuthorization", s"Bearer $token")
     }
   }
 
   private def addForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]) = tokenUser match {
-    case Some(TokenUser(_, _, _, Some(auth))) =>
-      request.header("Authorization", s"Bearer $auth", replaceExisting = true)
-    case _ => request
+    case Some(TokenUser(_, _, _, Some(auth))) => request.header("Authorization", s"Bearer $auth")
+    case _                                    => request
   }
 }

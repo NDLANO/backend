@@ -12,12 +12,12 @@ import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{AuthorDTO, LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.learningpath
-import no.ndla.common.model.domain.learningpath.{StepStatus, LearningPathStatus as _}
+import no.ndla.common.model.domain.learningpath.StepStatus
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain.{License as _, *}
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import no.ndla.mapping

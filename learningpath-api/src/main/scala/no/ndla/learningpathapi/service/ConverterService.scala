@@ -33,7 +33,7 @@ import no.ndla.common.{Clock, errors}
 import no.ndla.language.Language.*
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
+import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}

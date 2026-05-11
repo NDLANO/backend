@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.api.myndla as api
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.NdlaClient
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Try
 

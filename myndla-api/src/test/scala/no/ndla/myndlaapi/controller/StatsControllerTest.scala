@@ -18,7 +18,7 @@ import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.Success
 
@@ -35,7 +35,7 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
       TryMaybe.from(StatsDTO(1, 2, 3, 4, 5, 6, 7, List.empty, Map.empty, UserStatsDTO(1, 2, 3, 4, 5, 6, 7)))
     )
 
-    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats").send()
     response.code.code should be(200)
   }
 
@@ -43,9 +43,10 @@ class StatsControllerTest extends UnitTestSuite with TestEnvironment with TapirC
     when(folderReadService.getFavouriteStatsForResource(any, any)).thenReturn(
       Success(List(SingleResourceStatsDTO("article", "123", 21), SingleResourceStatsDTO("multidisciplinary", "123", 1)))
     )
-    val response = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/myndla-api/v1/stats/favorites/article,multidisciplinary/123")
-    )
+    val response = quickRequest
+      .get(uri"http://localhost:$serverPort/myndla-api/v1/stats/favorites/article,multidisciplinary/123")
+      .send()
+
     response.code.code should be(200)
 
     verify(folderReadService, times(1)).getFavouriteStatsForResource(List("123"), List("article", "multidisciplinary"))

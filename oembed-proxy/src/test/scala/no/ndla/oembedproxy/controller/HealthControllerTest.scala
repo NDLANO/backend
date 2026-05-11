@@ -12,7 +12,7 @@ import no.ndla.common.Clock as NDLAClock
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController, TapirHealthController}
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val controller: TapirHealthController                      = new TapirHealthController
@@ -24,7 +24,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   controller.setRunning()
 
   test("That /health returns 200 ok") {
-    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/health"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/health").send()
     response.code.code should be(200)
   }
 

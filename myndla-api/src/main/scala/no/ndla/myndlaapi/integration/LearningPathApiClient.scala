@@ -13,7 +13,7 @@ import io.circe.Decoder
 import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.myndlaapi.Props
 import no.ndla.network.NdlaClient
-import sttp.client3.{UriContext, quickRequest}
+import sttp.client4.{UriContext, quickRequest}
 
 import scala.concurrent.duration.DurationInt
 import scala.util.Try

@@ -18,7 +18,7 @@ import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirControll
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -48,8 +48,9 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
       Success(TestData.sampleNbApiConcept)
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang")
+      .send()
       .code
       .code should be(200)
   }
@@ -59,24 +60,23 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
       Failure(NotFoundException("Not found, yolo"))
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang")
+      .send()
       .code
       .code should be(404)
   }
 
   test("/<concept_id> should return 400 if the id was not valid") {
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/one"))
-      .code
-      .code should be(400)
+    quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/one").send().code.code should be(400)
   }
 
   test("GET /tags should return 200 on getting all tags") {
     when(readService.allTagsFromConcepts(lang, fallback = false)).thenReturn(List("tag1", "tag2"))
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/tags/?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/concepts/tags/?language=$lang")
+      .send()
       .code
       .code should be(200)
   }
@@ -90,8 +90,9 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
 
     val expectedSettings = SearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/?search-context=initial"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/concepts/?search-context=initial")
+      .send()
       .code
       .code should be(200)
     verify(publishedConceptSearchService, times(1)).all(eqTo(expectedSettings))

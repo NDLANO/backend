@@ -16,8 +16,8 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
-import sttp.client3.*
-import sttp.client3.quick.simpleHttpClient
+import sttp.client4.*
+import sttp.client4.quick.RichRequest
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
@@ -59,7 +59,7 @@ class RoutesTest extends UnitTestSuite, TapirControllerTest {
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
 
-  def req: RequestT[Empty, Array[Byte], Any & Any] = basicRequest.response(asByteArrayAlways)
+  def req: PartialRequest[Array[Byte]] = basicRequest.response(asByteArrayAlways)
 
   private def getTapirRequestCounterDataPoints: Seq[CounterDataPointSnapshot] =
     routes.registry.scrape().iterator().asScala.find(_.getMetadata.getPrometheusName == "tapir_request") match {
@@ -68,9 +68,9 @@ class RoutesTest extends UnitTestSuite, TapirControllerTest {
     }
 
   test("that aborting the request only increases the 499 error code metric") {
-    Try(
-      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/routes/aborted-request").readTimeout(500.millis))
-    ).failed.failIfFailure
+    Try(req.get(uri"http://localhost:$serverPort/routes/aborted-request").readTimeout(500.millis).send())
+      .failed
+      .failIfFailure
 
     blockUntil(() => getTapirRequestCounterDataPoints.nonEmpty)
 

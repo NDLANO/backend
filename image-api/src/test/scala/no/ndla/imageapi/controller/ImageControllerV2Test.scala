@@ -29,7 +29,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -103,7 +103,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     val apiSearchResult    = SearchResultDTO(0, Some(1), 10, "nb", List())
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images").send()
     res.code.code should be(200)
     res.body should be(expectedBody)
   }
@@ -144,14 +144,14 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     val apiSearchResult    = api.SearchResultDTO(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
     when(searchConverterService.asApiSearchResult(domainSearchResult)).thenReturn(apiSearchResult)
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images").send()
     res.code.code should be(200)
     res.body should be(expectedBody)
   }
 
   test("That GET /<id> returns 404 when image does not exist") {
     when(readService.withId(123, None, None)).thenReturn(Success(None))
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/123"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/123").send()
     res.code.code should be(404)
   }
 
@@ -162,7 +162,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     val expectedObject = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1").send()
     res.code.code should be(200)
     val result = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body)
     result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
@@ -202,7 +202,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1").send()
     res.code.code should be(200)
     val result = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body)
     result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
@@ -210,21 +210,19 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
 
   test("That POST / returns 401 if no auth-header") {
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody(multipart("metadata", sampleNewImageMetaV2))
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2))
+      .send()
     res.code.code should be(401)
   }
 
   test("That POST / returns 400 if parameters are missing") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody(multipart("metadata", sampleNewImageMetaV2))
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2))
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should equal(400)
   }
 
@@ -264,44 +262,40 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2DTO], any, any)).thenReturn(Success(sampleImageMeta))
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody[Any](multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should equal(200)
   }
 
   test("That POST / returns 403 if auth header does not have expected role") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody[Any](multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
-        .header("Authorization", authHeaderWithWrongRole)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
+      .header("Authorization", authHeaderWithWrongRole)
+      .send()
     res.code.code should equal(403)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody[Any](multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
-        .header("Authorization", authHeaderWithoutAnyRoles)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
+      .header("Authorization", authHeaderWithoutAnyRoles)
+      .send()
     res.code.code should equal(403)
   }
 
   test("That POST / returns 413 if file is too big") {
     val tooBigFile =
       multipart("file", Array[Byte](0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21))
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody[Any](multipart("metadata", sampleNewImageMetaV2), tooBigFile)
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2), tooBigFile)
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should equal(413)
   }
 
@@ -310,12 +304,11 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     val exceptionMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
     when(writeService.storeNewImage(any[NewImageMetaInformationV2DTO], any, any)).thenReturn(Failure(exceptionMock))
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images")
-        .multipartBody[Any](multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images")
+      .multipartBody(multipart("metadata", sampleNewImageMetaV2), multipart("file", fileBody))
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should be(500)
   }
 
@@ -324,12 +317,11 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(writeService.updateImage(any[Long], any[UpdateImageMetaInformationDTO], any, any)).thenReturn(
       Try(TestData.apiElg)
     )
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
-        .multipartBody[Any](multipart("metadata", sampleUpdateImageMeta))
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+      .multipartBody(multipart("metadata", sampleUpdateImageMeta))
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should be(200)
   }
 
@@ -338,22 +330,20 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(writeService.updateImage(any[Long], any[UpdateImageMetaInformationDTO], any, any)).thenThrow(
       new ImageNotFoundException(s"Image with id 1 not found")
     )
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
-        .multipartBody[Any](multipart("metadata", sampleUpdateImageMeta))
-        .header("Authorization", authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+      .multipartBody(multipart("metadata", sampleUpdateImageMeta))
+      .header("Authorization", authHeaderWithWriteRole)
+      .send()
     res.code.code should be(404)
   }
 
   test("That PATCH /<id> returns 403 when not permitted") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
-        .multipartBody[Any](multipart("metadata", sampleUpdateImageMeta))
-        .header("Authorization", authHeaderWithoutAnyRoles)
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/image-api/v2/images/1")
+      .multipartBody(multipart("metadata", sampleUpdateImageMeta))
+      .header("Authorization", authHeaderWithoutAnyRoles)
+      .send()
     res.code.code should be(403)
   }
 
@@ -364,7 +354,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/"))
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/").send()
     res.code.code should be(200)
     res.body.contains(scrollId) should be(false)
     res.header("search-context") should be(Some(scrollId))
@@ -379,9 +369,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val res = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=$scrollId")
-    )
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=$scrollId").send()
     res.code.code should be(200)
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
     verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String], any)
@@ -396,11 +384,10 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(imageSearchService.scrollV2(anyString, anyString, any)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/image-api/v2/images/search/")
-        .body(s"""{"scrollId":"$scrollId"}""")
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/image-api/v2/images/search/")
+      .body(s"""{"scrollId":"$scrollId"}""")
+      .send()
     res.code.code should be(200)
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings], any)
@@ -422,9 +409,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     )
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(result))
-    val res = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=initial")
-    )
+    val res = quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/?search-context=initial").send()
 
     res.code.code should be(200)
     verify(imageSearchService, times(1)).matchingQuery(eqTo(expectedSettings), any)

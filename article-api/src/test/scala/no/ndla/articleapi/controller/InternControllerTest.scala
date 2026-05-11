@@ -18,7 +18,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -42,9 +42,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("POST /validate/article should return 400 if the article is invalid") {
     val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
 
-    val response = simpleHttpClient.send(
-      quickRequest.post(uri"http://localhost:$serverPort/intern/validate/article").body(invalidArticle)
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/intern/validate/article")
+      .body(invalidArticle)
+      .send()
     response.code.code should be(400)
   }
 
@@ -56,8 +57,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     import io.circe.syntax.*
     val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces
 
-    val response =
-      simpleHttpClient.send(quickRequest.post(uri"http://localhost:$serverPort/intern/validate/article").body(jsonStr))
+    val response = quickRequest.post(uri"http://localhost:$serverPort/intern/validate/article").body(jsonStr).send()
     response.code.code should be(200)
   }
 
@@ -66,7 +66,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    val response = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
     response.code.code should be(200)
     response.body should be("Deleted 2 indexes")
 
@@ -84,7 +84,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       .findAllIndexes(props.ArticleSearchIndex)
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    val response = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
     response.code.code should be(500)
     response.body should be("Failed to find indexes")
 
@@ -102,7 +102,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
-    val response = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
     response.code.code should be(500)
     response.body should be(
       "Failed to delete 1 index: No index with name 'index2' exists. 1 index were deleted successfully."
@@ -123,12 +123,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))
     val jsonStr = art.asJson.deepDropNullValues.noSpaces
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/intern/article/10?external-id=")
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-        .body(jsonStr)
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/intern/article/10?external-id=")
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .body(jsonStr)
+      .send()
     response.code.code should be(200)
 
     verify(writeService, times(1)).updateArticle(

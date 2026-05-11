@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.tagobjects.Retryable
 import org.scalatest.{Canceled, Failed, Outcome, Retries}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -100,18 +100,17 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       .readTimeout(Duration.Inf)
       .multipartBody(multipart("metadata", sampleNewAudioMeta))
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(401)
   }
 
   test("That POST / returns 400 if parameters are missing", Retryable) {
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .readTimeout(Duration.Inf)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-        .multipartBody(multipart("metadata", sampleNewAudioMeta))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .readTimeout(Duration.Inf)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .multipartBody(multipart("metadata", sampleNewAudioMeta))
+      .send()
     response.code.code should be(400)
   }
 
@@ -137,12 +136,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     val file     = multipart("file", fileBody)
     val metadata = multipart("metadata", sampleNewAudioMeta)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody[Any](metadata, file)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .multipartBody(metadata, file)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     response.code.code should be(200)
     response.body.contains("audioType\":\"podcast\"") should be(true)
   }
@@ -154,12 +152,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     val file     = multipart("file", fileBody)
     val metadata = multipart("metadata", sampleNewAudioMeta)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody[Any](file, metadata)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .multipartBody(file, metadata)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
 
     response.code.code should be(500)
 
@@ -167,23 +164,21 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
   test("That POST / returns 403 if auth header does not have expected role") {
     val metadata = multipart("metadata", sampleNewAudioMeta)
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody[Any](metadata)
-        .headers(Map("Authorization" -> authHeaderWithWrongRole))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .multipartBody(metadata)
+      .headers(Map("Authorization" -> authHeaderWithWrongRole))
+      .send()
     response.code.code should be(403)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
     val metadata = multipart("metadata", sampleNewAudioMeta)
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody(metadata)
-        .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .multipartBody(metadata)
+      .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
+      .send()
 
     response.code.code should be(403)
   }
@@ -195,7 +190,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
 
-    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio").send()
     response.code.code should be(200)
     response.body.contains(scrollId) should be(false)
     response.header("search-context").get should be(scrollId)
@@ -209,9 +204,9 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    val response = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio?search-context=$scrollId")
-    )
+    val response = quickRequest
+      .get(uri"http://localhost:$serverPort/audio-api/v1/audio?search-context=$scrollId")
+      .send()
     response.code.code should be(200)
 
     verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
@@ -226,12 +221,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
-        .body(s"""{"scrollId":"$scrollId"}""")
-        .contentType("application/json")
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+      .body(s"""{"scrollId":"$scrollId"}""")
+      .contentType("application/json")
+      .send()
     response.code.code should be(200)
 
     verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
@@ -248,12 +242,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
     val expectedSettings = TestData.searchSettings.copy(shouldScroll = true)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
-        .body(s"""{"scrollId":"initial"}""")
-        .contentType("application/json")
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+      .body(s"""{"scrollId":"initial"}""")
+      .contentType("application/json")
+      .send()
     response.code.code should be(200)
 
     verify(audioSearchService, times(1)).matchingQuery(expectedSettings)
@@ -269,7 +262,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
       .headers(Map("Authorization" -> authHeaderWithWriteRole))
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
     val parsedBody    = parser.parse(response.body)
     val jsonObject    = parsedBody.toTry.get
@@ -285,7 +278,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
       .headers(Map("Authorization" -> authHeaderWithWriteRole))
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(204)
     response.body should be("")
   }
@@ -314,8 +307,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
     when(readService.getAudiosByIds(any, any)).thenReturn(Success(expectedResult))
 
-    val response =
-      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3"))
+    val response = quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3").send()
     response.code.code should be(200)
     val parsedBody = unsafeParseAs[List[api.AudioMetaInformationDTO]](response.body)
     parsedBody should be(expectedResult)
@@ -331,7 +323,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
 
     val request  = quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio/?query=")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
 
     val argumentCaptor: ArgumentCaptor[SearchSettings] = ArgumentCaptor.forClass(classOf[SearchSettings])
@@ -362,12 +354,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       multipart("file", Array[Byte](0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21))
     val metadata = multipart("metadata", sampleNewAudioMeta)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody[Any](metadata, tooBigFile)
-        .headers(Map("Authorization" -> authHeaderWithWriteRole))
-    )
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .multipartBody(metadata, tooBigFile)
+      .headers(Map("Authorization" -> authHeaderWithWriteRole))
+      .send()
     response.code.code should be(413)
   }
 }

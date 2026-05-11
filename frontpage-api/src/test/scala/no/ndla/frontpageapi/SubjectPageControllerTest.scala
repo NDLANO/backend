@@ -17,7 +17,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 class SubjectPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                 = mock[Clock]
@@ -36,9 +36,9 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment with Tapi
 
   test("Should return 400 with cool custom message if bad request") {
     when(clock.now()).thenReturn(NDLADate.now())
-    val response = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/subjectpage/1?fallback=noefeil")
-    )
+    val response = quickRequest
+      .get(uri"http://localhost:$serverPort/frontpage-api/v1/subjectpage/1?fallback=noefeil")
+      .send()
     response.code.code should equal(400)
     val expectedBody = errorHelpers
       .badRequest("Invalid value for: query parameter fallback")

@@ -20,7 +20,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -50,8 +50,9 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       Success(TestData.sampleNbApiConcept)
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
+      .send()
       .code
       .code should be(200)
   }
@@ -61,63 +62,54 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       Failure(NotFoundException("Not found, yolo"))
     )
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang"))
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
+      .send()
       .code
       .code should be(404)
   }
 
   test("/<concept_id> should return 400 if the concept was not found") {
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/one"))
-      .code
-      .code should be(400)
+    quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/one").send().code.code should be(400)
   }
 
   test("POST / should return 400 if body does not contain all required fields") {
-    simpleHttpClient
-      .send(
-        quickRequest
-          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts")
-          .body(invalidConcept)
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    quickRequest
+      .post(uri"http://localhost:$serverPort/concept-api/v1/drafts")
+      .body(invalidConcept)
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
       .code
       .code should be(400)
   }
 
   test("POST / should return 201 on created") {
     when(writeService.newConcept(any[NewConceptDTO], any[TokenUser])).thenReturn(Success(TestData.sampleNbApiConcept))
-    simpleHttpClient
-      .send(
-        quickRequest
-          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
-          .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    quickRequest
+      .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+      .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
       .code
       .code should be(201)
   }
 
   test("POST / should return 403 if no write role") {
     when(writeService.newConcept(any[NewConceptDTO], any)).thenReturn(Success(TestData.sampleNbApiConcept))
-    simpleHttpClient
-      .send(
-        quickRequest
-          .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
-          .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
-          .header("Authorization", TestData.authHeaderWithWrongRole)
-      )
+    quickRequest
+      .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+      .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
+      .header("Authorization", TestData.authHeaderWithWrongRole)
+      .send()
       .code
       .code should be(403)
   }
 
   test("POST / should return 401 if authorization header is missing") {
-    val res = simpleHttpClient.send(
-      quickRequest
-        .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
-        .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
-    )
+    val res = quickRequest
+      .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+      .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
+      .send()
 
     res.code.code should be(401)
   }
@@ -130,12 +122,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     import io.circe.syntax.*
     val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
 
-    val res = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-        .body(body)
-        .header("Authorization", TestData.authHeaderWithWriteRole)
-    )
+    val res = quickRequest
+      .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+      .body(body)
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
     res.code.code should be(200)
   }
 
@@ -143,14 +134,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)).thenReturn(
       Success(TestData.sampleNbApiConcept)
     )
-
-    simpleHttpClient
-      .send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-          .body(CirceUtil.toJsonString(TestData.updatedConcept))
-          .header("Authorization", TestData.authHeaderWithoutAnyRoles)
-      )
+    quickRequest
+      .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+      .body(CirceUtil.toJsonString(TestData.updatedConcept))
+      .header("Authorization", TestData.authHeaderWithoutAnyRoles)
+      .send()
       .code
       .code should be(403)
   }
@@ -163,13 +151,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
 
     val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
-    simpleHttpClient
-      .send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-          .body(missing)
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    quickRequest
+      .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+      .body(missing)
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
       .code
       .code should be(200)
     verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
@@ -179,10 +165,8 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("tags should return 200 OK if the result was not empty") {
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString)).thenReturn(TestData.sampleApiTagsSearchResult)
 
-    simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/tag-search/"))
-      .code
-      .code should be(200)
+    val req = quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/tag-search/")
+    req.send().code.code should be(200)
   }
 
   test(
@@ -196,13 +180,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
 
-    simpleHttpClient
-      .send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-          .body(missing)
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    quickRequest
+      .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+      .body(missing)
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
       .code
       .code should be(200)
     verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[TokenUser])
@@ -217,12 +199,10 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
 
     val expectedSettings = DraftSearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
-    simpleHttpClient
-      .send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/concept-api/v1/drafts/?search-context=initial")
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    quickRequest
+      .get(uri"http://localhost:$serverPort/concept-api/v1/drafts/?search-context=initial")
+      .header("Authorization", TestData.authHeaderWithWriteRole)
+      .send()
       .code
       .code should be(200)
 

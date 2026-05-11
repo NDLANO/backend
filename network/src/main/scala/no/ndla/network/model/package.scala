@@ -8,10 +8,10 @@
 
 package no.ndla.network
 
-import sttp.client3.Request
+import sttp.client4.Request
 
 package object model {
   type FeideID          = String
   type FeideAccessToken = String
-  type NdlaRequest      = Request[String, Any]
+  type NdlaRequest      = Request[String]
 }

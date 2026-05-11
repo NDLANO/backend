@@ -20,7 +20,7 @@ import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -76,7 +76,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
     val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
     response.body should be("Deleted 3 indexes")
 
@@ -97,7 +97,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
     val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(500)
     response.body should be("Failed to find indexes")
 
@@ -116,7 +116,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
     val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(500)
     response.body should be(
       "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."

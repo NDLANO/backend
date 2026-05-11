@@ -13,7 +13,7 @@ import io.circe.{Json, parser}
 import no.ndla.common.CirceUtil
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.database.DocumentMigration
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 import io.circe.generic.auto.*
 import io.circe.syntax.EncoderOps
 
@@ -35,7 +35,7 @@ class V25__SubjectNameAsTagsPublished(
     case Some(value) => value
     case None        =>
       val request  = quickRequest.get(uri"${properties.TaxonomyUrl}/v1/nodes?nodeType=SUBJECT")
-      val response = simpleHttpClient.send(request)
+      val response = request.send()
       CirceUtil.unsafeParseAs[List[TaxonomySubject]](response.body)
   }
 

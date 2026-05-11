@@ -20,8 +20,8 @@ import no.ndla.network.{AuthUser, NdlaClient, TaxonomyData}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, *}
-import sttp.client3.StringBody
-import sttp.client3.quick.*
+import sttp.client4.StringBody
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
@@ -68,7 +68,7 @@ class V57__MigrateSavedSearch(using ndlaClient: => NdlaClient, props: DraftApiPr
     val req     = quickRequest.post(managementUri).body(bod)
 
     Try {
-      val res = simpleHttpClient.send(req)
+      val res = req.send()
       CirceUtil.unsafeParseAs[Auth0TokenResponse](res.body).access_token
     }
   }
@@ -80,7 +80,7 @@ class V57__MigrateSavedSearch(using ndlaClient: => NdlaClient, props: DraftApiPr
       .header("content-type", "application/json")
 
     Try {
-      val res = simpleHttpClient.send(req)
+      val res = req.send()
       CirceUtil.unsafeParseAs[Auth0Users](res.body)
     }
   }

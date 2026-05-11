@@ -16,7 +16,7 @@ import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirControll
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -43,11 +43,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       Success(ContentIdDTO(10)),
     )
 
-    simpleHttpClient.send(
-      quickRequest
-        .delete(uri"http://localhost:$serverPort/intern/article/10/")
-        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-    )
+    quickRequest
+      .delete(uri"http://localhost:$serverPort/intern/article/10/")
+      .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+      .send()
     verify(articleApiClient, times(4)).deleteArticle(eqTo(10L), any)
   }
 
@@ -57,14 +56,14 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(readService.importIdOfArticle("1234")).thenReturn(Failure(NotFoundException("Not found")))
 
     {
-      val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))
+      val res = quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234").send()
       res.code.code should be(404)
     }
 
     when(readService.importIdOfArticle("1234")).thenReturn(Success(ImportId(Some(uuid))))
 
     {
-      val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))
+      val res = quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234").send()
       res.code.code should be(200)
       res.body should be(s"""{"importId":"$uuid"}""".stripMargin)
     }
@@ -81,7 +80,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
-      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+      val res = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
       res.code.code should be(200)
       res.body should equal("Deleted 4 indexes")
     }
@@ -108,7 +107,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
 
     {
-      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+      val res = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
       res.code.code should be(500)
       res.body should equal("Failed to find indexes")
     }
@@ -132,7 +131,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
-      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+      val res = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
       res.code.code should be(500)
       res.body should equal(
         "Failed to delete 1 index: No index with name 'index2' exists. 3 indexes were deleted successfully."

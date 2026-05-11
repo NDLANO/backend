@@ -16,8 +16,8 @@ import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
-import sttp.client3.Response
-import sttp.client3.quick.*
+import sttp.client4.quick.*
+import sttp.client4.testing.ResponseStub
 import sttp.model.StatusCode
 
 import scala.util.{Failure, Success}
@@ -55,27 +55,27 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Success(oembed))
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
-    val response      = simpleHttpClient.send(quickRequest.get(url))
+    val response      = quickRequest.get(url).send()
     response.code.code should be(200)
   }
 
   test("h5p url should return 404 if not found") {
-    val exception = HttpRequestException("bad", Response("", StatusCode.NotFound))
+    val exception = HttpRequestException("bad", ResponseStub("", StatusCode.NotFound))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
-    val response      = simpleHttpClient.send(quickRequest.get(url))
+    val response      = quickRequest.get(url).send()
     response.code.code should be(404)
   }
 
   test("h5p url should return 502 if something bad happens during request") {
-    val exception = HttpRequestException("bad", Response("", StatusCode.InternalServerError))
+    val exception = HttpRequestException("bad", ResponseStub("", StatusCode.InternalServerError))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
-    val response      = simpleHttpClient.send(quickRequest.get(url))
+    val response      = quickRequest.get(url).send()
     response.code.code should be(502)
   }
 
@@ -85,7 +85,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
-    val response      = simpleHttpClient.send(quickRequest.get(url))
+    val response      = quickRequest.get(url).send()
     response.code.code should be(500)
   }
 }

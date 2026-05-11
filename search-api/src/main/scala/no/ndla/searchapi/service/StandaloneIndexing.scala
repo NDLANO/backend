@@ -19,7 +19,7 @@ import no.ndla.search.model.domain.ReindexResult
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.search.IndexService
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
@@ -70,13 +70,12 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
 
     val url = propOrElse("SLACK_URL", "https://slack.com/api/chat.postMessage")
 
-    simpleHttpClient.send(
-      quickRequest
-        .post(uri"$url")
-        .body(body)
-        .header("Content-Type", "application/json", replaceExisting = true)
-        .header("Authorization", s"Bearer ${unsafeProp(s"SLACK_TOKEN")}")
-    ): Unit
+    quickRequest
+      .post(uri"$url")
+      .body(body)
+      .header("Content-Type", "application/json")
+      .header("Authorization", s"Bearer ${unsafeProp(s"SLACK_TOKEN")}")
+      .send(): Unit
   }
 
   def doStandaloneIndexing(): Nothing = {

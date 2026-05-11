@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.Content
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
@@ -73,7 +73,7 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
           .post(uri"$endpointUrl".withParams(params*))
           .body(CirceUtil.toJsonString(data))
           .readTimeout(indexTimeout)
-          .header("content-type", "application/json", replaceExisting = true),
+          .header("content-type", "application/json"),
         user,
       )
     }

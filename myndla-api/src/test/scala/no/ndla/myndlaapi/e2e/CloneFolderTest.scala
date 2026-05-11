@@ -28,7 +28,7 @@ import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.DBSession
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -240,12 +240,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersBefore.get.length should be(0)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-        .header("FeideAuthorization", s"Bearer asd")
-        .readTimeout(10.seconds)
-    )
+    val response = quickRequest
+      .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+      .header("FeideAuthorization", s"Bearer asd")
+      .readTimeout(10.seconds)
+      .send()
 
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
@@ -358,12 +357,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersBefore.get.length should be(0)
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-    )
+    val response = quickRequest
+      .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .send()
 
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
@@ -465,17 +463,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(
-          uri"$myndlaApiFolderUrl/clone/$sourceFolderId".withParam(
-            "destination-folder-id",
-            destinationFolderId.toString,
-          )
-        )
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-    )
+    val response = quickRequest
+      .post(
+        uri"$myndlaApiFolderUrl/clone/$sourceFolderId".withParam("destination-folder-id", destinationFolderId.toString)
+      )
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .send()
 
     val deserialized = CirceUtil.unsafeParseAs[api.FolderDTO](response.body)
     val result       = replaceIdRecursively(deserialized, customId)
@@ -488,12 +482,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val sourceFolderId = prepareFolderToClone()
     val wrongId        = UUID.randomUUID()
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId".addParam("destination-folder-id", wrongId.toString))
-        .header("FeideAuthorization", s"Bearer asd")
-        .readTimeout(10.seconds)
-    )
+    val response = quickRequest
+      .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId".addParam("destination-folder-id", wrongId.toString))
+      .header("FeideAuthorization", s"Bearer asd")
+      .readTimeout(10.seconds)
+      .send()
 
     val error = parser.parse(response.body).toTry.get
     error.hcursor.downField("code").as[String].toTry.get should be("NOT_FOUND")
@@ -519,12 +512,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     destinationFoldersBefore.get.length should be(0)
     destinationResourcesBefore.get.length should be(0)
 
-    simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-    )
+    quickRequest
+      .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .send()
 
     verify(folderRepository, times(1)).insertFolderInBulk(any)(using any)
 
@@ -544,14 +536,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       NewFolderData(parentId = None, name = "destination", status = FolderStatus.PRIVATE, rank = 1, description = None)
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"$myndlaApiFolderUrl/$destinationFolderId")
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-        .header("Content-Type", "application/json", replaceExisting = true)
-        .body("""{"status":"shared"}""")
-    )
+    val response = quickRequest
+      .patch(uri"$myndlaApiFolderUrl/$destinationFolderId")
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .header("Content-Type", "application/json")
+      .body("""{"status":"shared"}""")
+      .send()
 
     val result = CirceUtil.unsafeParseAs[api.FolderDTO](response.body)
     result.shared should be(Some(shareTime))
@@ -632,12 +623,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       user = None,
     )
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"$myndlaApiFolderUrl/shared/$parentId?folder-status=shared")
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-    )
+    val response = quickRequest
+      .patch(uri"$myndlaApiFolderUrl/shared/$parentId?folder-status=shared")
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .send()
 
     val results            = CirceUtil.unsafeParseAs[List[UUID]](response.body)
     val resultParentId     = results.find(uuid => uuid == parentId).get
@@ -656,14 +646,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       NewFolderData(parentId = None, name = "destination", status = FolderStatus.PRIVATE, rank = 1, description = None)
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .patch(uri"$myndlaApiFolderUrl/$destinationFolderId")
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-        .header("Content-Type", "application/json", replaceExisting = true)
-        .body("""{"name":"newname1"}""")
-    )
+    val response = quickRequest
+      .patch(uri"$myndlaApiFolderUrl/$destinationFolderId")
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .header("Content-Type", "application/json")
+      .body("""{"name":"newname1"}""")
+      .send()
 
     val result = CirceUtil.unsafeParseAs[api.FolderDTO](response.body)
     result.updated should not be result.created
@@ -710,12 +699,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     )
     folderRepository.insertFolder(feideId, conflictingChild).failIfFailure
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .post(uri"$myndlaApiFolderUrl/clone/$toCopyId".withParam("destination-folder-id", destinationId.toString))
-        .readTimeout(10.seconds)
-        .header("FeideAuthorization", s"Bearer asd")
-    )
+    val response = quickRequest
+      .post(uri"$myndlaApiFolderUrl/clone/$toCopyId".withParam("destination-folder-id", destinationId.toString))
+      .readTimeout(10.seconds)
+      .header("FeideAuthorization", s"Bearer asd")
+      .send()
     response.code.code should be(200)
 
     val feide      = FeideUserWrapper("token", Some(TestData.emptyMyNDLAUser.copy(feideId = feideId)))
@@ -819,12 +807,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     destinationFoldersBefore.get.length should be(0)
 
     {
-      val response = simpleHttpClient.send(
-        quickRequest
-          .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-          .header("FeideAuthorization", s"Bearer asd")
-          .readTimeout(10.seconds)
-      )
+      val response = quickRequest
+        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+        .send()
 
       val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
       destinationFoldersAfter.get.length should be(1)
@@ -836,12 +823,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     }
 
     {
-      val response2 = simpleHttpClient.send(
-        quickRequest
-          .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-          .header("FeideAuthorization", s"Bearer asd")
-          .readTimeout(10.seconds)
-      )
+      val response2 = quickRequest
+        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+        .send()
 
       val destinationFoldersAfter2 = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
       destinationFoldersAfter2.get.length should be(2)

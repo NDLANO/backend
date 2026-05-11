@@ -16,8 +16,8 @@ sealed trait FolderSortObject extends EnumEntry
 
 object FolderSortObject extends Enum[FolderSortObject] with CirceEnum[FolderSortObject] {
   val values: IndexedSeq[FolderSortObject] = findValues
-  case class ResourceSorting(parentId: Option[UUID]) extends FolderSortObject
-  case class FolderSorting(parentId: UUID)           extends FolderSortObject
-  case class RootFolderSorting()                     extends FolderSortObject
-  case class SharedFolderSorting()                   extends FolderSortObject
+  sealed case class ResourceSorting(parentId: Option[UUID]) extends FolderSortObject
+  sealed case class FolderSorting(parentId: UUID)           extends FolderSortObject
+  sealed case class RootFolderSorting()                     extends FolderSortObject
+  sealed case class SharedFolderSorting()                   extends FolderSortObject
 }

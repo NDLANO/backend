@@ -21,7 +21,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -75,7 +75,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
   }
 
@@ -84,7 +84,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(500)
   }
 
@@ -93,14 +93,14 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(500)
   }
 
   test("that /health/liveness returns 200") {
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/liveness")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
   }
 
@@ -110,7 +110,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
-    val response = simpleHttpClient.send(request)
+    val response = request.send()
     response.code.code should be(200)
   }
 

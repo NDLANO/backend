@@ -24,7 +24,6 @@ import no.ndla.network.model.{
   OptionalCombinedUser,
 }
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
-import sttp.client3.Identity
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.*
@@ -33,6 +32,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
 import no.ndla.network.tapir.auth.TokenUser.{filterHeaders, stringPrefixWithSpace}
 import sttp.model.headers.WWWAuthenticateChallenge
+import sttp.shared.Identity
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
 

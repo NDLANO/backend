@@ -16,8 +16,8 @@ import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, N
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.implicits.*
-import sttp.client3.Response
-import sttp.client3.quick.*
+import sttp.client4.Response
+import sttp.client4.quick.*
 import sttp.model.Uri
 
 import scala.concurrent.duration.DurationInt
@@ -114,7 +114,7 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
   }
 
   private def doRequest(request: NdlaRequest): Try[Response[String]] = {
-    Try(simpleHttpClient.send(request)).flatMap { response =>
+    Try(request.send()).flatMap { response =>
       if (response.isSuccess) {
         Success(response)
       } else Failure(

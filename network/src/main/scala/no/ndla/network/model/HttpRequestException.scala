@@ -8,7 +8,7 @@
 
 package no.ndla.network.model
 
-import sttp.client3.Response
+import sttp.client4.Response
 
 case class HttpRequestException(message: String, httpResponse: Response[String]) extends RuntimeException(message) {
   val code: Int      = httpResponse.code.code

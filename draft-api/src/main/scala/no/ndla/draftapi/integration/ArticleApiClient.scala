@@ -30,8 +30,8 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client3.Response
-import sttp.client3.quick.*
+import sttp.client4.Response
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Try}
@@ -123,7 +123,7 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
       quickRequest
         .patch(uri"$endpointUrl".withParams(params*))
         .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json", replaceExisting = true)
+        .header("content-type", "application/json")
         .readTimeout(timeout),
       user,
     )
@@ -139,7 +139,7 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
       quickRequest
         .patch(uri"$endpointUrl".withParams(params*))
         .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json", replaceExisting = true)
+        .header("content-type", "application/json")
         .readTimeout(timeout),
       user,
     )
@@ -155,7 +155,7 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
       quickRequest
         .post(uri"$endpointUrl".withParams(params*))
         .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json", replaceExisting = true),
+        .header("content-type", "application/json"),
       user,
     )
   }
