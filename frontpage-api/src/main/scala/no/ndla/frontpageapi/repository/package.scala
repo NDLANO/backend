@@ -11,7 +11,7 @@ package no.ndla.frontpageapi
 import io.circe.{Json, Printer}
 
 package object repository {
-  implicit class JsonPrinter(json: Json) {
-    val noSpacesDropNull: String = Printer.noSpaces.copy(dropNullValues = true).print(json)
+  extension (json: Json) {
+    def noSpacesDropNull: String = Printer.noSpaces.copy(dropNullValues = true).print(json)
   }
 }

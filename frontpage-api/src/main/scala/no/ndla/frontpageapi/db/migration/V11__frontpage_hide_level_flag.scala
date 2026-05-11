@@ -28,7 +28,7 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
     sql"select id, document from mainfrontpage".map(rs => V11__DBFrontPage(rs.long("id"), rs.string("document"))).list()
   }
 
-  implicit class JsonObjectOps(obj: JsonObject) {
+  extension (obj: JsonObject) {
     def addIfNotExists(key: String, value: Json): JsonObject = {
       if (obj.contains(key)) obj
       else obj.add(key, value)

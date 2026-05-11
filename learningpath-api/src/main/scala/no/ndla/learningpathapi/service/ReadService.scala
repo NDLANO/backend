@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{LearningPath, StepStatus}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.UserInfo.*
 import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}

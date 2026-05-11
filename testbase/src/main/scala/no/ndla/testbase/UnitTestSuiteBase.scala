@@ -109,7 +109,7 @@ trait UnitTestSuiteBase
 
   // Adds method to `Try`s in tests that will fail the test if a `Try` is `Failure`
   // and return the result if it is a `Success`
-  implicit class failableTry[T](result: Try[T]) {
+  extension [T](result: Try[T]) {
     def failIfFailure: T = result match {
       case Success(r)  => r
       case Failure(ex) => fail(

@@ -34,7 +34,7 @@ import no.ndla.language.Language.*
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.UserInfo.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepository

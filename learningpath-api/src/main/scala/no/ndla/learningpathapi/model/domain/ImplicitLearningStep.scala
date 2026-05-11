@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.learningpath.LearningStep
-import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
+import no.ndla.learningpathapi.model.domain.UserInfo.*
 import no.ndla.network.model.CombinedUser
 
 import scala.util.{Failure, Success, Try}

@@ -72,7 +72,7 @@ object TokenUser {
     fromExtractor(jWTExtractor, token)
   }
 
-  implicit class MaybeTokenUser(self: Option[TokenUser]) {
+  extension (self: Option[TokenUser]) {
     def hasPermission(permission: Permission): Boolean = self.exists(user => user.hasPermission(permission))
   }
 

@@ -13,7 +13,7 @@ import no.ndla.searchapi.model.domain.SearchResult
 import org.scalatest.Assertions
 
 object SearchTestUtility extends Assertions {
-  implicit class searchResultHelper(result: SearchResult) {
+  extension (result: SearchResult) {
 
     /** Helper to convert search results to only `MultiSearchSummaryDTO` If the result contains other types the test
       * fails
