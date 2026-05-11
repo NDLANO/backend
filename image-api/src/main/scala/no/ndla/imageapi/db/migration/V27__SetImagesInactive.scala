@@ -39,13 +39,13 @@ class V27__SetImagesInactive extends DocumentMigration {
     val oldDocument = parser.parse(rowData.document).toTry.get
     val documentId  = rowData.id
 
-    // Check condition 1: id is less than cutoffId and not in ids list
+    // Condition 1: id is less than cutoffId and not in ids list
     val matchesIdCondition = documentId < cutoffId && !ids.contains(documentId)
 
     // Get titles array
     val titlesOpt = oldDocument.hcursor.downField("titles").focus.flatMap(_.asArray)
 
-    // Check condition 2: any title contains "ikke bruk"
+    // Condition 2: any title contains "ikke bruk"
     val matchesTitleFilter = titlesOpt.exists { titles =>
       titles.exists { titleJson =>
         titleJson.hcursor.downField("title").as[String].toOption match {
@@ -58,7 +58,7 @@ class V27__SetImagesInactive extends DocumentMigration {
     // Get images array
     val imagesOpt = oldDocument.hcursor.downField("images").focus.flatMap(_.asArray)
 
-    // Check condition 3: any image has width less than 1000
+    // Condition 3: any image has width less than 990
     val hasSmallImage = imagesOpt.exists { images =>
       images.exists { imageJson =>
         imageJson.hcursor.downField("dimensions").downField("width").as[Int].toOption match {
@@ -68,10 +68,11 @@ class V27__SetImagesInactive extends DocumentMigration {
       }
     }
 
-    // Set inactive to true if ANY condition is met (OR logic)
-    val shouldSetInactive = matchesIdCondition || matchesTitleFilter || hasSmallImage
-
-    if (!shouldSetInactive) {
+    if (
+      !(
+        matchesIdCondition || matchesTitleFilter || hasSmallImage
+      )
+    ) {
       // No conditions met, return 0
       return 0
     }
