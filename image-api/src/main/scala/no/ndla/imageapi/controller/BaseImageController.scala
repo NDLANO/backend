@@ -13,7 +13,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.{ImageSearchField, ModelReleasedStatus, Sort}
+import no.ndla.imageapi.model.domain.{ModelReleasedStatus, Sort}
 import no.ndla.language.Language
 import sttp.model.Part
 import sttp.tapir.*
