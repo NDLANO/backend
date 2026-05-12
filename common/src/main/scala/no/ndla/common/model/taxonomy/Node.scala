@@ -11,6 +11,7 @@ package no.ndla.common.model.taxonomy
 import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
@@ -39,6 +40,7 @@ case class Node(
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
     resourceTypes: List[NodeResourceType],
+    updatedAt: NDLADate,
     contextids: List[String],
     context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext],
@@ -57,6 +59,7 @@ object Node {
       translations  <- c.downField("translations").as[List[TaxonomyTranslation]]
       nodeType      <- c.downField("nodeType").as[NodeType]
       resourceTypes <- c.downField("resourceTypes").as[List[NodeResourceType]]
+      updatedAt     <- c.downField("updatedAt").as[NDLADate]
       contextids    <- c.downField("contextids").as[List[String]]
       context       <- c.downField("context").as[Option[TaxonomyContext]]
       contexts      <- c.downField("contexts").as[List[TaxonomyContext]]
@@ -70,6 +73,7 @@ object Node {
       translations,
       nodeType,
       resourceTypes,
+      updatedAt,
       contextids,
       context,
       contexts,

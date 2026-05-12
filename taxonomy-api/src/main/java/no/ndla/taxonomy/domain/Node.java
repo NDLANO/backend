@@ -17,9 +17,7 @@ import no.ndla.taxonomy.config.Constants;
 import no.ndla.taxonomy.domain.exceptions.ChildNotFoundException;
 import no.ndla.taxonomy.domain.exceptions.DuplicateIdException;
 import no.ndla.taxonomy.util.PrettyUrlUtil;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 public class Node extends DomainObject implements EntityWithMetadata {
@@ -42,11 +40,9 @@ public class Node extends DomainObject implements EntityWithMetadata {
     private String ident;
 
     @Column
-    @CreationTimestamp
     private Instant created_at;
 
     @Column
-    @UpdateTimestamp
     private Instant updated_at;
 
     @Column
@@ -104,6 +100,18 @@ public class Node extends DomainObject implements EntityWithMetadata {
         setNodeType(nodeType);
         setIdent(UUID.randomUUID().toString());
         updatePublicID();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        var now = Instant.now();
+        setCreatedAt(now);
+        setUpdatedAt(now);
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        setUpdatedAt(Instant.now());
     }
 
     public Node(Node node) {

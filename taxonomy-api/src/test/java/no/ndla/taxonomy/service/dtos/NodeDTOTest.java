@@ -10,6 +10,7 @@ package no.ndla.taxonomy.service.dtos;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 
+import java.time.Instant;
 import java.util.Optional;
 import no.ndla.taxonomy.domain.Node;
 import no.ndla.taxonomy.domain.NodeConnectionType;
@@ -23,6 +24,7 @@ class NodeDTOTest {
         var node = new Node(NodeType.TOPIC);
         node.setName("English base name");
         node.addTranslation("Bokmal default name", "nb");
+        node.setUpdatedAt(Instant.now());
 
         var dto = new NodeDTO(
                 Optional.empty(),

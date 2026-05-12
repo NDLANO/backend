@@ -21,7 +21,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
+import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial, today}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
@@ -156,6 +156,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.SUBJECT,
         List.empty,
+        today,
         List(context_1.contextId),
         Some(context_1),
         List(context_1),
@@ -171,6 +172,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2346"),
         None,
         List.empty,
@@ -197,6 +199,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2347"),
         None,
         List.empty,
@@ -223,6 +226,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2348"),
         None,
         List.empty,
@@ -249,6 +253,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.RESOURCE,
         List.empty,
+        today,
         List("asdf2349"),
         None,
         List.empty,
@@ -275,6 +280,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.RESOURCE,
         List.empty,
+        today,
         List("asdf2350"),
         None,
         List.empty,
@@ -348,6 +354,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.SUBJECT,
         List.empty,
+        today,
         List(context_1.contextId),
         Some(context_1),
         List(context_1),
@@ -363,6 +370,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2352"),
         None,
         List.empty,
@@ -389,6 +397,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2353"),
         None,
         List.empty,
@@ -415,6 +424,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2354"),
         None,
         List.empty,
@@ -490,6 +500,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.SUBJECT,
         List.empty,
+        today,
         List(context_1.contextId),
         Some(context_1),
         List(context_1),
@@ -522,6 +533,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.SUBJECT,
         List.empty,
+        today,
         List(context_2.contextId),
         Some(context_2),
         List(context_2),
@@ -536,6 +548,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2357"),
         None,
         List.empty,
@@ -561,6 +574,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2358"),
         None,
         List.empty,
@@ -586,6 +600,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2359"),
         None,
         List.empty,
@@ -611,6 +626,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2360"),
         None,
         List.empty,
@@ -636,6 +652,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         List.empty,
         NodeType.TOPIC,
         List.empty,
+        today,
         List("asdf2361"),
         None,
         List.empty,
@@ -718,6 +735,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(
@@ -751,6 +769,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(
@@ -864,6 +883,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(
@@ -897,6 +917,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(
@@ -1034,6 +1055,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(
@@ -1067,6 +1089,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           translations = List.empty,
           nodeType = NodeType.SUBJECT,
           List.empty,
+          today,
           contextids = List(),
           context = Some(
             TaxonomyContext(

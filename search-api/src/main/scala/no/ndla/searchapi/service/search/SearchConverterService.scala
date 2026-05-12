@@ -72,6 +72,7 @@ class SearchConverterService(using
         id = searchableNode.nodeId,
         title = title,
         url = url,
+        lastUpdated = searchableNode.lastUpdated,
         subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language)),
         context = context,
         contexts = contexts,
@@ -1201,6 +1202,7 @@ class SearchConverterService(using
         contexts = contexts,
         grepContexts = grepContexts,
         typeName = typeNames,
+        lastUpdated = node.updatedAt,
       )
     }
   }
