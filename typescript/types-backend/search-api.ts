@@ -766,6 +766,8 @@ export type components = {
             title: string;
             /** @description The url to the frontend page of the taxonomy node */
             url?: string;
+            /** @description When this node was last updated */
+            lastUpdated: string;
             subjectPage?: components["schemas"]["SubjectPageSummaryDTO"];
             /** @description Primary context of the resource */
             context?: components["schemas"]["ApiTaxonomyContextDTO"];

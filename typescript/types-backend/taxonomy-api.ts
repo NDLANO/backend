@@ -1815,6 +1815,11 @@ export type components = {
             technicalEvaluation?: components["schemas"]["TechnicalEvaluationDTO"];
             /** @description All translations of this node */
             translations: components["schemas"]["Translation"][];
+            /**
+             * Format: date-time
+             * @description When was this last updated.
+             */
+            updatedAt: string;
             /** @description A pretty url based on name and context. Empty if no context. */
             url?: string;
             /** @description Url safe names for the node. */
@@ -1920,6 +1925,11 @@ export type components = {
             technicalEvaluation?: components["schemas"]["TechnicalEvaluationDTO"];
             /** @description All translations of this node */
             translations: components["schemas"]["Translation"][];
+            /**
+             * Format: date-time
+             * @description When was this last updated.
+             */
+            updatedAt?: string;
             /** @description A pretty url based on name and context. Empty if no context. */
             url?: string;
             /** @description Url safe names for the node. */
@@ -2205,6 +2215,11 @@ export type components = {
             technicalEvaluation?: components["schemas"]["TechnicalEvaluationDTO"];
             /** @description All translations of this node */
             translations?: components["schemas"]["Translation"][];
+            /**
+             * Format: date-time
+             * @description When was this last updated.
+             */
+            updatedAt?: string;
             /** @description A pretty url based on name and context. Empty if no context. */
             url?: string;
             /** @description Url safe names for the node. */
