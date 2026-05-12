@@ -30,7 +30,7 @@ import no.ndla.common.model.taxonomy.*
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.common.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO

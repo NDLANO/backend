@@ -18,6 +18,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.service.UserService
@@ -27,6 +28,7 @@ class InternController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     userService: UserService,
+    props: Props,
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"

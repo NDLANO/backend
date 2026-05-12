@@ -19,7 +19,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHandling, ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.common.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.searchapi.controller.parameters.{
   DraftSearchParamsDTO,

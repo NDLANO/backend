@@ -21,7 +21,7 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.common.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

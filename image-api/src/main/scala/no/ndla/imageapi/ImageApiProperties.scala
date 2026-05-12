@@ -9,6 +9,7 @@
 package no.ndla.imageapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
 import no.ndla.imageapi.model.domain.ImageContentType
@@ -27,7 +28,6 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val HealthControllerPath          = "/health"
   val ImageApiBasePath              = "/image-api"
-  val ApiDocsPath: String           = s"$ImageApiBasePath/api-docs"
   val ImageControllerV2Path: String = s"$ImageApiBasePath/v2/images"
   val ImageControllerV3Path: String = s"$ImageApiBasePath/v3/images"
   val RawControllerPath: String     = s"$ImageApiBasePath/raw"
@@ -71,4 +71,6 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("images")
 }

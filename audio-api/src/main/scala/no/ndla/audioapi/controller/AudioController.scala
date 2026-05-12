@@ -25,7 +25,7 @@ import no.ndla.common.model.domain.UploadedFile
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
+import no.ndla.common.auth.Permission.AUDIO_API_WRITE
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto.*

@@ -9,6 +9,7 @@
 package no.ndla.network.tapir.auth
 
 import cats.implicits.*
+import no.ndla.common.auth.Permission
 import no.ndla.network.model.{CombinedUserWithTokenUser, JWTClaims}
 
 case class TokenUser(id: String, permissions: Set[Permission], jwt: JWTClaims, originalToken: Option[String]) {

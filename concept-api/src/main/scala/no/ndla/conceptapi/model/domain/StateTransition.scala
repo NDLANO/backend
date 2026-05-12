@@ -8,10 +8,10 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.model.domain.concept.ConceptStatus
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
-import no.ndla.network.tapir.auth.Permission
-import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
+import no.ndla.common.auth.Permission.CONCEPT_API_WRITE
 
 case class StateTransition(
     from: ConceptStatus,

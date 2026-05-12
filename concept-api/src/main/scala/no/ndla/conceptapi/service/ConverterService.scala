@@ -32,7 +32,7 @@ import no.ndla.conceptapi.model.api.{ConceptTagsDTO, NotFoundException}
 import no.ndla.conceptapi.model.api
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
+import no.ndla.common.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules}

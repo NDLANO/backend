@@ -11,6 +11,7 @@ package no.ndla.network.tapir
 import io.prometheus.metrics.model.snapshots.CounterSnapshot
 import io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSnapshot
 import no.ndla.common.Clock
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -29,6 +30,7 @@ class RoutesTestController(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     myNDLAApiClient: MyNDLAApiClient,
+    props: BaseProps,
 ) extends TapirController {
   override val prefix: EndpointInput[Unit]               = "routes"
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(abortRequestTestEndpoint)
@@ -46,8 +48,9 @@ class RoutesTestController(using
 
 class RoutesTest extends UnitTestSuite, TapirControllerTest {
   override implicit lazy val props: BaseProps = new BaseProps {
-    override def ApplicationPort: Int    = findFreePort
-    override def ApplicationName: String = "RoutesTest"
+    override def ApplicationPort: Int             = findFreePort
+    override def ApplicationName: String          = "RoutesTest"
+    override val ndlaAuth0Scopes: Seq[Permission] = Seq.empty
   }
   override implicit lazy val clock: Clock                 = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers   = new ErrorHelpers

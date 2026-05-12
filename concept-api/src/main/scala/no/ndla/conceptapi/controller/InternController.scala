@@ -10,6 +10,7 @@ package no.ndla.conceptapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.domain.concept.Concept
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptDomainDump, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
@@ -37,6 +38,7 @@ class InternController(using
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient,
+    props: Props,
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"

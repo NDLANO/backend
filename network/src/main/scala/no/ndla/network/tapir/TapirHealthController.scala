@@ -8,6 +8,7 @@
 
 package no.ndla.network.tapir
 
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.ServerStatus
 import sttp.model.StatusCode
@@ -21,6 +22,7 @@ class TapirHealthController(using
     myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: BaseProps,
 ) extends TapirController {
   private val serverStatus: AtomicReference[ServerStatus] = AtomicReference(ServerStatus.Starting)
   override val enableSwagger: Boolean                     = false

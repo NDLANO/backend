@@ -24,7 +24,7 @@ import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE}
+import no.ndla.common.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE}
 import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode

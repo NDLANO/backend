@@ -9,6 +9,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.Clock
+import no.ndla.common.auth.Permission
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.toTry
 import no.ndla.common.model.domain.Responsible
@@ -21,7 +22,7 @@ import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.database.DBUtility
 import no.ndla.network.clients.SearchApiClient
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.collection.mutable
 import scala.language.postfixOps

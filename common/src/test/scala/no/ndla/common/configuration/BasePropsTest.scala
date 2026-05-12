@@ -8,14 +8,16 @@
 
 package no.ndla.common.configuration
 
+import no.ndla.common.auth.Permission
 import no.ndla.testbase.UnitTestSuiteBase
 
 class BasePropsTest extends UnitTestSuiteBase {
   class TestProps extends BaseProps {
-    override def ApplicationPort: Int       = 1234
-    override def ApplicationName: String    = "testapp"
-    def requiredProp: Prop[String]          = prop("NDLA_SOME_REQUIRED_TEST_PROP")
-    def someOtherRequiredProp: Prop[String] = prop("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
+    override def ApplicationPort: Int             = 1234
+    override def ApplicationName: String          = "testapp"
+    override val ndlaAuth0Scopes: Seq[Permission] = Seq.empty
+    def requiredProp: Prop[String]                = prop("NDLA_SOME_REQUIRED_TEST_PROP")
+    def someOtherRequiredProp: Prop[String]       = prop("NDLA_SOME_OTHER_REQUIRED_TEST_PROP")
   }
 
   test("That props works if system property is set") {

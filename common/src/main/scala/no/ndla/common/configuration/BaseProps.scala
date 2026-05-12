@@ -9,6 +9,7 @@
 package no.ndla.common.configuration
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import sttp.client4.UriContext
 import sttp.model.Uri
 
@@ -135,6 +136,15 @@ trait BaseProps extends StrictLogging {
     case "prod"  => "https://ndla.no"
     case _       => s"https://$Environment.ndla.no"
   }
+
+  def ndlaAuth0Scopes: Seq[Permission]
+
+  val ndlaAuth0Host: String = Environment match {
+    case "test" | "local" => "login.test.ndla.no"
+    case "staging"        => "login.staging.ndla.no"
+    case _                => "login.ndla.no"
+  }
+  val ndlaAuth0Issuer = s"https://$ndlaAuth0Host"
 
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)

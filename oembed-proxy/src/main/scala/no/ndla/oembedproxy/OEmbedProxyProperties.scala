@@ -8,6 +8,7 @@
 
 package no.ndla.oembedproxy
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.{AuthUser, Domains}
 
@@ -54,9 +55,7 @@ class OEmbedProxyProperties extends BaseProps {
     "prod"    -> "https://h5p.ndla.no/resource/*",
   ).getOrElse(Environment, "https://h5p-test.ndla.no/resource/*")
 
-  val OembedProxyControllerMountPoint = "/oembed-proxy/v1/oembed"
-  val ResourcesAppMountPoint          = "/oembed-proxy/api-docs"
-  val HealthControllerMountPoint      = "/health"
-
   private lazy val Domain: String = Domains.get(Environment)
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Seq.empty
 }

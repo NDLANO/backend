@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
@@ -79,4 +80,6 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
 
   override def MetaMigrationLocation: String      = "no/ndla/articleapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("articles") :+ Permission.DRAFT_API_WRITE
 }

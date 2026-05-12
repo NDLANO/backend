@@ -1,18 +1,16 @@
 /*
- * Part of NDLA network
+ * Part of NDLA common
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.network.tapir.auth
+package no.ndla.common.auth
 
 import enumeratum.*
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.schemaForEnumEntry
-
-import scala.collection.immutable.ListMap
 
 sealed abstract class Permission(override val entryName: String) extends EnumEntry {}
 
@@ -40,7 +38,5 @@ object Permission extends Enum[Permission] with CirceEnum[Permission] {
   def fromStrings(s: List[String]): Set[Permission] = s.flatMap(fromString).toSet
   implicit val schema: Schema[Permission]           = schemaForEnumEntry[Permission]
 
-  def thatStartsWith(start: String): List[Permission]                = values.filter(_.entryName.startsWith(start)).toList
-  def toSwaggerMap(scopes: Seq[Permission]): ListMap[String, String] =
-    ListMap.from(scopes.map(s => s.entryName -> s.entryName))
+  def thatStartsWith(start: String): Seq[Permission] = values.filter(_.entryName.startsWith(start))
 }

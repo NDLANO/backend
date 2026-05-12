@@ -9,6 +9,7 @@
 package no.ndla.network.tapir
 
 import no.ndla.common.Clock
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -20,8 +21,9 @@ import sttp.tapir.server.ServerEndpoint
 
 class TapirUtilStatusFallbackTest extends UnitTestSuite with TapirControllerTest {
   override implicit lazy val props: BaseProps = new BaseProps {
-    override def ApplicationPort: Int    = findFreePort
-    override def ApplicationName: String = "TapirUtilStatusFallbackTest"
+    override def ApplicationPort: Int             = findFreePort
+    override def ApplicationName: String          = "TapirUtilStatusFallbackTest"
+    override val ndlaAuth0Scopes: Seq[Permission] = Seq.empty
   }
 
   override implicit lazy val clock: Clock                 = new Clock

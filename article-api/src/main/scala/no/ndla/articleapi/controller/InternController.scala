@@ -25,7 +25,7 @@ import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
+import no.ndla.common.auth.Permission.ARTICLE_API_WRITE
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode

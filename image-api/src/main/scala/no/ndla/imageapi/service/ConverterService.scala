@@ -27,7 +27,7 @@ import no.ndla.mapping.License.getLicense
 import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.imageapi.model.api.ImageVariantDTO
-import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.common.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}

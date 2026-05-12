@@ -15,7 +15,7 @@ import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{NewConceptDTO, NotFoundException, UpdatedConceptDTO}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
+import no.ndla.common.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.Mockito.when
 

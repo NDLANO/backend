@@ -9,6 +9,7 @@
 package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
@@ -61,4 +62,6 @@ class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLoggi
   )
 
   override def MetaMigrationLocation: String = "no/ndla/conceptapi/db/migration"
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("concept")
 }

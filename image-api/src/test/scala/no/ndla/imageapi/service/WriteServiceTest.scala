@@ -24,7 +24,7 @@ import no.ndla.imageapi.model.api.bulk.{
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation, ImageVariantSize, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
+import no.ndla.common.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

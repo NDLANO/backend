@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
@@ -100,4 +101,6 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
 
   override def MetaMigrationLocation: String      = "no/ndla/learningpathapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
+
+  override val ndlaAuth0Scopes: Seq[Permission] = Permission.thatStartsWith("learningpath")
 }

@@ -11,6 +11,7 @@ package no.ndla.frontpageapi.controller
 import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.ReadService
 import no.ndla.network.clients.MyNDLAApiClient
@@ -28,6 +29,7 @@ class InternController(using
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
+    props: Props,
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"

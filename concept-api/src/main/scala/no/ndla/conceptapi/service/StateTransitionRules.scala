@@ -9,14 +9,15 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.Clock
+import no.ndla.common.auth.Permission
 import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Status, Concept as DomainConcept}
 import no.ndla.common.model.domain.{Responsible, concept}
 import no.ndla.conceptapi.model.api.IllegalStatusStateTransition
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.conceptapi.model.domain.StateTransition
-import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
-import no.ndla.network.tapir.auth.{Permission, TokenUser}
+import no.ndla.common.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
+import no.ndla.network.tapir.auth.TokenUser
 
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}

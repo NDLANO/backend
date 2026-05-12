@@ -8,12 +8,14 @@
 
 package no.ndla.database
 
+import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 
 class TestProps extends BaseProps, DatabaseProps {
   override def ApplicationName: String = "database"
 
   // These are unused, but are required to implement `BaseProps` and `DatabaseProps`
-  override def ApplicationPort: Int          = ???
-  override def MetaMigrationLocation: String = ???
+  override def ApplicationPort: Int             = ???
+  override def MetaMigrationLocation: String    = ???
+  override val ndlaAuth0Scopes: Seq[Permission] = Seq.empty
 }

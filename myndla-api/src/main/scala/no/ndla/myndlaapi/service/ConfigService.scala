@@ -13,7 +13,7 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.api.config.ConfigMetaRestrictedDTO
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta, ConfigMetaValue, StringListValue}
 import no.ndla.myndlaapi.repository.ConfigRepository
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
+import no.ndla.common.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.annotation.unused

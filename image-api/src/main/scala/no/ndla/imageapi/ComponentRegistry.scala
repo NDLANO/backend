@@ -30,7 +30,15 @@ import no.ndla.imageapi.service.search.{
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
+import no.ndla.network.tapir.{
+  ErrorHandling,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  SwaggerInfo,
+  TapirApplication,
+  TapirController,
+}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
@@ -74,18 +82,23 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given healthController: HealthController   = new HealthController
   given bulkController: BulkController       = new BulkController
 
+  given swaggerInfo: SwaggerInfo = SwaggerInfo(
+    prefix = "image-api",
+    description = "Searching and fetching all images used in the NDLA platform.\n\n" +
+      "The Image API provides an endpoint for searching in and fetching images used in NDLA resources. Meta-data are " +
+      "also searched and returned in the results. Examples of meta-data are title, alt-text, language and license.\n" +
+      "The API can resize and crop transitions on the returned images to enable use in special contexts, e.g. " +
+      "low bandwidth scenarios",
+  )
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      imageControllerV2,
-      imageControllerV3,
-      rawController,
-      internController,
-      healthController,
-      bulkController,
-    ),
-    SwaggerDocControllerConfig.swaggerInfo,
+    imageControllerV2,
+    imageControllerV3,
+    rawController,
+    internController,
+    healthController,
+    bulkController,
   )
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }

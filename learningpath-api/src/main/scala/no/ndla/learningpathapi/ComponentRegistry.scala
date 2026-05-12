@@ -16,7 +16,6 @@ import no.ndla.learningpathapi.controller.{
   InternController,
   LearningpathControllerV2,
   StatsController,
-  SwaggerDocControllerConfig,
 }
 import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V11__CreatedByNdlaStatusForOwnersWithRoles,
@@ -45,6 +44,7 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
   SwaggerController,
+  SwaggerInfo,
   TapirApplication,
   TapirController,
   TapirHealthController,
@@ -97,11 +97,11 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given statsController: StatsController                   = new StatsController
   given healthController: TapirHealthController            = new TapirHealthController
 
-  given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](learningpathControllerV2, internController, statsController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo,
-  )
+  given swaggerInfo: SwaggerInfo =
+    SwaggerInfo(prefix = "learningpath-api", description = "Services for accessing learningpaths")
+  given swagger: SwaggerController =
+    new SwaggerController(learningpathControllerV2, internController, statsController, healthController)
 
-  given services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes
 }
