@@ -18,11 +18,24 @@ class V27__SetImagesInactive extends DocumentMigration {
   override val tableName: String  = "imagemetadata"
   override val columnName: String = "metadata"
 
-  private val ids: List[Long] = {
+  private val ids: Set[Long] = {
     val stream = getClass.getResourceAsStream("/image-ids.txt")
     try {
       val content = Source.fromInputStream(stream).mkString.trim
-      content.split(",").map(_.trim.toLong).toList
+      content
+        .split(",")
+        .flatMap { part =>
+          val trimmed = part.trim
+          if (trimmed.contains("-")) {
+            // Handle range like "11-14"
+            val Array(start, end) = trimmed.split("-").map(_.toLong)
+            start to end
+          } else {
+            // Handle single ID
+            Seq(trimmed.toLong)
+          }
+        }
+        .toSet
     } finally {
       if (stream != null) stream.close()
     }
