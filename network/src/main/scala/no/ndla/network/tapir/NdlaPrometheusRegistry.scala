@@ -20,8 +20,8 @@ object NdlaPrometheusRegistry extends StrictLogging {
 
   private val tapirClosedErrorMessage    = "Client disconnected, request timed out, or request cancelled"
   private val metricLabels: MetricLabels = MetricLabels(
-    forRequest = List("path" -> (req => req.pathSegments.mkString("/")), "method" -> (req => req.method.method)),
-    forEndpoint = List.empty,
+    forRequest = List("method" -> (req => req.method.method)),
+    forEndpoint = List("path" -> (ep => ep.showPathTemplate(showQueryParam = None))),
     forResponse = List(
       "status" -> {
         case Right(r)                                                               => Some(r.code.code.toString)
