@@ -907,4 +907,199 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     searchResult.totalCount should be(1)
     searchResult.results.map(_.id) should be(Seq("9"))
   }
+
+  test("That queryFields restricts search to specific fields - searching titles only") {
+    // Search for "bil" which appears in image1's title but not image3
+    // Without queryFields, it searches all fields
+    val Success(searchResultAll) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("bil"), language = "nb"), None): @unchecked
+
+    searchResultAll.results.map(_.id) should contain("1")
+
+    // With queryFields set to only titles, should still find it
+    val Success(searchResultTitles) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("bil"), language = "nb", queryFields = List(ImageSearchField.Titles)),
+      None,
+    ): @unchecked
+
+    searchResultTitles.results.map(_.id) should contain("1")
+  }
+
+  test("That queryFields restricts search to specific fields - searching tags only") {
+    // Search for "fugl" which appears in tags of image1 and image2
+    val Success(searchResultTags) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("fugl"), language = "nb", queryFields = List(ImageSearchField.Tags)),
+      None,
+    ): @unchecked
+
+    searchResultTags.results.map(_.id) should contain allOf ("1", "2")
+
+    // Search for "bil" with tags only - should NOT find image1 (bil is in title, not tags)
+    val Success(searchResultNoMatch) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("bil"), language = "nb", queryFields = List(ImageSearchField.Tags)),
+      None,
+    ): @unchecked
+
+    searchResultNoMatch.results.map(_.id) should not contain "1"
+  }
+
+  test("That queryFields restricts search to specific fields - searching alttexts only") {
+    // Search for "vagger" which appears in image2's alttext but not in title
+    val Success(searchResultAlt) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("vagger"), language = "nb", queryFields = List(ImageSearchField.Alttexts)),
+      None,
+    ): @unchecked
+
+    searchResultAlt.results.map(_.id) should contain("2")
+
+    // Search for "vagger" with titles only - should NOT find it (vagger is only in alttext, not title)
+    val Success(searchResultNoMatch) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("vagger"), language = "nb", queryFields = List(ImageSearchField.Titles)),
+      None,
+    ): @unchecked
+
+    searchResultNoMatch.results.map(_.id) should not contain "2"
+  }
+
+  test("That queryFields allows searching multiple fields simultaneously") {
+    // Search for "bil" in both titles and alttexts
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("bil"),
+        language = "nb",
+        queryFields = List(ImageSearchField.Titles, ImageSearchField.Alttexts),
+      ),
+      None,
+    ): @unchecked
+
+    // Should find image1 (bil in title) and image3 (bil in alttext)
+    searchResult.results.map(_.id) should contain allOf ("1", "3")
+  }
+
+  test("That queryFields with creators field searches copyright creators") {
+    // Search for "DC Comics" which is a creator in image1
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("DC Comics"), language = "*", queryFields = List(ImageSearchField.Creators)),
+      None,
+    ): @unchecked
+
+    searchResult.results.map(_.id) should contain("1")
+
+    // Search for "DC Comics" in titles only - should NOT find it
+    val Success(searchResultNoMatch) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("DC Comics"), language = "*", queryFields = List(ImageSearchField.Titles)),
+      None,
+    ): @unchecked
+
+    searchResultNoMatch.results.map(_.id) should not contain "1"
+  }
+
+  test("That queryFields with processors field searches copyright processors") {
+    // Create a test image with a processor
+    val imageWithProcessor = image1.copy(
+      id = Some(11),
+      copyright = byNcSa.copy(processors = List(Author(ContributorType.Editorial, "Jane Editor"))),
+    )
+    imageIndexService.indexDocument(imageWithProcessor).get
+    blockUntil(() => imageSearchService.countDocuments() == 11)
+
+    // Search for "Jane Editor" with processors field
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("Jane Editor"), language = "*", queryFields = List(ImageSearchField.Processors)),
+      None,
+    ): @unchecked
+
+    searchResult.results.map(_.id) should contain("11")
+
+    // Search for "Jane Editor" in creators only - should NOT find it
+    val Success(searchResultNoMatch) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("Jane Editor"), language = "*", queryFields = List(ImageSearchField.Creators)),
+      None,
+    ): @unchecked
+
+    searchResultNoMatch.results.map(_.id) should not contain "11"
+  }
+
+  test("That queryFields with rightsholders field searches copyright rightsholders") {
+    // Create a test image with a rightsholder
+    val imageWithRightsholder = image1.copy(
+      id = Some(12),
+      copyright = byNcSa.copy(rightsholders = List(Author(ContributorType.RightsHolder, "Copyright Corp"))),
+    )
+    imageIndexService.indexDocument(imageWithRightsholder).get
+    blockUntil(() => imageSearchService.countDocuments() == 12)
+
+    // Search for "Copyright Corp" with rightsholders field
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("Copyright Corp"),
+        language = "*",
+        queryFields = List(ImageSearchField.Rightsholders),
+      ),
+      None,
+    ): @unchecked
+
+    searchResult.results.map(_.id) should contain("12")
+
+    // Search for "Copyright Corp" in titles only - should NOT find it
+    val Success(searchResultNoMatch) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("Copyright Corp"), language = "*", queryFields = List(ImageSearchField.Titles)),
+      None,
+    ): @unchecked
+
+    searchResultNoMatch.results.map(_.id) should not contain "12"
+  }
+
+  test("That queryFields with editorNotes only works for users with permission") {
+    // Search for "lillehjelper" which is in image2's editorNotes
+    // Without permission, should not find it even when specifying EditorNotes field
+    val Success(searchResultNoPermission) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("lillehjelper"),
+        language = "*",
+        queryFields = List(ImageSearchField.EditorNotes),
+      ),
+      None,
+    ): @unchecked
+
+    searchResultNoPermission.results.map(_.id) should be(Seq())
+
+    // With permission, should find it when specifying EditorNotes field
+    val Success(searchResultWithPermission) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("lillehjelper"),
+        language = "*",
+        queryFields = List(ImageSearchField.EditorNotes),
+      ),
+      Some(TokenUser("someeditor", Set(IMAGE_API_WRITE), None)),
+    ): @unchecked
+
+    searchResultWithPermission.results.map(_.id) should contain("2")
+  }
+
+  test("That empty queryFields searches all fields by default") {
+    // Search for "fugl" with empty queryFields - should search all fields
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("fugl"), language = "nb", queryFields = List.empty),
+      None,
+    ): @unchecked
+
+    // Should find images with "fugl" in tags
+    searchResult.results.map(_.id) should contain allOf ("1", "2")
+  }
+
+  test("That queryFields combines with other filters correctly") {
+    // Search for "bil" in titles only, with language filter
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("bil"),
+        language = "nb",
+        fallback = false,
+        queryFields = List(ImageSearchField.Titles),
+      ),
+      None,
+    ): @unchecked
+
+    searchResult.results.map(_.id) should contain("1")
+  }
 }
