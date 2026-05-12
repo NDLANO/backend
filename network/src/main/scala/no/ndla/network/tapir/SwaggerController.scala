@@ -74,8 +74,10 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     val options             = OpenAPIDocsOptions.default
     val docs                = OpenAPIDocsInterpreter(options).serverEndpointsToOpenAPI(swaggerEndpoints, info)
     val generatedComponents = docs.components.getOrElse(Components.Empty)
-    val newComponents       = generatedComponents.copy(securitySchemes = ListMap("oauth2" -> Right(securityScheme)))
-    val docsWithComponents  = docs.components(newComponents).asJson
+    val newComponents       = generatedComponents.copy(securitySchemes =
+      generatedComponents.securitySchemes ++ ListMap("oauth2" -> Right(securityScheme))
+    )
+    val docsWithComponents = docs.components(newComponents).asJson
     docsWithComponents.asJson
   }
 
