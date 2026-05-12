@@ -11,13 +11,15 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.imageapi.model.domain.{ImageContentType, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, Sort}
 import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("The search parameters")
 case class SearchParamsDTO(
     @description("Return only images with titles, alt-texts or tags matching the specified query.")
     query: Option[String],
+    @description("Restrict query searches to the specified fields. If omitted or empty, all the fields are used.")
+    queryFields: Option[List[ImageSearchField]],
     @description("Return only images with provided license. Specifying 'all' gives all images regardless of license.")
     license: Option[String],
     @description("The ISO 639-1 language code describing language used in query-params")

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
-import no.ndla.imageapi.model.domain.{ImageContentType, ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
@@ -85,6 +85,7 @@ class ImageControllerV2(using
   private def search(
       minimumSize: Option[Int],
       query: Option[String],
+      queryFields: List[ImageSearchField],
       language: String,
       fallback: Boolean,
       license: Option[String],
@@ -105,6 +106,7 @@ class ImageControllerV2(using
     val settings = query match {
       case Some(searchString) => SearchSettings(
           query = Some(searchString.trim),
+          queryFields = queryFields,
           minimumSize = minimumSize,
           language = language,
           fallback = fallback,
@@ -125,6 +127,7 @@ class ImageControllerV2(using
         )
       case None => SearchSettings(
           query = None,
+          queryFields = queryFields,
           minimumSize = minimumSize,
           license = license,
           language = language,
@@ -159,6 +162,7 @@ class ImageControllerV2(using
     .summary("Find images.")
     .description("Find images in the ndla.no database.")
     .in(queryParam)
+    .in(queryFields)
     .in(minSize)
     .in(language)
     .in(fallback)
@@ -183,6 +187,7 @@ class ImageControllerV2(using
       {
         case (
               query,
+              queryFields,
               minimumSize,
               language,
               fallback,
@@ -203,10 +208,12 @@ class ImageControllerV2(using
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
+            val imageSearchFields   = queryFields.values.flatMap(ImageSearchField.withNameOption)
 
             search(
               minimumSize,
               query,
+              imageSearchFields,
               language.code,
               fallback,
               license,
@@ -244,6 +251,7 @@ class ImageControllerV2(using
       scrollSearchOr(searchParams.scrollId, language, user) {
         val minimumSize         = searchParams.minimumSize
         val query               = searchParams.query
+        val queryFields         = searchParams.queryFields.getOrElse(List.empty)
         val license             = searchParams.license.orElse(Option.when(searchParams.includeCopyrighted.contains(true))("all"))
         val pageSize            = searchParams.pageSize
         val page                = searchParams.page
@@ -261,6 +269,7 @@ class ImageControllerV2(using
         search(
           minimumSize,
           query,
+          queryFields,
           language.code,
           fallback,
           license,

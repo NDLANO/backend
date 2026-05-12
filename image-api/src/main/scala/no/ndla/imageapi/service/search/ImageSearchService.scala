@@ -17,7 +17,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.{ImageErrorHelpers, ResultWindowTooLargeException}
 import no.ndla.imageapi.model.api.ImageMetaSummaryDTO
-import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageSearchField, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.common.implicits.*
 import no.ndla.language.Language
@@ -116,23 +116,37 @@ class ImageSearchService(using
           if (settings.fallback) "*"
           else settings.language
 
-        val queries = Seq(
-          simpleStringQuery(query).field(s"titles.$language", 2),
-          simpleStringQuery(query).field(s"alttexts.$language", 1),
-          simpleStringQuery(query).field(s"caption.$language", 2),
-          simpleStringQuery(query).field(s"tags.$language", 2),
-          simpleStringQuery(query).field("creators", 1),
-          simpleStringQuery(query).field("processors", 1),
-          simpleStringQuery(query).field("rightsholders", 1),
-          idsQuery(query),
-        )
-
-        val maybeNoteQuery = Option.when(user.hasPermission(IMAGE_API_WRITE)) {
-          simpleStringQuery(query).field("editorNotes", 1)
+        val imageSearchFields = settings.queryFields match {
+          case Nil =>
+            val defaultFields = ImageSearchField
+              .values
+              .filter {
+                case ImageSearchField.EditorNotes => user.hasPermission(IMAGE_API_WRITE)
+                case _                            => true
+              }
+              .toList
+            defaultFields
+          case l => l
         }
 
-        val flattenedQueries = Seq(maybeNoteQuery, queries).flatten
-        boolQuery().must(boolQuery().should(flattenedQueries))
+        val alwaysIncludedQueries = List(idsQuery(query))
+
+        val fieldQueries = imageSearchFields
+          .distinct
+          .flatMap {
+            case ImageSearchField.Titles        => Some(simpleStringQuery(query).field(s"titles.$language", 2))
+            case ImageSearchField.Alttexts      => Some(simpleStringQuery(query).field(s"alttexts.$language", 1))
+            case ImageSearchField.Captions      => Some(simpleStringQuery(query).field(s"caption.$language", 2))
+            case ImageSearchField.Tags          => Some(simpleStringQuery(query).field(s"tags.$language", 2))
+            case ImageSearchField.Creators      => Some(simpleStringQuery(query).field("creators", 1))
+            case ImageSearchField.Processors    => Some(simpleStringQuery(query).field("processors", 1))
+            case ImageSearchField.Rightsholders => Some(simpleStringQuery(query).field("rightsholders", 1))
+            case ImageSearchField.EditorNotes   => Option.when(user.hasPermission(IMAGE_API_WRITE)) {
+                simpleStringQuery(query).field("editorNotes", 1)
+              }
+          }
+
+        boolQuery().must(boolQuery().should(alwaysIncludedQueries ++ fieldQueries))
     }
     executeSearch(fullSearch, settings)
   }
