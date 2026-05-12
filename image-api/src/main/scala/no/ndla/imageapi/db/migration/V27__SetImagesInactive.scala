@@ -19,7 +19,7 @@ class V27__SetImagesInactive extends DocumentMigration {
   override val columnName: String = "metadata"
 
   private val ids: Set[Long] = {
-    val stream = getClass.getResourceAsStream("/image-ids.txt")
+    val stream = getClass.getResourceAsStream("/v27-migration-image-ids.txt")
     try {
       val content = Source.fromInputStream(stream).mkString.trim
       content
