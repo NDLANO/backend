@@ -60,6 +60,7 @@ class ImageIndexService(using
     val fields: Seq[ElasticField] = List(
       ObjectField("domainObject", enabled = Some(false)),
       intField("id"),
+      textField("contributors"),
       keywordField("license"),
       dateField("lastUpdated"),
       keywordField("defaultTitle"),
