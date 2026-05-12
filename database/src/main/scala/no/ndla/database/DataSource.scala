@@ -20,6 +20,7 @@ class DataSource(hikariConfig: HikariConfig)(using props: DatabaseProps)
     val connectionPool = new DataSourceConnectionPool(this)
     ConnectionPool.add(props.ApplicationName, connectionPool)
     ConnectionPool.singleton(connectionPool)
+    SqlMetrics.install()
   }
 }
 
