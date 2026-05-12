@@ -121,7 +121,9 @@ class ImageSearchService(using
           simpleStringQuery(query).field(s"alttexts.$language", 1),
           simpleStringQuery(query).field(s"caption.$language", 2),
           simpleStringQuery(query).field(s"tags.$language", 2),
-          simpleStringQuery(query).field("contributors", 1),
+          simpleStringQuery(query).field("creators", 1),
+          simpleStringQuery(query).field("processors", 1),
+          simpleStringQuery(query).field("rightsholders", 1),
           idsQuery(query),
         )
 
