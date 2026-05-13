@@ -9,7 +9,9 @@
 package no.ndla.database
 
 import com.typesafe.scalalogging.StrictLogging
+import com.zaxxer.hikari.metrics.prometheus.PrometheusHistogramMetricsTrackerFactory
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import io.prometheus.client.CollectorRegistry
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 class DataSource(hikariConfig: HikariConfig)(using props: DatabaseProps)
@@ -33,6 +35,9 @@ object DataSource extends StrictLogging {
     dataSourceConfig.setDriverClassName("org.postgresql.Driver")
     dataSourceConfig.setSchema(props.MetaSchema)
     dataSourceConfig.setMaximumPoolSize(props.MetaMaxConnections)
+    dataSourceConfig.setMetricsTrackerFactory(
+      new PrometheusHistogramMetricsTrackerFactory(CollectorRegistry.defaultRegistry)
+    )
     new DataSource(dataSourceConfig)
   }
 }

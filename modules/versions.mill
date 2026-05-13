@@ -68,12 +68,17 @@ object SharedDependencies {
     Seq(mvn"io.circe::circe-generic:$CirceV", mvn"io.circe::circe-literal:$CirceV", mvn"io.circe::circe-parser:$CirceV")
 
   val tapirTesting: Dep = mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV"
+  val PrometheusV       = "1.6.1"
+  val SimpleclientV     = "0.16.0"
   val tapir: Seq[Dep]   = Seq(
     mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-json-circe:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-netty-server-sync:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
+    mvn"io.prometheus:prometheus-metrics-instrumentation-jvm:$PrometheusV",
+    mvn"io.prometheus:prometheus-metrics-simpleclient-bridge:$PrometheusV",
+    mvn"io.prometheus:simpleclient:$SimpleclientV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
   )
 
