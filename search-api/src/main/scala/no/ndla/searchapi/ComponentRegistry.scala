@@ -13,20 +13,14 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, TaxonomyApiClient}
-import no.ndla.network.tapir.{
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{ControllerErrorHandling, InternController, SearchController}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.service.search.*
 
 class ComponentRegistry(properties: SearchApiProperties) extends TapirApplication[SearchApiProperties] {
   given props: SearchApiProperties                   = properties
@@ -37,6 +31,9 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given errorHelpers: ErrorHelpers                   = new ErrorHelpers
   given errorHandling: ControllerErrorHandling       = new ControllerErrorHandling
   given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                           = NdlaAuth()
+  given feideAuth: FeideAuth                         = FeideAuth()
   given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient(props.TaxonomyUrl)
   given grepApiClient: GrepApiClient                 = new GrepApiClient
   given draftApiClient: DraftApiClient               = new DraftApiClient(props.DraftApiUrl)

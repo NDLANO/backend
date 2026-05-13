@@ -15,12 +15,11 @@ import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{ArticleTrait, LearningResourceType, MultiSearchResultDTO, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHandling, ErrorHelpers, NonEmptyString, TapirController}
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHandling, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth, TokenUser}
 import no.ndla.searchapi.controller.parameters.{
   DraftSearchParamsDTO,
   GetSearchQueryParams,
@@ -62,9 +61,9 @@ class SearchController(using
     multiDraftSearchService: MultiDraftSearchService,
     props: Props,
     errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
     grepSearchService: GrepSearchService,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
+    feideAuth: FeideAuth,
 ) extends TapirController {
 
   val getSearchQueryParams: GetSearchQueryParams = new GetSearchQueryParams

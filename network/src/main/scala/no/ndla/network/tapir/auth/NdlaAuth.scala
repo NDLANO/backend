@@ -8,29 +8,60 @@
 
 package no.ndla.network.tapir.auth
 
+import cats.implicits.*
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.jwt.JWTExtractor
+import no.ndla.network.jwt.{JwsKeySelectorFactory, JwtVerifier}
+import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
+import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.EndpointInput.AuthType
+import sttp.tapir.server.PartialServerEndpoint
 
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success}
 
-case class UserInfoException() extends RuntimeException("Could not build `TokenUser` from token.")
-
-trait NdlaAuth(using props: BaseProps) {
+case class NdlaAuth()(using
+    jwsKeySelectorFactory: JwsKeySelectorFactory,
+    errorHelpers: ErrorHelpers,
+    props: BaseProps,
+) {
   private val schemeName               = "NDLAAuth"
-  private val authorizationUrl         = s"${props.ndlaAuth0Issuer}/authorize"
-  private val tokenUrl                 = s"${props.ndlaAuth0Issuer}/oauth/token"
+  private val authorizationUrl         = s"${props.ndlaAuth0Issuer}authorize"
+  private val tokenUrl                 = s"${props.ndlaAuth0Issuer}oauth/token"
   private val tokenUserMapping         = Mapping.fromDecode(decodeTokenUser)(encodeTokenUser)
   private val optionalTokenUserMapping = TapirAuthUtil.makeOptionalMapping(tokenUserMapping)
+  private val jwtVerifier              = JwtVerifier(
+    jwsKeySelectorFactory,
+    props.ndlaAuth0Issuer,
+    Some(props.ndlaAuth0Audience),
+    Set(props.ndlaAuth0Issuer, props.ndlaAuth0LegacyIssuer),
+  )
+
+  private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
+  private val forbiddenErrorOutput    = errorOutputVariantFor(StatusCode.Forbidden.code)
 
   val ndlaOptionalAuth: EndpointInput.Auth[Option[TokenUser], AuthType.OAuth2] = TapirAuth
     .oauth2
     .authorizationCodeFlowOptional(authorizationUrl, tokenUrl)
     .securitySchemeName(schemeName)
     .map(optionalTokenUserMapping)
+
+  extension [INPUT, OUTPUT, R](self: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R]) {
+    def requirePermission[F[_]](
+        requiredPermission: Permission*
+    ): PartialServerEndpoint[Option[TokenUser], TokenUser, INPUT, AllErrors, OUTPUT, R, F] = self
+      .errorOutVariantPrepend(unauthorizedErrorOutput)
+      .errorOutVariantPrepend(forbiddenErrorOutput)
+      .securityIn(ndlaOptionalAuth(requiredPermission))
+      .serverSecurityLogicPure(requireScope(requiredPermission*))
+
+    def withOptionalUser[F[_]]
+        : PartialServerEndpoint[Option[TokenUser], Option[TokenUser], INPUT, AllErrors, OUTPUT, R, F] = self
+      .securityIn(ndlaOptionalAuth)
+      .serverSecurityLogicPure(Right(_))
+  }
 
   def ndlaOptionalAuth(
       requiredPermissions: Seq[Permission]
@@ -45,24 +76,20 @@ trait NdlaAuth(using props: BaseProps) {
       .requiredScopes(requiredScopes)
   }
 
-  private def encodeTokenUser(user: TokenUser): String            = user.id
-  private def decodeTokenUser(s: String): DecodeResult[TokenUser] = {
-    val jWTExtractor = JWTExtractor(s)
-    fromExtractor(jWTExtractor, s) match {
-      case Failure(ex)    => DecodeResult.Error(s, ex)
-      case Success(value) => DecodeResult.Value(value)
-    }
+  /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
+    * some endpoint.
+    */
+  private def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
+    case Some(user) if user.hasPermissions(scope) => user.asRight
+    case Some(_)                                  => errorHelpers.forbidden.asLeft
+    case None                                     => errorHelpers.unauthorized.asLeft
   }
 
-  private def fromExtractor(jWTExtractor: JWTExtractor, token: String) = {
-    val userId   = jWTExtractor.extractUserId()
-    val roles    = jWTExtractor.extractUserRoles()
-    val userName = jWTExtractor.extractUserName()
-    val clientId = jWTExtractor.extractClientId()
-
-    userId.orElse(clientId).orElse(userName) match {
-      case Some(userInfoName) => Success(TokenUser(userInfoName, Permission.fromStrings(roles), Some(token)))
-      case None               => Failure(UserInfoException())
+  private def encodeTokenUser(user: TokenUser): String            = user.originalToken.getOrElse("")
+  private def decodeTokenUser(s: String): DecodeResult[TokenUser] = {
+    jwtVerifier.decode(s) match {
+      case Success(user) => DecodeResult.Value(user)
+      case Failure(ex)   => DecodeResult.Error(s, ex)
     }
   }
 }

@@ -16,8 +16,8 @@ import no.ndla.draftapi.service.WriteService
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.auth.NdlaAuth
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import sttp.model.Part
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
@@ -31,8 +31,7 @@ class FileController(using
     writeService: WriteService,
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
   override val serviceName: String         = "files"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName

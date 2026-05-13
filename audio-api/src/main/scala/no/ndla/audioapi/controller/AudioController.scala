@@ -22,7 +22,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.network.tapir.{ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.AUDIO_API_WRITE
@@ -43,7 +43,7 @@ class AudioController(using
     props: Props,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
   val maxAudioFileSizeBytes: Int           = props.MaxAudioFileSizeBytes
   override val serviceName: String         = "audio"

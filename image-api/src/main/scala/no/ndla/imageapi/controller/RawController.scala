@@ -13,7 +13,6 @@ import no.ndla.common.errors.{MissingBucketKeyException, ValidationException, Va
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ImageStream, ProcessableImage}
 import no.ndla.imageapi.service.*
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
@@ -27,7 +26,6 @@ class RawController(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     readService: ReadService,
-    myNDLAApiClient: MyNDLAApiClient,
     props: Props,
 ) extends TapirController {
   import errorHandling.*

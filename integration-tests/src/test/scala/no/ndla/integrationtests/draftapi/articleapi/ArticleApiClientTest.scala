@@ -8,7 +8,7 @@
 
 package no.ndla.integrationtests.draftapi.articleapi
 
-import no.ndla.articleapi.{ArticleApiProperties, TestData}
+import no.ndla.articleapi.{ArticleApiProperties, ComponentRegistry, TestData}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
@@ -19,8 +19,10 @@ import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.network.{AuthUser, NdlaClient}
+import no.ndla.network.NdlaClient
+import no.ndla.network.jwt.JwsKeySelectorFactory
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
+import no.ndla.tapirtesting.{TestJwsKeySelectorFactory, TokenUserTestData}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
 import org.mockito.Mockito.when
@@ -61,14 +63,17 @@ class ArticleApiClientTest
     override def SearchServer: String              = esHost
   }
 
-  var articleApi: articleapi.MainClass = null
-  val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
+  lazy val articleApi: articleapi.MainClass = new articleapi.MainClass(articleApiProperties) {
+    override val componentRegistry: ComponentRegistry = new ComponentRegistry(articleApiProperties) {
+      override implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
+    }
+  }
+  val articleApiBaseUrl: String = s"http://localhost:$articleApiPort"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    articleApi = new articleapi.MainClass(articleApiProperties)
     Future {
       articleApi.run(Array.empty)
     }: Unit
@@ -141,10 +146,7 @@ class ArticleApiClientTest
     traits = List.empty,
   )
 
-  val exampleToken =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJhcnRpY2xlczpwdWJsaXNoIiwiZHJhZnRzOndyaXRlIiwiZHJhZnRzOnNldF90b19wdWJsaXNoIiwiYXJ0aWNsZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.v6q6y6owx9VXri1h4FJJHDAnMllmNYFAAT2b9CJLm88"
-  val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
-  val authUser: TokenUser                = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
+  val authUser: TokenUser = TokenUserTestData.SystemUser
 
   class LocalArticleApiTestData extends articleapi.Props {
     implicit lazy val props: ArticleApiProperties = articleApiProperties
@@ -179,7 +181,6 @@ class ArticleApiClientTest
     dataFixer.setupArticles()
     when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
 
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
     val response         = articleApiClient.updateArticle(
       1,
@@ -192,22 +193,19 @@ class ArticleApiClientTest
 
   test("that deleting an article should return 200") {
     dataFixer.setupArticles()
-    val contentId = ContentIdDTO(1)
-    AuthUser.setHeader(s"Bearer $exampleToken")
+    val contentId        = ContentIdDTO(1)
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
     articleApiClient.deleteArticle(1, authUser).get should be(contentId)
   }
 
   test("that unpublishing an article returns 200") {
     dataFixer.setupArticles()
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     articleApiCient.unpublishArticle(testArticle, authUser).get
   }
 
   test("that verifying an article returns 200 if valid") {
     when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = converterService
       .toArticleApiArticle(testArticle, true)
@@ -216,7 +214,6 @@ class ArticleApiClientTest
   }
 
   test("that verifying an article returns 400 if invalid") {
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = converterService
       .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))), true)
@@ -225,7 +222,6 @@ class ArticleApiClientTest
   }
 
   test("that updating an article returns 400 if missing required field") {
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val invalidArticle  = testArticle.copy(metaDescription = Seq.empty)
     val result          =

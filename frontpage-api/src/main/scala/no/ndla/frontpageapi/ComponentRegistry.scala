@@ -9,24 +9,17 @@
 package no.ndla.frontpageapi
 
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, MatomoService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.network.clients.matomo.MatomoApiClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.*
+import no.ndla.network.tapir.auth.NdlaAuth
 
 class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
   given props: FrontpageApiProperties = properties
@@ -49,6 +42,8 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given taxonomyApiClient: TaxonomyApiClient             = new TaxonomyApiClient(props.TaxonomyUrl)
   given matomoApiClient: MatomoApiClient                 = new MatomoApiClient
   given matomoService: MatomoService                     = new MatomoService
+  given jwsKeySelectorFactory: JwsKeySelectorFactory     = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                               = NdlaAuth()
 
   given readService: ReadService   = new ReadService
   given writeService: WriteService = new WriteService

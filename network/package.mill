@@ -11,6 +11,7 @@ object `package` extends BaseModule {
     SharedDependencies.sttp,
     SharedDependencies.jedis,
     SharedDependencies.jwtCirce,
+    SharedDependencies.nimbusOauth2Oidc,
   ) ++ SharedDependencies.tapirCirce
   override def moduleDeps = Seq(build.common)
   object test extends TestBase {

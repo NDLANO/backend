@@ -14,7 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{Author, ContributorType}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
-import no.ndla.tapirtesting.TapirControllerTest
+import no.ndla.tapirtesting.{NdlaAuthTestTokens, TapirControllerTest}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
@@ -116,8 +116,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(writeService.updateArticle(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Article](0))
     )
-    val authHeaderWithWriteRole =
-      "Bearer eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6WyJhdWRpbzp3cml0ZSIsImFydGljbGVzOnB1Ymxpc2giLCJhcnRpY2xlczp3cml0ZSIsImNvbmNlcHQ6YWRtaW4iLCJjb25jZXB0OndyaXRlIiwiZHJhZnRzOmFkbWluIiwiZHJhZnRzOmh0bWwiLCJkcmFmdHM6cHVibGlzaCIsImRyYWZ0czp3cml0ZSIsImZyb250cGFnZTphZG1pbiIsImZyb250cGFnZTp3cml0ZSIsImltYWdlczp3cml0ZSIsImxlYXJuaW5ncGF0aDphZG1pbiIsImxlYXJuaW5ncGF0aDpwdWJsaXNoIiwibGVhcm5pbmdwYXRoOndyaXRlIl19.nm77NIe8aFACafNhC1nROU1bTspbT-hCvxlg6_8ztDk"
+    val authHeaderWithWriteRole = s"Bearer ${NdlaAuthTestTokens.ArticleWrite}"
 
     import io.circe.syntax.*
     val art     = TestData.sampleArticleWithByNcSa.copy(id = Some(10L))

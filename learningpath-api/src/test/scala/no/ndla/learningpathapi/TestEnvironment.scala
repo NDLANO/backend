@@ -10,7 +10,7 @@ package no.ndla.learningpathapi
 
 import no.ndla.common.converter.CommonConverter
 import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.domain.DBLearningPath
@@ -19,23 +19,13 @@ import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirController,
-  TapirHealthController,
-}
-import no.ndla.search.{NdlaE4sClient, SearchLanguage}
-import org.mockito.Mockito.mockingDetails
-import no.ndla.network.tapir.TapirApplication
-import org.mockito.Mockito.{reset, spy}
-import org.scalatestplus.mockito.MockitoSugar
-import no.ndla.database.DBUtility
 import no.ndla.network.clients.rediscache.FeideRedisClient
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
+import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.DBUtilityStub
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
+import org.mockito.Mockito.{mockingDetails, reset, spy}
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with MockitoSugar {
   implicit lazy val props: LearningpathApiProperties = new LearningpathApiProperties

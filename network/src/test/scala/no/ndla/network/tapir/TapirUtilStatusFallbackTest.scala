@@ -11,7 +11,6 @@ package no.ndla.network.tapir
 import no.ndla.common.Clock
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -31,16 +30,12 @@ class TapirUtilStatusFallbackTest extends UnitTestSuite with TapirControllerTest
   override implicit lazy val errorHandling: ErrorHandling = new ErrorHandling() {
     override def handleErrors: PartialFunction[Throwable, AllErrors] = PartialFunction.empty
   }
-  implicit val myNDLAApiClient: MyNDLAApiClient              = mock[MyNDLAApiClient]
   override val controller: TapirUtilStatusFallbackController = new TapirUtilStatusFallbackController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
 
-  class TapirUtilStatusFallbackController(using
-      errorHelpers: ErrorHelpers,
-      errorHandling: ErrorHandling,
-      myNDLAApiClient: MyNDLAApiClient,
-  ) extends TapirController {
+  class TapirUtilStatusFallbackController(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling)
+      extends TapirController {
     override val prefix: EndpointInput[Unit]               = "tapir-util"
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(undocumentedStatusEndpoint)
 

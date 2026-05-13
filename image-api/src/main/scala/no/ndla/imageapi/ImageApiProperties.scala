@@ -13,15 +13,14 @@ import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
 import no.ndla.imageapi.model.domain.ImageContentType
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 
 import scala.util.Properties.*
 
 type Props = ImageApiProperties
 
 class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging {
-  def ApplicationName            = "image-api"
-  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName = "image-api"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")

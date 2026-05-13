@@ -12,7 +12,7 @@ import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 
 import scala.util.Properties.*
 
@@ -20,8 +20,7 @@ type Props = ArticleApiProperties
 
 class ArticleApiProperties extends BaseProps with DatabaseProps {
 
-  def ApplicationName            = "article-api"
-  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName = "article-api"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")

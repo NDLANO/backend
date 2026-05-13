@@ -18,10 +18,12 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, SwaggerInfo, TapirApplication}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.*
+import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
@@ -45,8 +47,10 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given audioRepository: AudioRepository   = new AudioRepository
   given seriesRepository: SeriesRepository = new SeriesRepository
 
-  given ndlaClient: NdlaClient           = new NdlaClient
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given ndlaClient: NdlaClient                       = new NdlaClient
+  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                           = NdlaAuth()
 
   given converterService: ConverterService         = new ConverterService
   given validationService: ValidationService       = new ValidationService

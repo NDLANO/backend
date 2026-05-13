@@ -21,8 +21,8 @@ import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.service.search.*
 import org.scalatestplus.mockito.MockitoSugar
 
 class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
