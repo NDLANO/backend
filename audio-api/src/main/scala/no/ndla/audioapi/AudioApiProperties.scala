@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.database.DatabaseProps
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 
 import scala.util.Properties.*
 
@@ -21,8 +21,7 @@ type Props = AudioApiProperties
 class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def ApplicationName            = "audio-api"
-  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName = "audio-api"
 
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")

@@ -16,7 +16,6 @@ import no.ndla.learningpathapi.model.api.LearningPathDomainDumpDTO
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -35,7 +34,6 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myndlaApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false

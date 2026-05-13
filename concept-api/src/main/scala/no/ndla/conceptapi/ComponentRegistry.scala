@@ -8,28 +8,21 @@
 
 package no.ndla.conceptapi
 
+import no.ndla.common.Clock
 import no.ndla.conceptapi.controller.*
+import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
 import no.ndla.conceptapi.model.domain.{DBConcept, DBPublishedConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
+import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.common.Clock
-import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{CombinedAuth, FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
   given props: ConceptApiProperties          = properties
@@ -56,9 +49,13 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
   given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
   given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
 
-  given ndlaClient: NdlaClient           = new NdlaClient
-  given searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given ndlaClient: NdlaClient                       = new NdlaClient
+  given searchApiClient: SearchApiClient             = new SearchApiClient(props.SearchApiUrl)
+  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                           = NdlaAuth()
+  given feideAuth: FeideAuth                         = FeideAuth()
+  given combinedAuth: CombinedAuth                   = CombinedAuth()
 
   implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
   implicit lazy val writeService: WriteService                 = new WriteService

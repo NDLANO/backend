@@ -12,27 +12,33 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.common.RequestLogger
 import no.ndla.network.TaxonomyData
-import no.ndla.network.model.RequestInfo
+import no.ndla.network.model.{
+  AuthException,
+  ForbiddenException,
+  RequestInfo,
+  UnauthenticatedException,
+  UnexpectedNimbusException,
+}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import org.playframework.netty.http.StreamedHttpRequest
 import org.slf4j.MDC
 import ox.channels.{Channel, ChannelClosed}
 import ox.{Chunk, never, supervised, useInScope}
 import sttp.model.HeaderNames.SensitiveHeaders
-import sttp.model.{HeaderNames, StatusCode}
+import sttp.model.{Header, HeaderNames, StatusCode}
 import sttp.monad.MonadError
 import sttp.shared.Identity
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTransform
-import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
+import sttp.tapir.server.interceptor.decodefailure.{DecodeFailureHandler, DefaultDecodeFailureHandler}
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
-import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
+import sttp.tapir.server.interceptor.{DecodeFailureContext, RequestInterceptor, RequestResult}
 import sttp.tapir.server.model.ValuedEndpointOutput
 import sttp.tapir.server.netty.NettyConfig
 import sttp.tapir.server.netty.sync.{NettySyncServer, NettySyncServerBinding, NettySyncServerOptions}
-import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
+import sttp.tapir.{AttributeKey, DecodeResult, EndpointInput, headers, statusCode}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
@@ -48,10 +54,37 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     ValuedEndpointOutput(jsonBody[AllErrors], errorHelpers.generic)
   }
 
-  private def decodeFailureHandler[T[_]]: DefaultDecodeFailureHandler[T] =
-    DefaultDecodeFailureHandler[T].response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[AllErrors], errorHelpers.badRequest(failureMsg))
-    })
+  private object NdlaDecodeFailureHandler extends DecodeFailureHandler[Identity] {
+    override def apply(ctx: DecodeFailureContext)(implicit
+        monad: MonadError[Identity]
+    ): Identity[Option[ValuedEndpointOutput[((StatusCode, List[Header]), AllErrors)]]] = ctx.failure match {
+      case DecodeResult.Error(_, ex: AuthException) => handleAuthFailure(ex)
+      case _                                        =>
+        val res = DefaultDecodeFailureHandler
+          .respond(ctx)
+          .map { case (sc, hs) =>
+            val failureMsg      = DefaultDecodeFailureHandler.FailureMessages.failureMessage(ctx)
+            val errorBodyOutput = ValuedEndpointOutput(jsonBody[AllErrors], errorHelpers.badRequest(failureMsg))
+            errorBodyOutput.prepend(statusCode.and(headers), (sc, hs))
+          }
+        monad.unit(res)
+    }
+
+    private def handleAuthFailure(
+        ex: AuthException
+    ): Option[ValuedEndpointOutput[((StatusCode, List[Header]), AllErrors)]] = {
+      val (sc, body) = ex match {
+        case _: UnauthenticatedException =>
+          (StatusCode.Unauthorized, errorHelpers.unauthorized.copy(description = ex.message))
+        case _: ForbiddenException         => (StatusCode.Forbidden, errorHelpers.forbidden.copy(description = ex.message))
+        case UnexpectedNimbusException(ex) =>
+          logger.error("Unexpected Nimbus exception", ex)
+          (StatusCode.InternalServerError, errorHelpers.generic)
+      }
+      val errorBodyOutput = ValuedEndpointOutput(jsonBody[AllErrors], body)
+      Some(errorBodyOutput.prepend(statusCode.and(headers), (sc, Nil)))
+    }
+  }
 
   private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
     override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
@@ -206,7 +239,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       .defaultHandlers(err => failureResponse(err, None))
       .rejectHandler(NdlaRejectHandler[Identity]())
       .exceptionHandler(NdlaExceptionHandler[Identity]())
-      .decodeFailureHandler(decodeFailureHandler[Identity])
+      .decodeFailureHandler(NdlaDecodeFailureHandler)
       .serverLog(None)
       .metricsInterceptor(prometheusMetrics.metricsInterceptor())
       .prependInterceptor(TapirMiddleware.before)

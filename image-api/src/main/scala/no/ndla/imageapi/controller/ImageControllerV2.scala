@@ -19,11 +19,10 @@ import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterServi
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.Props
 import no.ndla.language.Language
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.IMAGE_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.auth.{NdlaAuth, TokenUser}
 import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -41,7 +40,7 @@ class ImageControllerV2(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     props: Props,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController
     with BaseImageController {
   import errorHelpers.*

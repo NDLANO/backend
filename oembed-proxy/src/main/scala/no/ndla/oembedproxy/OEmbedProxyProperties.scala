@@ -10,7 +10,7 @@ package no.ndla.oembedproxy
 
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 
 import scala.util.Properties.{propOrElse, propOrNone}
 
@@ -19,8 +19,6 @@ type Props = OEmbedProxyProperties
 class OEmbedProxyProperties extends BaseProps {
   def ApplicationName: String = "oembed-proxy"
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
-
-  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val JSonProviderUrl                 = "https://oembed.com/providers.json"
   val ProviderListCacheAgeInMs: Long  = 1000 * 60 * 60 * 24 // 24 hour caching

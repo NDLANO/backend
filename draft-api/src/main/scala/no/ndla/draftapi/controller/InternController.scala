@@ -21,12 +21,11 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.language.Language
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.DRAFT_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.auth.{NdlaAuth, TokenUser}
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import no.ndla.search.model.domain.ReindexResult
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -47,9 +46,8 @@ class InternController(using
     articleApiClient: ArticleApiClient,
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
     dbUtility: DBUtility,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"

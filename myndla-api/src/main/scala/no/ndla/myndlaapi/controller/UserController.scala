@@ -9,26 +9,23 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHelpers, TapirController}
+import no.ndla.network.tapir.auth.FeideAuth
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
-import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
-import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 
 class UserController(using
     userService: UserService,
     folderWriteService: FolderWriteService,
     folderReadService: FolderReadService,
     errorHandling: ControllerErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: InternalMyNDLAApiClient,
-    props: Props,
+    feideAuth: FeideAuth,
 ) extends TapirController {
   override val serviceName: String = "users"
 

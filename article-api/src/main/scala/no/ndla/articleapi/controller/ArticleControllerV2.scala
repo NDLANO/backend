@@ -19,10 +19,10 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.auth.FeideAuth
 import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.{Header, MediaType}
 import sttp.tapir.*
@@ -38,7 +38,7 @@ class ArticleControllerV2(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    feideAuth: FeideAuth,
 ) extends TapirController {
   protected val applicationDescription = "Services for accessing articles from NDLA."
 

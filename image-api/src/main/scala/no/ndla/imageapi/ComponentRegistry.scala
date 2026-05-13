@@ -20,25 +20,13 @@ import no.ndla.imageapi.db.migrationwithdependencies.{
 import no.ndla.imageapi.model.domain.DBImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
-import no.ndla.imageapi.service.search.{
-  ImageIndexService,
-  ImageSearchService,
-  SearchConverterService,
-  TagIndexService,
-  TagSearchService,
-}
+import no.ndla.imageapi.service.search.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{CombinedAuth, FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
@@ -58,6 +46,10 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given random: Random                                     = new Random
   given converterService: ConverterService                 = new ConverterService
   implicit lazy val myndlaApiClient: MyNDLAApiClient       = new MyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory       = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                                 = NdlaAuth()
+  given feideAuth: FeideAuth                               = FeideAuth()
+  given combinedAuth: CombinedAuth                         = CombinedAuth()
   given searchConverterService: SearchConverterService     = new SearchConverterService
   given dbUtility: DBUtility                               = new DBUtility
   given dbImageMetaInformation: DBImageMetaInformation     = new DBImageMetaInformation

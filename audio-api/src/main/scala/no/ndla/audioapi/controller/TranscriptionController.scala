@@ -8,13 +8,12 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.TranscriptionResultDTO
 import no.ndla.audioapi.service.TranscriptionService
 import no.ndla.audioapi.service.{TranscriptionComplete, TranscriptionNonComplete}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHelpers, TapirController}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.auth.NdlaAuth
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.AUDIO_API_WRITE
 import sttp.tapir.server.ServerEndpoint
@@ -25,10 +24,8 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import scala.util.{Failure, Success}
 class TranscriptionController(using
     transcriptionService: TranscriptionService,
-    errorHelpers: ErrorHelpers,
     errorHandling: ControllerErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient,
-    props: Props,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
 
   override val serviceName: String         = "transcription"

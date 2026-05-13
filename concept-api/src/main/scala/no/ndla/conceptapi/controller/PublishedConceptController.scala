@@ -19,10 +19,10 @@ import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchC
 import no.ndla.conceptapi.service.ReadService
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.auth.NdlaAuth
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -37,8 +37,7 @@ class PublishedConceptController(using
     props: Props,
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
   import conceptControllerHelpers.*
 

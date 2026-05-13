@@ -10,7 +10,7 @@ package no.ndla.frontpageapi
 
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.{BaseProps, Prop}
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 import no.ndla.database.DatabaseProps
 
 import scala.util.Properties.*
@@ -18,10 +18,9 @@ import scala.util.Properties.*
 type Props = FrontpageApiProperties
 
 class FrontpageApiProperties extends BaseProps with DatabaseProps {
-  def ApplicationName            = "frontpage-api"
-  val ApplicationPort: Int       = propOrElse("APPLICATION_PORT", "80").toInt
-  val DefaultLanguage: String    = propOrElse("DEFAULT_LANGUAGE", "nb")
-  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName         = "frontpage-api"
+  val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
+  val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
   val DefaultPageSize        = 10
   val Domain: String         = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))

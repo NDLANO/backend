@@ -16,8 +16,8 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.Props
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
@@ -40,7 +40,7 @@ class InternController(using
     props: Props,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController
     with StrictLogging {
 

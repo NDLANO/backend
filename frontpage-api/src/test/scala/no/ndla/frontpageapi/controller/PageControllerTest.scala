@@ -12,6 +12,7 @@ import no.ndla.common.{Clock, model, errors as common}
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
+import no.ndla.scalatestsuite.NdlaAuthTestTokens
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -29,14 +30,11 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
   override implicit lazy val routes: Routes                         = new Routes
   when(clock.now()).thenCallRealMethod()
 
-  val authHeaderWithAdminRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiZnJvbnRwYWdlOmFkbWluIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIiwicGVybWlzc2lvbnMiOlsiZnJvbnRwYWdlOmFkbWluIl19.A0qr0MgRH3O_jUODzN2Py13QL2R5FHdE3lZ2x-3ZTjA"
+  val authHeaderWithAdminRole = s"Bearer ${NdlaAuthTestTokens.FrontPageAdmin}"
 
-  val authHeaderWithWrongRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiZWFzdGVyOmVnZzpiZWZvcmU6STpxdWl0IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIiwicGVybWlzc2lvbnMiOlsiZWFzdGVyOmVnZzpiZWZvcmU6STpxdWl0Il19.Rl_qS-YtT698y40uEDSqpJV8zviQB30E4tBzapNCK6Q"
+  val authHeaderWithWrongRole = s"Bearer ${NdlaAuthTestTokens.LearningPathAdmin}"
 
-  val authHeaderWithoutAnyRoles =
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlF6bEVPVFE1TTBOR01EazROakV4T0VKR01qYzJNalZGT0RoRVFrRTFOVUkyTmtFMFJUUXlSZyJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZnNleE9DZkpGR09LdXkxQzJlNzFPc3ZRd3EwTldLQUtAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNjgzODg0OTQ4LCJleHAiOjE2ODM4OTkzNDgsImF6cCI6ImZzZXhPQ2ZKRkdPS3V5MUMyZTcxT3N2UXdxME5XS0FLIiwic2NvcGUiOiIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.oznL95qVdP7HFTwwVm8ZfVv1GSW3_mNKTbAt9No8-PI"
+  val authHeaderWithoutAnyRoles = s"Bearer ${NdlaAuthTestTokens.NoPermissions}"
 
   val malformedNewFrontPage: String = """{"malformed": "x"}"""
 
