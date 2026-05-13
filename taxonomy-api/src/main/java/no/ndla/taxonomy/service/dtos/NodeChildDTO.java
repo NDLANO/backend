@@ -33,6 +33,7 @@ import no.ndla.taxonomy.service.TreeSorter;
             "supportedLanguages",
             "breadcrumbs",
             "resourceTypes",
+            "updatedAt",
             "contexts",
             "contextids",
             "language",

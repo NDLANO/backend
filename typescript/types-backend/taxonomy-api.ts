@@ -1929,7 +1929,7 @@ export type components = {
              * Format: date-time
              * @description When was this last updated.
              */
-            updatedAt?: string;
+            updatedAt: string;
             /** @description A pretty url based on name and context. Empty if no context. */
             url?: string;
             /** @description Url safe names for the node. */
