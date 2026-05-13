@@ -136,7 +136,7 @@ class ImageSearchService(using
           .flatMap {
             case ImageSearchField.Titles        => Some(simpleStringQuery(query).field(s"titles.$language", 2))
             case ImageSearchField.Alttexts      => Some(simpleStringQuery(query).field(s"alttexts.$language", 1))
-            case ImageSearchField.Captions      => Some(simpleStringQuery(query).field(s"caption.$language", 2))
+            case ImageSearchField.Captions      => Some(simpleStringQuery(query).field(s"captions.$language", 2))
             case ImageSearchField.Tags          => Some(simpleStringQuery(query).field(s"tags.$language", 2))
             case ImageSearchField.Creators      => Some(simpleStringQuery(query).field("creators", 1))
             case ImageSearchField.Processors    => Some(simpleStringQuery(query).field("processors", 1))

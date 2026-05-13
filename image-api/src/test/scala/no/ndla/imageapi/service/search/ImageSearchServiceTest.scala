@@ -142,7 +142,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val image1 = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("Batmen er på vift med en bil", "nb")),
-    alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
+    alttexts = List(ImageAltText("Bilde av en flaggermusmann som vifter med vingene.", "nb")),
     images = Seq(largeImage),
     copyright = byNcSa,
     tags = List(Tag(List("fugl"), "nb")),
@@ -908,21 +908,21 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     searchResult.results.map(_.id) should be(Seq("9"))
   }
 
-  test("That queryFields restricts search to specific fields - searching titles only") {
-    // Search for "bil" which appears in image1's title but not image3
+  test("That queryFields restricts search to specific fields - searching alttekst only") {
+    // Search for "bil" which appears in image1 and image3's alttekst
     // Without queryFields, it searches all fields
     val Success(searchResultAll) =
       imageSearchService.matchingQuery(searchSettings.copy(query = Some("bil"), language = "nb"), None): @unchecked
 
-    searchResultAll.results.map(_.id) should contain("1")
+    searchResultAll.results.map(_.id) should be(Seq("1", "3"))
 
-    // With queryFields set to only titles, should still find it
+    // With queryFields set to only alttekst, should still find them
     val Success(searchResultTitles) = imageSearchService.matchingQuery(
       searchSettings.copy(query = Some("bil"), language = "nb", queryFields = List(ImageSearchField.Titles)),
       None,
     ): @unchecked
 
-    searchResultTitles.results.map(_.id) should contain("1")
+    searchResultTitles.results.map(_.id) should be(Seq("1", "3"))
   }
 
   test("That queryFields restricts search to specific fields - searching tags only") {

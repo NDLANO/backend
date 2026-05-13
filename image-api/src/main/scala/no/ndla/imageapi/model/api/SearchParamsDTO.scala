@@ -16,7 +16,7 @@ import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("The search parameters")
 case class SearchParamsDTO(
-    @description("Return only images with titles, alt-texts or tags matching the specified query.")
+    @description("Return only images matching the specified query.")
     query: Option[String],
     @description("Restrict query searches to the specified fields. If omitted or empty, all the fields are used.")
     queryFields: Option[List[ImageSearchField]],
