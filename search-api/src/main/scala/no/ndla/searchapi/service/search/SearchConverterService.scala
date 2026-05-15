@@ -561,6 +561,7 @@ class SearchConverterService(using
         resourceTypeName = sortableResourceTypeName,
         defaultResourceTypeName = sortableResourceTypeName.defaultValue,
         published = draft.published,
+        firstPublished = draft.firstPublished,
         revised = draft.revised,
         favorited = favorited,
         learningResourceType = learningResourceType,

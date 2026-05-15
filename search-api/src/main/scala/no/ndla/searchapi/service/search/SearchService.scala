@@ -339,6 +339,8 @@ abstract class SearchService(using
     case ByPrioritizedDesc            => sortField("prioritized", Desc)
     case ByPublishedAsc               => sortField("published", Asc)
     case ByPublishedDesc              => sortField("published", Desc)
+    case ByFirstPublishedAsc          => sortField("firstPublished", Asc)
+    case ByFirstPublishedDesc         => sortField("firstPublished", Desc)
     case ByFavoritedAsc               => sortField("favorited", Asc)
     case ByFavoritedDesc              => sortField("favorited", Desc)
   }

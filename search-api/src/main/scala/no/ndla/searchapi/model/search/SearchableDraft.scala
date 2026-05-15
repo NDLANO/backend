@@ -61,6 +61,7 @@ case class SearchableDraft(
     resourceTypeName: SearchableLanguageValues,
     defaultResourceTypeName: Option[String],
     published: Option[NDLADate],
+    firstPublished: Option[NDLADate],
     revised: NDLADate,
     favorited: Long,
     learningResourceType: LearningResourceType,

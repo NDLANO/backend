@@ -47,6 +47,8 @@ object Sort extends Enum[Sort] with CirceEnum[Sort] {
   case object ByResourceTypeAsc            extends Sort("resourceType")
   case object ByPublishedDesc              extends Sort("-published")
   case object ByPublishedAsc               extends Sort("published")
+  case object ByFirstPublishedDesc         extends Sort("-firstPublished")
+  case object ByFirstPublishedAsc          extends Sort("firstPublished")
   case object ByFavoritedDesc              extends Sort("-favorited")
   case object ByFavoritedAsc               extends Sort("favorited")
 

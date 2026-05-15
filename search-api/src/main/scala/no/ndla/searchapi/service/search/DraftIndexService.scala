@@ -73,6 +73,7 @@ class DraftIndexService(using
       keywordField("owner"),
       dateField("lastUpdated"),
       dateField("published"),
+      dateField("firstPublished"),
       dateField("revised"),
       keywordField("license"),
       keywordField("defaultTitle"),
