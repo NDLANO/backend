@@ -12,7 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.aws.{NdlaCloudFrontClient, NdlaS3Client}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.api.{AuthorDTO, CopyrightDTO, LicenseDTO}
-import no.ndla.common.model.domain.ContributorType
+import no.ndla.common.model.domain.{AiGenerated, ContributorType}
 import no.ndla.imageapi.model.api.NewImageMetaInformationV2DTO
 import no.ndla.imageapi.model.api.bulk.{
   BulkUploadItemStatus,
@@ -156,6 +156,7 @@ class BulkUploadTest extends DatabaseIntegrationSuite with RedisIntegrationSuite
     caption = s"$title caption",
     language = "nb",
     modelReleased = None,
+    aiGenerated = AiGenerated.No,
   )
 
   private def waitForFinalState(uploadId: UUID, timeout: Long = 30000): BulkUploadStateDTO = {

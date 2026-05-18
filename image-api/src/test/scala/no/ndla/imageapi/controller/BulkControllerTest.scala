@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.api.{AuthorDTO, CopyrightDTO, LicenseDTO}
-import no.ndla.common.model.domain.ContributorType
+import no.ndla.common.model.domain.{AiGenerated, ContributorType}
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.imageapi.model.api.NewImageMetaInformationV2DTO
 import no.ndla.imageapi.model.api.bulk.{
@@ -64,6 +64,7 @@ class BulkControllerTest extends UnitSuite with TestEnvironment with TapirContro
     caption = "captionheredude",
     language = "nb",
     modelReleased = None,
+    aiGenerated = AiGenerated.No,
   )
 
   private val sampleNewImageMeta: String = CirceUtil.toJsonString(sampleNewImageMetaDTO)
