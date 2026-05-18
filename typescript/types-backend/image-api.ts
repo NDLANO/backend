@@ -416,6 +416,12 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /**
+         * AiGenerated
+         * @description Describes whether the image is AI generated
+         * @enum {string}
+         */
+        AiGenerated: "No" | "Partial" | "Yes";
         /** AllErrors */
         AllErrors: components["schemas"]["ErrorBody"] | components["schemas"]["NotFoundWithSupportedLanguages"] | components["schemas"]["ValidationErrorBody"];
         /**
@@ -660,6 +666,7 @@ export type components = {
             image: components["schemas"]["ImageFileDTO"];
             /** @description Describes if the image is inactive or not */
             inactive: boolean;
+            aiGenerated: components["schemas"]["AiGenerated"];
         };
         /**
          * ImageMetaSummaryDTO
@@ -766,6 +773,7 @@ export type components = {
             language: string;
             /** @description Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no' */
             modelReleased?: string;
+            aiGenerated: components["schemas"]["AiGenerated"];
         };
         /**
          * NotFoundWithSupportedLanguages
@@ -954,6 +962,7 @@ export type components = {
             modelReleased?: string;
             /** @description Whether the image is inactive */
             inactive?: boolean;
+            aiGenerated?: components["schemas"]["AiGenerated"];
         };
         /** UpdateMetaDataAndFileForm */
         UpdateMetaDataAndFileForm: {
@@ -997,6 +1006,7 @@ export type components = {
     headers: never;
     pathItems: never;
 };
+export type AiGenerated = components['schemas']['AiGenerated'];
 export type AllErrors = components['schemas']['AllErrors'];
 export type AuthorDTO = components['schemas']['AuthorDTO'];
 export type BatchMetaDataAndFileForm = components['schemas']['BatchMetaDataAndFileForm'];
