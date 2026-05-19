@@ -925,7 +925,7 @@ export type components = {
          * @description The sorting used on results.
          * @enum {string}
          */
-        Sort: "-relevance" | "relevance" | "-title" | "title" | "-lastUpdated" | "lastUpdated" | "-id" | "id" | "-duration" | "duration" | "revisionDate" | "-revisionDate" | "responsibleLastUpdated" | "-responsibleLastUpdated" | "status" | "-status" | "-prioritized" | "prioritized" | "-parentTopicName" | "parentTopicName" | "-primaryRoot" | "primaryRoot" | "-resourceType" | "resourceType" | "-published" | "published" | "-favorited" | "favorited";
+        Sort: "-relevance" | "relevance" | "-title" | "title" | "-lastUpdated" | "lastUpdated" | "-id" | "id" | "-duration" | "duration" | "revisionDate" | "-revisionDate" | "responsibleLastUpdated" | "-responsibleLastUpdated" | "status" | "-status" | "-prioritized" | "prioritized" | "-parentTopicName" | "parentTopicName" | "-primaryRoot" | "primaryRoot" | "-resourceType" | "resourceType" | "-published" | "published" | "-firstPublished" | "firstPublished" | "-favorited" | "favorited";
         /**
          * StatusDTO
          * @description Status information of the resource
