@@ -2018,6 +2018,7 @@ object TestData {
     resourceTypeName = searchableTitles,
     defaultResourceTypeName = searchableTitles.defaultValue,
     published = Some(TestData.today),
+    firstPublished = Some(TestData.today),
     revised = TestData.today,
     favorited = 0,
     learningResourceType = LearningResourceType.Article,

@@ -121,6 +121,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
       published = Some(TestData.today),
+      firstPublished = Some(TestData.today),
       revised = TestData.today,
       favorited = 0,
       learningResourceType = LearningResourceType.Article,
