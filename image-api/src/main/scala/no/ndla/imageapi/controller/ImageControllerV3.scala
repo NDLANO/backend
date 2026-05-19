@@ -198,12 +198,11 @@ class ImageControllerV3(using
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
             val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
-            val imageSearchFields   = queryFields.values.flatMap(ImageSearchField.withNameOption)
 
             searchV3(
               minimumSize,
               query,
-              imageSearchFields,
+              queryFields.values,
               language.code,
               fallback,
               licenseOpt,

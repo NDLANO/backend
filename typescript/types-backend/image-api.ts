@@ -709,6 +709,11 @@ export type components = {
             inactive: boolean;
         };
         /**
+         * ImageSearchField
+         * @enum {string}
+         */
+        ImageSearchField: "alttexts" | "captions" | "creators" | "editorNotes" | "processors" | "rightsholders" | "tags" | "titles";
+        /**
          * ImageTagDTO
          * @description Searchable tags for the image
          */
@@ -799,8 +804,10 @@ export type components = {
          * @description The search parameters
          */
         SearchParamsDTO: {
-            /** @description Return only images with titles, alt-texts or tags matching the specified query. */
+            /** @description Return only images matching the specified query. */
             query?: string;
+            /** @description Restrict query searches to the specified fields. If omitted or empty, all the fields are used. */
+            queryFields?: components["schemas"]["ImageSearchField"][];
             /** @description Return only images with provided license. Specifying 'all' gives all images regardless of license. */
             license?: string;
             /** @description The ISO 639-1 language code describing language used in query-params */
@@ -1028,6 +1035,7 @@ export type ImageFileDTO = components['schemas']['ImageFileDTO'];
 export type ImageMetaInformationV2DTO = components['schemas']['ImageMetaInformationV2DTO'];
 export type ImageMetaInformationV3DTO = components['schemas']['ImageMetaInformationV3DTO'];
 export type ImageMetaSummaryDTO = components['schemas']['ImageMetaSummaryDTO'];
+export type ImageSearchField = components['schemas']['ImageSearchField'];
 export type ImageTagDTO = components['schemas']['ImageTagDTO'];
 export type ImageTitleDTO = components['schemas']['ImageTitleDTO'];
 export type ImageVariantDTO = components['schemas']['ImageVariantDTO'];
@@ -1052,6 +1060,8 @@ export interface operations {
             query?: {
                 /** @description Return only images with titles, alt-texts or tags matching the specified query. */
                 query?: string;
+                /** @description Restrict query searches to the specified fields. If omitted or empty, all the fields are used. */
+                "query-fields"?: components["schemas"]["ImageSearchField"][];
                 /** @description Return only images with full size larger than submitted value in bytes. */
                 "minimum-size"?: number;
                 /** @description The ISO 639-1 language code describing language. */
@@ -1625,6 +1635,8 @@ export interface operations {
             query?: {
                 /** @description Return only images with titles, alt-texts or tags matching the specified query. */
                 query?: string;
+                /** @description Restrict query searches to the specified fields. If omitted or empty, all the fields are used. */
+                "query-fields"?: components["schemas"]["ImageSearchField"][];
                 /** @description Return only images with full size larger than submitted value in bytes. */
                 "minimum-size"?: number;
                 /** @description The ISO 639-1 language code describing language. */

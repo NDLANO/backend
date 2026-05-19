@@ -8,27 +8,32 @@
 
 package no.ndla.imageapi.model.domain
 
-import enumeratum.*
-import no.ndla.common.CirceUtil.CirceEnumWithErrors
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Codec.PlainCodec
-import sttp.tapir.Schema
-import sttp.tapir.codec.enumeratum.*
+import sttp.tapir.{Codec, Schema}
 
-sealed abstract class ImageSearchField(override val entryName: String) extends EnumEntry
+enum ImageSearchField(val entryName: String) {
+  case Titles        extends ImageSearchField("titles")
+  case Alttexts      extends ImageSearchField("alttexts")
+  case Captions      extends ImageSearchField("captions")
+  case Tags          extends ImageSearchField("tags")
+  case Creators      extends ImageSearchField("creators")
+  case Processors    extends ImageSearchField("processors")
+  case Rightsholders extends ImageSearchField("rightsholders")
+  case EditorNotes   extends ImageSearchField("editorNotes")
+}
 
-object ImageSearchField extends Enum[ImageSearchField] with CirceEnumWithErrors[ImageSearchField] {
+object ImageSearchField {
+  def withNameOption(name: String): Option[ImageSearchField] = values.find(_.entryName == name)
 
-  val values: IndexedSeq[ImageSearchField] = findValues
+  implicit val schema: Schema[ImageSearchField] =
+    Schema.derivedEnumeration[ImageSearchField](encode = Some(_.entryName))
 
-  case object Titles        extends ImageSearchField("titles")
-  case object Alttexts      extends ImageSearchField("alttexts")
-  case object Captions      extends ImageSearchField("captions")
-  case object Tags          extends ImageSearchField("tags")
-  case object Creators      extends ImageSearchField("creators")
-  case object Processors    extends ImageSearchField("processors")
-  case object Rightsholders extends ImageSearchField("rightsholders")
-  case object EditorNotes   extends ImageSearchField("editorNotes")
+  implicit val codec: PlainCodec[ImageSearchField] =
+    Codec.derivedEnumeration[String, ImageSearchField](decode = withNameOption, encode = _.entryName)
 
-  implicit val schema: Schema[ImageSearchField]    = schemaForEnumEntry[ImageSearchField]
-  implicit val codec: PlainCodec[ImageSearchField] = plainCodecEnumEntry[ImageSearchField]
+  implicit val encoder: Encoder[ImageSearchField] = Encoder.encodeString.contramap(_.entryName)
+  implicit val decoder: Decoder[ImageSearchField] = Decoder
+    .decodeString
+    .emap(s => withNameOption(s).toRight(s"Unknown ImageSearchField: $s"))
 }

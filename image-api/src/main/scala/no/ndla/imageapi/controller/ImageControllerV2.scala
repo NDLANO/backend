@@ -208,12 +208,11 @@ class ImageControllerV2(using
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
-            val imageSearchFields   = queryFields.values.flatMap(ImageSearchField.withNameOption)
 
             search(
               minimumSize,
               query,
-              imageSearchFields,
+              queryFields.values,
               language.code,
               fallback,
               license,
