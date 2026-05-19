@@ -436,6 +436,7 @@ class TestData(using imageConverter: ImageConverter) {
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
+    queryFields = List.empty,
     minimumSize = None,
     language = "*",
     fallback = false,

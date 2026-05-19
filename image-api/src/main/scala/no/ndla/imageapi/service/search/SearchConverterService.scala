@@ -48,9 +48,6 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
 
   def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
     val defaultTitle = getDefault(image.titles)
-    val contributors = image.copyright.creators.map(c => c.name) ++
-      image.copyright.processors.map(p => p.name) ++
-      image.copyright.rightsholders.map(r => r.name)
 
     val podcastFriendly = image
       .images
@@ -68,7 +65,9 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       alttexts = SearchableLanguageValues.fromFields(image.alttexts),
       captions = SearchableLanguageValues.fromFields(image.captions),
       tags = SearchableLanguageList.fromFields(image.tags),
-      contributors = contributors,
+      creators = image.copyright.creators.map(c => c.name),
+      processors = image.copyright.processors.map(p => p.name),
+      rightsholders = image.copyright.rightsholders.map(r => r.name),
       license = image.copyright.license,
       lastUpdated = image.updated,
       defaultTitle = defaultTitle.map(t => t.title),
@@ -122,11 +121,13 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
 
     val editorNotes = Option.when(user.hasPermission(IMAGE_API_WRITE))(searchableImage.editorNotes)
 
+    val contributors = searchableImage.creators ++ searchableImage.processors ++ searchableImage.rightsholders
+
     getSearchableImageFileFromSearchableImage(searchableImage, language.some).map(imageFile => {
       ImageMetaSummaryDTO(
         id = searchableImage.id.toString,
         title = title,
-        contributors = searchableImage.contributors,
+        contributors = contributors,
         altText = altText,
         caption = caption,
         previewUrl = apiToRawRegex.replaceFirstIn(ApplicationUrl.get, "/raw") + imageFile.previewUrl,

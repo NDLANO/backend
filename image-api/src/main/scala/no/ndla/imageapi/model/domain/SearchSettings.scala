@@ -10,6 +10,7 @@ package no.ndla.imageapi.model.domain
 
 case class SearchSettings(
     query: Option[String],
+    queryFields: List[ImageSearchField],
     minimumSize: Option[Int],
     language: String,
     fallback: Boolean,
