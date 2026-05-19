@@ -22,8 +22,8 @@ import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.common.auth.Permission.AUDIO_API_WRITE
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.network.tapir.{ErrorHelpers, TapirController}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.auth.NdlaAuth
+import no.ndla.network.tapir.TapirController
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto.*
@@ -39,8 +39,7 @@ class SeriesController(using
     searchConverterService: SearchConverterService,
     props: Props,
     errorHandling: ControllerErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
   private val queryString =
     query[Option[String]]("query").description("Return only results with titles or tags matching the specified query.")

@@ -12,7 +12,9 @@ import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
+import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, NonEmptyString, Routes, TapirController}
+import no.ndla.scalatestsuite.NdlaAuthTestTokens
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.DraftSearchField
 import no.ndla.searchapi.model.domain.Sort
@@ -33,6 +35,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
   override implicit lazy val clock: Clock                       = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers         = new ErrorHelpers
   override implicit lazy val errorHandling: ErrorHandling       = new ControllerErrorHandling
+  override implicit lazy val myNdlaProvider: MyNDLAProvider     = myndlaApiClient
   override val controller: SearchController                     = new SearchController()
   override implicit lazy val services: List[TapirController]    = List(controller)
   override implicit lazy val routes: Routes                     = new Routes
@@ -44,13 +47,8 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(clock.now()).thenCallRealMethod()
   }
 
-  val authTokenWithNoRole =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6W10sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.vw9YhRtgUQr_vuDhLNHfBsZz-4XLhCc1Kwxi0w0_qGI"
-  val authTokenWithWriteRole =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
-
-  val authHeadersWithWriteRole: Map[String, String] = Map("Authorization" -> s"Bearer $authTokenWithWriteRole")
-  val authHeadersWithNoRole: Map[String, String]    = Map("Authorization" -> s"Bearer $authTokenWithNoRole")
+  val authHeadersWithWriteRole: Map[String, String] = Map("Authorization" -> s"Bearer ${NdlaAuthTestTokens.DraftWrite}")
+  val authHeadersWithNoRole: Map[String, String]    = Map("Authorization" -> s"Bearer ${NdlaAuthTestTokens.NoPermissions}")
 
   test("That / returns 200 ok") {
     val multiResult =

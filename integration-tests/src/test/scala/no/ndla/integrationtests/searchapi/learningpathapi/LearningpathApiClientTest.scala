@@ -14,7 +14,7 @@ import no.ndla.common.model.api.search.LanguageValue
 import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.network.{AuthUser, NdlaClient}
+import no.ndla.network.NdlaClient
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
@@ -94,7 +94,6 @@ class LearningpathApiClientTest
   test("that dumping learningpaths returns learningpaths in serializable format") {
     setupLearningPaths()
 
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val learningPathApiClient = new LearningPathApiClient(learningpathApiBaseUrl)
 
     val chunks              = learningPathApiClient.getChunks.toList

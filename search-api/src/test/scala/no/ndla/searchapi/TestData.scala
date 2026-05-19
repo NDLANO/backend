@@ -32,6 +32,7 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
 import no.ndla.common.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.scalatestsuite.NdlaAuthTestTokens
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
@@ -1842,13 +1843,7 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
-    user = TokenUser(
-      "xxxyyy",
-      Set(DRAFT_API_WRITE),
-      Some(
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
-      ),
-    ),
+    user = TokenUser("SomeNdlaId", Set(DRAFT_API_WRITE), Some(NdlaAuthTestTokens.DraftWrite)),
     query = None,
     noteQuery = None,
     queryFields = List.empty,

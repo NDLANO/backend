@@ -9,11 +9,9 @@
 package no.ndla.oembedproxy.controller
 
 import cats.implicits.*
-import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.service.OEmbedService
 import sttp.tapir.*
@@ -22,13 +20,7 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
-class OEmbedProxyController(using
-    oEmbedService: OEmbedService,
-    myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling,
-    props: Props,
-) extends TapirController {
+class OEmbedProxyController(using oEmbedService: OEmbedService, errorHandling: ErrorHandling) extends TapirController {
   import errorHandling.*
   override val serviceName: String                       = "oembed"
   override val prefix: EndpointInput[Unit]               = "oembed-proxy" / "v1" / serviceName

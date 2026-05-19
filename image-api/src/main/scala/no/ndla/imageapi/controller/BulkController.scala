@@ -22,11 +22,11 @@ import no.ndla.imageapi.model.api.bulk.{
   UploadStatusEventType,
 }
 import no.ndla.imageapi.service.{ReadService, WriteService}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.StreamingSSE
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.auth.NdlaAuth
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import sttp.model.Part
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -41,9 +41,8 @@ class BulkController(using
     readService: ReadService,
     writeService: WriteService,
     props: Props,
-    errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController
     with BaseImageController
     with StrictLogging {

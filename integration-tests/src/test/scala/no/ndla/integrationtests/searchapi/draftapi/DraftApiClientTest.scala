@@ -15,7 +15,7 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBUtility, HasDatabaseProps}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.{AuthUser, NdlaClient}
+import no.ndla.network.NdlaClient
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
@@ -107,14 +107,9 @@ class DraftApiClientTest
       }
   }
 
-  val exampleToken =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
-  val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
-
   test("that dumping drafts returns drafts in serializable format") {
     setupArticles()
 
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
     val chunks       = draftApiClient.getChunks.toList

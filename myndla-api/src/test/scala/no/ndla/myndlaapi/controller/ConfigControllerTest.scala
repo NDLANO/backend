@@ -12,11 +12,10 @@ import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.config.{ConfigMetaDTO, ConfigMetaValueDTO}
 import no.ndla.common.model.domain.config.ConfigKey
-import no.ndla.myndlaapi.TestData.{adminAndWriteScopeClientToken, adminScopeClientToken}
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.scalatestsuite.{NdlaAuthTestTokens, UnitTestSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -25,7 +24,7 @@ import sttp.client4.quick.*
 import scala.util.Success
 
 class ConfigControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
-  override implicit lazy val clock: Clock                           = mock[Clock]
+  override implicit lazy val clock: Clock                           = new Clock
   override implicit lazy val errorHelpers: ErrorHelpers             = new ErrorHelpers
   override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
   override implicit lazy val routes: Routes                         = new Routes
@@ -40,14 +39,14 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     val response1 = quickRequest
       .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
       .body("{\"value\": true}")
-      .header("Authorization", s"Bearer $adminScopeClientToken")
+      .header("Authorization", s"Bearer ${NdlaAuthTestTokens.LearningPathAdmin}")
       .send()
     response1.code.code should be(200)
 
     val response2 = quickRequest
       .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
       .body("{\"value\": true}")
-      .header("Authorization", s"Bearer $adminAndWriteScopeClientToken")
+      .header("Authorization", s"Bearer ${NdlaAuthTestTokens.LearningPathAdminAndWrite}")
       .send()
     response2.code.code should be(200)
   }

@@ -11,12 +11,10 @@ package no.ndla.myndlaapi.controller
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.domain.ResourceType
-import no.ndla.myndlaapi.Props
-import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.StatsDTO
 import no.ndla.myndlaapi.service.FolderReadService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHelpers, TapirController}
+import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
@@ -26,13 +24,8 @@ import sttp.tapir.model.CommaSeparated
 
 import scala.util.Failure
 
-class StatsController(using
-    folderReadService: FolderReadService,
-    errorHandling: ControllerErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: InternalMyNDLAApiClient,
-    props: Props,
-) extends TapirController {
+class StatsController(using folderReadService: FolderReadService, errorHandling: ControllerErrorHandling)
+    extends TapirController {
   override val serviceName: String                   = "stats"
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 

@@ -8,49 +8,28 @@
 
 package no.ndla.learningpathapi
 
-import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.converter.CommonConverter
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.common.{Clock, UUIDUtil}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.learningpathapi.controller.{
   ControllerErrorHandling,
   InternController,
   LearningpathControllerV2,
   StatsController,
 }
-import no.ndla.learningpathapi.db.migrationwithdependencies.{
-  V11__CreatedByNdlaStatusForOwnersWithRoles,
-  V13__StoreNDLAStepsAsIframeTypes,
-  V14__ConvertLanguageUnknown,
-  V15__MergeDuplicateLanguageFields,
-  V31__ArenaDefaultEnabledOrgs,
-  V33__AiDefaultEnabledOrgs,
-}
+import no.ndla.learningpathapi.db.migrationwithdependencies.*
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.domain.DBLearningPath
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
-import no.ndla.learningpathapi.validation.{
-  LanguageValidator,
-  LearningPathValidator,
-  LearningStepValidator,
-  TitleValidator,
-  UrlValidator,
-}
+import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{CombinedAuth, FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties) extends TapirApplication[LearningpathApiProperties] {
   given props: LearningpathApiProperties = properties
@@ -70,12 +49,16 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   given ndlaClient: NdlaClient   = new NdlaClient
 
-  given errorHelpers: ErrorHelpers                       = new ErrorHelpers
-  given errorHandling: ErrorHandling                     = new ControllerErrorHandling
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient = new TaxonomyApiClient
-  implicit lazy val myndlaApiClient: MyNDLAApiClient     = new MyNDLAApiClient
-  given searchApiClient: SearchApiClient                 = new SearchApiClient
-  given oembedProxyClient: OembedProxyClient             = new OembedProxyClient
+  given errorHelpers: ErrorHelpers                          = new ErrorHelpers
+  given errorHandling: ErrorHandling                        = new ControllerErrorHandling
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient    = new TaxonomyApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient        = new MyNDLAApiClient
+  implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                                  = NdlaAuth()
+  given feideAuth: FeideAuth                                = FeideAuth()
+  given combinedAuth: CombinedAuth                          = CombinedAuth()
+  given searchApiClient: SearchApiClient                    = new SearchApiClient
+  given oembedProxyClient: OembedProxyClient                = new OembedProxyClient
 
   given learningPathRepository: LearningPathRepository          = new LearningPathRepository
   given languageValidator: LanguageValidator                    = new LanguageValidator

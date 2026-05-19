@@ -11,10 +11,9 @@ package no.ndla.frontpageapi.controller
 import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.errors.ValidationException
-import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -26,10 +25,9 @@ import sttp.tapir.server.ServerEndpoint
 class FilmPageController(using
     readService: ReadService,
     writeService: WriteService,
-    myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    props: Props,
+    ndlaAuth: NdlaAuth,
 ) extends TapirController {
   override val serviceName: String                       = "filmfrontpage"
   override val prefix: EndpointInput[Unit]               = "frontpage-api" / "v1" / serviceName

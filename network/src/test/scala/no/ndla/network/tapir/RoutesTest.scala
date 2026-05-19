@@ -13,7 +13,6 @@ import io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSna
 import no.ndla.common.Clock
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -26,12 +25,7 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-class RoutesTestController(using
-    errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient,
-    props: BaseProps,
-) extends TapirController {
+class RoutesTestController(using errorHandling: ErrorHandling) extends TapirController {
   override val prefix: EndpointInput[Unit]               = "routes"
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(abortRequestTestEndpoint)
 
@@ -57,7 +51,6 @@ class RoutesTest extends UnitTestSuite, TapirControllerTest {
   override implicit lazy val errorHandling: ErrorHandling = new ErrorHandling() {
     override def handleErrors: PartialFunction[Throwable, AllErrors] = PartialFunction.empty
   }
-  implicit val myNDLAApiClient: MyNDLAApiClient              = mock[MyNDLAApiClient]
   override val controller: RoutesTestController              = new RoutesTestController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes

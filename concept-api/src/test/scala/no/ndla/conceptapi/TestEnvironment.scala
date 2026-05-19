@@ -21,18 +21,10 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.tapir.*
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 

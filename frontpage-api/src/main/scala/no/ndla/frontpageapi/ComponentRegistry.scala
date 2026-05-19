@@ -9,23 +9,16 @@
 package no.ndla.frontpageapi
 
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{CombinedAuth, FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
 
 class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
   given props: FrontpageApiProperties = properties
@@ -45,6 +38,10 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
   given converterService: ConverterService               = new ConverterService
   given myndlaApiClient: MyNDLAApiClient                 = new MyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory     = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                               = NdlaAuth()
+  given feideAuth: FeideAuth                             = FeideAuth()
+  given combinedAuth: CombinedAuth                       = CombinedAuth()
 
   given readService: ReadService   = new ReadService
   given writeService: WriteService = new WriteService

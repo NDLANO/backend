@@ -19,8 +19,7 @@ import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, T
 import no.ndla.audioapi.service.ReadService
 import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -37,8 +36,6 @@ class InternController(using
     readService: ReadService,
     props: Props,
     errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false

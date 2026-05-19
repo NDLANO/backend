@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LanguageValue
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.HasDatabaseProps
-import no.ndla.network.{AuthUser, NdlaClient}
+import no.ndla.network.NdlaClient
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
@@ -111,7 +111,6 @@ class ArticleApiClientTest
   test("that dumping articles returns articles in serializable format") {
     dataFixer.setupArticles()
 
-    AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
 
     val chunks         = articleApiClient.getChunks.toList

@@ -144,7 +144,9 @@ trait BaseProps extends StrictLogging {
     case "staging"        => "login.staging.ndla.no"
     case _                => "login.ndla.no"
   }
-  val ndlaAuth0Issuer = s"https://$ndlaAuth0Host"
+
+  // NOTE: Auth0 has a trailing slash in issuer
+  val ndlaAuth0Issuer = s"https://$ndlaAuth0Host/"
 
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)
