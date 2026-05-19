@@ -29,7 +29,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           TestData.domainSubjectPage.about ++ Seq(AboutSubject("Foo", "Bar", "nn", VisualElement(Image, "123", None))),
         metaDescription = TestData.domainSubjectPage.metaDescription ++ Seq(MetaDescription("Description", "nn")),
       )
-    when(subjectPageRepository.withId(any)).thenReturn(Success(Some(subjectPage)))
+    when(subjectPageRepository.withId(any)(using any)).thenReturn(Success(Some(subjectPage)))
     when(subjectPageRepository.updateSubjectPage(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
     val result = writeService.deleteSubjectPageLanguage(subjectPage.id.get, "nn")
@@ -43,7 +43,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That deleting last language for subject page throws exception") {
-    when(subjectPageRepository.withId(any)).thenReturn(Success(Some(TestData.domainSubjectPage)))
+    when(subjectPageRepository.withId(any)(using any)).thenReturn(Success(Some(TestData.domainSubjectPage)))
     when(subjectPageRepository.updateSubjectPage(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
     val result = writeService.deleteSubjectPageLanguage(TestData.domainSubjectPage.id.get, "nb")
