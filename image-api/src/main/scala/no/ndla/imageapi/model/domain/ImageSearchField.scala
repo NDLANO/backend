@@ -9,13 +9,14 @@
 package no.ndla.imageapi.model.domain
 
 import enumeratum.*
+import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import sttp.tapir.Codec.PlainCodec
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class ImageSearchField(override val entryName: String) extends EnumEntry
 
-object ImageSearchField extends Enum[ImageSearchField] with CirceEnum[ImageSearchField] {
+object ImageSearchField extends Enum[ImageSearchField] with CirceEnumWithErrors[ImageSearchField] {
 
   val values: IndexedSeq[ImageSearchField] = findValues
 
