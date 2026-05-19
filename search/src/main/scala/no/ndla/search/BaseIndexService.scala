@@ -65,6 +65,25 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
       .analysis(analysis)
   }
 
+  /** Applies bulk-load-friendly index settings (no periodic refresh, async translog). Must be paired with
+    * [[restoreIndexSettingsAfterBulkLoad]] before the new index is exposed via alias swap.
+    */
+  private def applyBulkLoadIndexSettings(indexName: String): Try[?] = {
+    val bulkSettings: Map[String, String] = Map("refresh_interval" -> "-1", "translog.durability" -> "async")
+    e4sClient.execute(updateSettings(Indexes(indexName), bulkSettings))
+  }
+
+  /** Reverts the bulk-loading index settings set by [[applyBulkLoadIndexSettings]] and forces a refresh so the index is
+    * queryable once the alias points at it.
+    */
+  private def restoreIndexSettingsAfterBulkLoad(indexName: String): Try[?] = {
+    val restoreSettings: Map[String, String] = Map("refresh_interval" -> "1s", "translog.durability" -> "request")
+    for {
+      _ <- e4sClient.execute(updateSettings(Indexes(indexName), restoreSettings))
+      _ <- e4sClient.execute(refreshIndex(indexName))
+    } yield ()
+  }
+
   def createIndexWithName(indexName: String): Try[String] = createIndexWithName(indexName, None)
 
   def createIndexWithName(indexName: String, numShards: Option[Int]): Try[String] = {
@@ -128,8 +147,10 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
   def indexDocumentsInBulk(numShards: Option[Int])(sendToElasticFunction: SendToElastic): Try[ReindexResult] = for {
     start       <- Try(System.currentTimeMillis())
     indexName   <- createIndexWithGeneratedName(numShards)
+    _           <- applyBulkLoadIndexSettings(indexName)
     indexResult <- sendToElasticFunction(indexName)
     result      <- validateBulkIndexing(indexResult)
+    _           <- restoreIndexSettingsAfterBulkLoad(indexName)
     aliasTarget <- getAliasTarget
     _           <- updateAliasTarget(aliasTarget, indexName)
   } yield ReindexResult(documentType, result.failed, result.count, System.currentTimeMillis() - start)
@@ -150,7 +171,9 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
       for {
         newIndex <- createIndexWithGeneratedName(numShards.some)
         _         = logger.info(s"Created index $newIndex for internal reindexing")
+        _        <- applyBulkLoadIndexSettings(newIndex)
         _        <- e4sClient.execute(reindex(currentIndex, newIndex))
+        _        <- restoreIndexSettingsAfterBulkLoad(newIndex)
         _        <- updateAliasTarget(currentIndex.some, newIndex)
       } yield ()
     }
