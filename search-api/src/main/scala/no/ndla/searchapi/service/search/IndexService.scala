@@ -223,7 +223,14 @@ trait IndexService[D <: Content](using
                 case Failure(ex) =>
                   logger.error(s"Failed to fetch chunk $page from api client '${apiClient.name}'", ex)
                   Failure(ex)
-                case Success(chunk) => processChunk(chunk, indexName, indexingBundle)
+                case Success(chunk) =>
+                  val result = processChunk(chunk, indexName, indexingBundle)
+                  result
+                    .failed
+                    .foreach(ex =>
+                      logger.error(s"Failed to process chunk $page for $documentType: ${ex.getMessage}", ex)
+                    )
+                  result
               }
             }
           }
