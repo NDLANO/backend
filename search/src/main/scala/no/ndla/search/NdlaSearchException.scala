@@ -19,10 +19,11 @@ case class NdlaSearchException[T](
 
 object NdlaSearchException {
   def apply[T](request: T, rf: RequestFailure): NdlaSearchException[T] = {
-    val msg = s"""Got error from elasticsearch:
+    val rstr = request.toString.slice(0, 1000)
+    val msg  = s"""Got error from elasticsearch:
         |  Status: ${rf.status}
         |  Error: ${rf.error}
-        |  Caused by request: $request
+        |  Caused by request: $rstr
         |""".stripMargin
 
     new NdlaSearchException(msg, Some(rf))
