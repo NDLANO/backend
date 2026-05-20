@@ -11,7 +11,7 @@ package no.ndla.imageapi.controller
 import no.ndla.common.errors.FileTooBigException
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.common.model.domain.UploadedFile
+import no.ndla.common.model.domain.{AiGenerated, UploadedFile}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ImageSearchField, ModelReleasedStatus, Sort}
 import no.ndla.language.Language
@@ -77,6 +77,10 @@ trait BaseImageController(using props: Props) {
   val modelReleased
       : EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("model-released").description(
     s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values.mkString(",")}"
+  )
+
+  val aiGenerated: EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("ai-generated").description(
+    s"Filter whether the image(s) is AI generated or not. Multiple values can be specified in a comma separated list. Possible values include: ${AiGenerated.values.mkString(",")}"
   )
 
   val userFilter: EndpointInput.Query[Option[Delimited[",", String]]] =

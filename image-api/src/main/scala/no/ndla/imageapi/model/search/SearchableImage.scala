@@ -28,6 +28,7 @@ case class SearchableImage(
     lastUpdated: NDLADate,
     defaultTitle: Option[String],
     modelReleased: Option[String],
+    aiGenerated: Option[String],
     editorNotes: Seq[String],
     imageFiles: Seq[SearchableImageFile],
     podcastFriendly: Boolean,
