@@ -287,8 +287,8 @@ trait IndexService[D <: Content](using
 
       val filteredRequests = indexRequests.flatten
       if (filteredRequests.nonEmpty) {
-        val response = e4sClient.execute {
-          bulk(filteredRequests)
+        val response = retryOn429(s"bulk of ${filteredRequests.size} into $searchIndex ($documentType)") {
+          e4sClient.execute(bulk(filteredRequests))
         }
 
         response match {
