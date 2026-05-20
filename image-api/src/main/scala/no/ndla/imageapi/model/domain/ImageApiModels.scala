@@ -10,11 +10,10 @@ package no.ndla.imageapi.model.domain
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.language.model.LanguageField
-
-import scala.util.{Failure, Success, Try}
+import sttp.tapir.{Codec, Schema}
+import sttp.tapir.Codec.PlainCodec
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {
   override def value: String    = title
@@ -77,30 +76,26 @@ object ImageDimensions {
   implicit val decoder: Decoder[ImageDimensions] = deriveDecoder
 }
 
-object ModelReleasedStatus extends Enumeration {
-  val YES: Value            = Value("yes")
-  val NO: Value             = Value("no")
-  val NOT_APPLICABLE: Value = Value("not-applicable")
-  val NOT_SET: Value        = Value("not-set")
+enum ModelReleasedStatus(val entryName: String) {
+  case YES            extends ModelReleasedStatus("yes")
+  case NO             extends ModelReleasedStatus("no")
+  case NOT_APPLICABLE extends ModelReleasedStatus("not-applicable")
+  case NOT_SET        extends ModelReleasedStatus("not-set")
 
-  def valueOfOrError(s: String): Try[this.Value] = valueOf(s) match {
-    case Some(st) => Success(st)
-    case None     =>
-      val validStatuses = values.map(_.toString).mkString(", ")
-      Failure(
-        new ValidationException(errors =
-          Seq(
-            ValidationMessage(
-              "modelReleased",
-              s"'$s' is not a valid model released status. Must be one of $validStatuses",
-            )
-          )
-        )
-      )
-  }
+  override def toString: String = entryName
+}
 
-  def valueOf(s: String): Option[this.Value] = values.find(_.toString == s)
+object ModelReleasedStatus {
+  def withNameOption(name: String): Option[ModelReleasedStatus] = values.find(_.entryName == name)
 
-  implicit val encoder: Encoder[ModelReleasedStatus.Value] = Encoder.encodeEnumeration(ModelReleasedStatus)
-  implicit val decoder: Decoder[ModelReleasedStatus.Value] = Decoder.decodeEnumeration(ModelReleasedStatus)
+  implicit val schema: Schema[ModelReleasedStatus] =
+    Schema.derivedEnumeration[ModelReleasedStatus](encode = Some(_.entryName))
+
+  implicit val codec: PlainCodec[ModelReleasedStatus] =
+    Codec.derivedEnumeration[String, ModelReleasedStatus](decode = withNameOption, encode = _.entryName)
+
+  implicit val encoder: Encoder[ModelReleasedStatus] = Encoder.encodeString.contramap(_.entryName)
+  implicit val decoder: Decoder[ModelReleasedStatus] = Decoder
+    .decodeString
+    .emap(s => withNameOption(s).toRight(s"Unknown ModelReleasedStatus: $s"))
 }

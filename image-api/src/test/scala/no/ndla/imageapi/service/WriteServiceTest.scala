@@ -49,7 +49,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     "",
     "en",
-    Some(ModelReleasedStatus.YES.toString),
+    Some(ModelReleasedStatus.YES),
     Some(AiGenerated.No),
   )
   val userId                        = "ndla124"
@@ -322,7 +322,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
       Some(List("a", "b", "c")),
       Some("Caption"),
-      Some(ModelReleasedStatus.NO.toString),
+      Some(ModelReleasedStatus.NO),
       Some(true),
       None,
     )

@@ -74,8 +74,9 @@ trait BaseImageController(using props: Props) {
          |""".stripMargin
   )
 
-  val modelReleased
-      : EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("model-released").description(
+  val modelReleased: EndpointInput.Query[Option[Delimited[",", ModelReleasedStatus]]] = listQuery[ModelReleasedStatus](
+    "model-released"
+  ).description(
     s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values.mkString(",")}"
   )
 

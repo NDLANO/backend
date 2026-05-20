@@ -22,7 +22,7 @@ case class SearchSettings(
     pageSize: Option[Int],
     podcastFriendly: Option[Boolean],
     shouldScroll: Boolean,
-    modelReleased: Seq[ModelReleasedStatus.Value],
+    modelReleased: Seq[ModelReleasedStatus],
     userFilter: List[String],
     inactive: Option[Boolean],
     widthFrom: Option[Int],

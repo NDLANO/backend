@@ -471,7 +471,7 @@ class WriteService(using
       ),
       updated = now,
       updatedBy = userId,
-      modelReleased = toMerge.modelReleased.flatMap(ModelReleasedStatus.valueOf).getOrElse(existing.modelReleased),
+      modelReleased = toMerge.modelReleased.getOrElse(existing.modelReleased),
       inactive = toMerge.inactive.getOrElse(existing.inactive),
       aiGenerated = toMerge.aiGenerated.orElse(existing.aiGenerated),
     )

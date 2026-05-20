@@ -256,7 +256,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       user: TokenUser,
   ): Try[ImageMetaInformation] = {
     val modelReleasedStatus = imageMeta.modelReleased match {
-      case Some(mrs) => ModelReleasedStatus.valueOfOrError(mrs)
+      case Some(mrs) => Success(mrs)
       case None      => Success(ModelReleasedStatus.NOT_SET)
     }
 
