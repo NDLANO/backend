@@ -92,6 +92,7 @@ object TestData {
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+      Seq.empty,
     )
 
   val apiNewSubjectPage: NewSubjectPageDTO = api.NewSubjectPageDTO(

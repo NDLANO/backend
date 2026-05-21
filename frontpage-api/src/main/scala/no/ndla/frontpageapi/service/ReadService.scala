@@ -54,7 +54,7 @@ class ReadService(using
     converted.toTry(SubjectPageNotFoundException(id))
   }
 
-  def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[SubjectPageDTO]] =
+  def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[SubjectPageDTO]] = {
     permitTry {
       val offset    = pageSize * (page - 1)
       val data      = subjectPageRepository.all(offset, pageSize).?
@@ -62,6 +62,7 @@ class ReadService(using
       val filtered  = filterOutNotFoundExceptions(converted)
       filtered.sequence
     }
+  }
 
   private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
     exceptions.filter {
@@ -86,10 +87,10 @@ class ReadService(using
     } yield api
   }
 
-  def getSubjectPageDomainDump(pageNo: Int, pageSize: Int): SubjectPageDomainDumpDTO = {
-    val results = subjectPageRepository.all(pageNo, pageSize).get
-    SubjectPageDomainDumpDTO(subjectPageRepository.totalCount, pageNo, pageSize, results)
-  }
+  def getSubjectPageDomainDump(pageNo: Int, pageSize: Int): Try[SubjectPageDomainDumpDTO] = for {
+    results    <- subjectPageRepository.all(pageNo, pageSize)
+    totalCount <- subjectPageRepository.totalCount
+  } yield SubjectPageDomainDumpDTO(totalCount, pageNo, pageSize, results)
 
   def getFrontPage: Try[FrontPageDTO] = {
     frontPageRepository
