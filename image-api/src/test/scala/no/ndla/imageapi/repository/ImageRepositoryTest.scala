@@ -37,7 +37,8 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   }
 
   def emptyTestDatabase: Boolean = dbUtility.writeSession(implicit session => {
-    sql"delete from imagemetadata; delete from image_editors;".execute()(using session)
+    sql"delete from image_editors".execute()(using session)
+    sql"delete from imagemetadata".execute()(using session)
   })
 
   override def beforeAll(): Unit = {
