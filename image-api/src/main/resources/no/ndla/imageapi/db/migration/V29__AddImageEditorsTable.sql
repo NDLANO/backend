@@ -6,12 +6,13 @@ create table image_editors
 );
 
 insert into image_editors (image_id, user_id)
-select note_users.image_id, note_users.user_id
+select distinct note_users.image_id, note_users.user_id
 from (select id                                       as image_id,
              notes ->> 'updatedBy'                    as user_id
       from imagemetadata
                cross join lateral jsonb_array_elements(metadata -> 'editorNotes') as notes) as note_users
-where user_id is not null;
+where user_id is not null
+on conflict do nothing;
 
 insert into image_editors (image_id, user_id)
 select id, metadata ->> 'createdBy'
