@@ -313,10 +313,7 @@ class WriteService(using
       .map { case (item, idx) =>
         Future {
           if (!progressRef.get.hasFailed) {
-            Try(processBulkItem(uploadId, total, idx, item, user, progressRef)).recover { case ex =>
-              logger.error(s"Bulk upload $uploadId: unexpected error processing item ${idx + 1}/$total", ex)
-              transitionAndPersist(uploadId, progressRef, p => p.copy(failure = p.failure.orElse(Some(ex))))
-            }: Unit
+            processBulkItem(uploadId, total, idx, item, user, progressRef)
           }
         }
       }
