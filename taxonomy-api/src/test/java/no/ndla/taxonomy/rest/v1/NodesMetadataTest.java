@@ -52,9 +52,9 @@ public class NodesMetadataTest extends RestTest {
                 "/v1/nodes/" + publicId + "/metadata",
                 new MetadataDTO() {
                     {
-                        visible = false;
-                        grepCodes = Set.of("KM123");
-                        customFields = Map.of("key", "value");
+                        setVisible(false);
+                        setGrepCodes(Set.of("KM123"));
+                        setCustomFields(Map.of("key", "value"));
                     }
                 },
                 status().isOk());
@@ -80,9 +80,9 @@ public class NodesMetadataTest extends RestTest {
                 "/v1/nodes/" + publicId + "/metadata",
                 new MetadataDTO() {
                     {
-                        visible = true;
-                        grepCodes = Set.of();
-                        customFields = Map.of();
+                        setVisible(true);
+                        setGrepCodes(Set.of());
+                        setCustomFields(Map.of());
                     }
                 },
                 status().isOk());

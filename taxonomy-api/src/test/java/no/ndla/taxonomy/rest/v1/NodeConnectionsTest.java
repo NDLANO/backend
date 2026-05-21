@@ -327,9 +327,9 @@ public class NodeConnectionsTest extends RestTest {
                 "/v1/node-connections/" + id + "/metadata",
                 new MetadataDTO() {
                     {
-                        visible = false;
-                        grepCodes = Set.of("KM123");
-                        customFields = Map.of("key", "value");
+                        setVisible(false);
+                        setGrepCodes(Set.of("KM123"));
+                        setCustomFields(Map.of("key", "value"));
                     }
                 },
                 status().isOk());
