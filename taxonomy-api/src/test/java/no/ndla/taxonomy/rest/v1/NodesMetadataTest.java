@@ -50,13 +50,7 @@ public class NodesMetadataTest extends RestTest {
 
         testUtils.updateResource(
                 "/v1/nodes/" + publicId + "/metadata",
-                new MetadataDTO() {
-                    {
-                        setVisible(false);
-                        setGrepCodes(Set.of("KM123"));
-                        setCustomFields(Map.of("key", "value"));
-                    }
-                },
+                new MetadataDTO(Set.of("KM123"), false, Map.of("key", "value")),
                 status().isOk());
 
         Node node = nodeRepository.getByPublicId(publicId);
@@ -77,15 +71,7 @@ public class NodesMetadataTest extends RestTest {
                 .getPublicId();
 
         testUtils.updateResource(
-                "/v1/nodes/" + publicId + "/metadata",
-                new MetadataDTO() {
-                    {
-                        setVisible(true);
-                        setGrepCodes(Set.of());
-                        setCustomFields(Map.of());
-                    }
-                },
-                status().isOk());
+                "/v1/nodes/" + publicId + "/metadata", new MetadataDTO(Set.of(), true, Map.of()), status().isOk());
 
         Node node = nodeRepository.getByPublicId(publicId);
         assertNotNull(node.getMetadata());

@@ -9,8 +9,6 @@ package no.ndla.taxonomy.domain
 
 import java.io.Serializable
 import java.time.Instant
-import java.util.Objects
-import java.util.stream.Collectors
 import no.ndla.taxonomy.rest.v1.dtos.MetadataPUT
 
 class Metadata : Serializable {
@@ -42,9 +40,9 @@ class Metadata : Serializable {
   }
 
   fun mergeWith(toMerge: MetadataPUT): Metadata {
-    toMerge.visible.ifPresent { this.setVisible(it) }
-    toMerge.grepCodes.ifPresent { this.setGrepCodes(it) }
-    toMerge.customFields.ifPresent { this.setCustomFields(it) }
+    toMerge.visible?.let { this.setVisible(it) }
+    toMerge.grepCodes?.let { this.setGrepCodes(it) }
+    toMerge.customFields?.let { this.setCustomFields(it) }
     return this
   }
 
@@ -58,7 +56,7 @@ class Metadata : Serializable {
   }
 
   fun setGrepCodes(grepCodes: Set<String>) {
-    val newJsonGrepCodes = grepCodes.stream().map { JsonGrepCode(it) }.collect(Collectors.toSet())
+    val newJsonGrepCodes = grepCodes.mapTo(mutableSetOf()) { JsonGrepCode(it) }
     this.grepCodes = newJsonGrepCodes
     this.parent!!.setGrepCodes(newJsonGrepCodes)
   }
@@ -90,12 +88,11 @@ class Metadata : Serializable {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other == null || javaClass != other.javaClass) return false
-    val that = other as Metadata
-    return visible == that.visible &&
-        Objects.equals(updatedAt, that.updatedAt) &&
-        Objects.equals(createdAt, that.createdAt) &&
-        Objects.equals(grepCodes, that.grepCodes) &&
-        Objects.equals(customFields, that.customFields)
+    if (other !is Metadata) return false
+    return visible == other.visible &&
+        updatedAt == other.updatedAt &&
+        createdAt == other.createdAt &&
+        grepCodes == other.grepCodes &&
+        customFields == other.customFields
   }
 }

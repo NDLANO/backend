@@ -7,7 +7,6 @@
 
 package no.ndla.taxonomy.domain
 
-import java.util.Objects
 import java.util.Optional
 
 interface Translatable {
@@ -15,44 +14,31 @@ interface Translatable {
   var translations: MutableList<JsonTranslation>
 
   fun clearTranslations() {
-    translations = ArrayList()
+    translations = mutableListOf()
   }
 
-  fun getTranslation(languageCode: String): Optional<JsonTranslation> {
-    return translations
-        .stream()
-        .filter { translation -> translation.languageCode == languageCode }
-        .findFirst()
-  }
+  fun getTranslation(languageCode: String): Optional<JsonTranslation> =
+      Optional.ofNullable(translations.firstOrNull { it.languageCode == languageCode })
 
   fun addTranslation(nodeTranslation: JsonTranslation): JsonTranslation {
     if (nodeTranslation.parent !== this) {
       nodeTranslation.parent = this
     }
-    val newTranslations =
-        ArrayList(
-            translations
-                .stream()
-                .filter { t -> !Objects.equals(t.languageCode, nodeTranslation.languageCode) }
-                .toList())
-    newTranslations.add(nodeTranslation)
-    translations = newTranslations
+    translations =
+        (translations.filter { it.languageCode != nodeTranslation.languageCode } + nodeTranslation)
+            .toMutableList()
     return nodeTranslation
   }
 
-  fun addTranslation(name: String, languageCode: String): JsonTranslation {
-    val nodeTranslation = JsonTranslation(name, languageCode)
-    return this.addTranslation(nodeTranslation)
-  }
+  fun addTranslation(name: String, languageCode: String): JsonTranslation =
+      addTranslation(JsonTranslation(name, languageCode))
 
   fun removeTranslation(translation: JsonTranslation) {
     translation.parent = null
-    val newTranslations =
-        ArrayList(translations.stream().filter { t -> t !== translation }.toList())
-    translations = newTranslations
+    translations = translations.filter { it !== translation }.toMutableList()
   }
 
   fun removeTranslation(languageCode: String) {
-    getTranslation(languageCode).ifPresent { this.removeTranslation(it) }
+    getTranslation(languageCode).ifPresent(::removeTranslation)
   }
 }
