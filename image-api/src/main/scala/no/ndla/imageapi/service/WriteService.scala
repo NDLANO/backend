@@ -242,7 +242,7 @@ class WriteService(using
       file: UploadedFile,
       user: TokenUser,
   ): Try[ImageMetaInformation] = permitTry {
-    val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
+    val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user)
     insertAndStoreImage(toInsert, file, None, newImage.language)
   }
 
