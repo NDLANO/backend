@@ -129,7 +129,7 @@ class Nodes(
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
       @Parameter(description = "Filter out programme contexts")
-      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "false")
+      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "true")
       filterProgrammes: Boolean,
       @Parameter(description = "Id to root id in context.")
       @RequestParam(value = "rootId", required = false)
@@ -188,7 +188,7 @@ class Nodes(
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
       @Parameter(description = "Filter out programme contexts")
-      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "false")
+      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "true")
       filterProgrammes: Boolean,
       @Parameter(description = "Id to root id in context to select. Does not affect search results")
       @RequestParam(value = "rootId", required = false)
@@ -251,7 +251,7 @@ class Nodes(
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
       @Parameter(description = "Filter out programme contexts")
-      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "false")
+      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "true")
       filterProgrammes: Boolean,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false, defaultValue = "true")
@@ -415,7 +415,7 @@ class Nodes(
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
       @Parameter(description = "Filter out programme contexts")
-      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "false")
+      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "true")
       filterProgrammes: Boolean,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false, defaultValue = "true")
@@ -496,7 +496,7 @@ class Nodes(
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
       @Parameter(description = "Filter out programme contexts")
-      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "false")
+      @RequestParam(value = "filterProgrammes", required = false, defaultValue = "true")
       filterProgrammes: Boolean,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false, defaultValue = "true")
