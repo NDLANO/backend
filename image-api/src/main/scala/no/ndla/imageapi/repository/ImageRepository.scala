@@ -47,9 +47,11 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(imageMeta))
 
-    tsql"insert into imagemetadata(metadata) values ($dataObject)"
-      .updateAndReturnGeneratedKey()
-      .map(id => imageMeta.copy(id = Some(id)))
+    for {
+      id      <- tsql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
+      inserted = imageMeta.copy(id = Some(id))
+      tracked <- trackEditors(inserted)
+    } yield tracked
 
   def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
       session: DBSession = dbUtility.autoSession
@@ -58,9 +60,37 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(json)
-    tsql"update imagemetadata set metadata = $dataObject where id = $id"
-      .update()
-      .map(_ => imageMetaInformation.copy(id = Some(id)))
+    for {
+      updated <- tsql"update imagemetadata set metadata = $dataObject where id = $id"
+        .update()
+        .map(_ => imageMetaInformation.copy(id = Some(id)))
+      tracked <- trackEditors(updated)
+    } yield tracked
+  }
+
+  def getAllEditors(implicit session: DBSession = dbUtility.readOnlySession): Try[Seq[String]] =
+    tsql"select distinct user_id from image_editors".map(rs => rs.string("user_id")).runList()
+
+  private def trackEditors(image: ImageMetaInformation)(implicit session: DBSession): Try[ImageMetaInformation] = {
+    image.id match {
+      case None     => Success(image)
+      case Some(id) =>
+        val userIds = (
+          Seq(image.createdBy, image.updatedBy) ++
+            image.editorNotes.map(_.updatedBy)
+        ).distinct
+
+        userIds
+          .map { userId =>
+            tsql"""
+              insert into image_editors (image_id, user_id)
+              values ($id, $userId)
+              on conflict do nothing
+            """.update()
+          }
+          .sequence
+          .map(_ => image)
+    }
   }
 
   def delete(imageId: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = Try {
@@ -68,7 +98,9 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
   }.flatMap {
     case n if n < 1 =>
       Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-    case n => Success(n)
+    case n =>
+      val _ = tsql"delete from image_editors where image_id = $imageId".update().get
+      Success(n)
   }
 
   def minMaxId: Try[(Long, Long)] = dbUtility.readOnly { implicit session =>
