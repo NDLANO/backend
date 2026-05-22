@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.matomo.model.{MatomoDimensionResult, MatomoPageUrlResult, MatomoReportMetadata}
-import sttp.client3.quick.*
+import sttp.client4.quick.*
 
 import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
