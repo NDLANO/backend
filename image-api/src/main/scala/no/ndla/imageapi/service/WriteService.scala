@@ -46,8 +46,9 @@ import scalikejdbc.DBSession
 
 import java.nio.file.{Files, Path}
 import java.util.UUID
-import java.util.concurrent.{ExecutorService, Executors}
-import scala.concurrent.duration.DurationInt
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.{ExecutorService, Executors, TimeoutException}
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Using.Releasable
 import scala.util.{Failure, Success, Try, Using}
@@ -67,6 +68,18 @@ class WriteService(using
     props: Props,
     bulkUploadStore: BulkUploadStore,
 ) extends StrictLogging {
+
+  /** Shared pool for variant generation + upload. Variant work mixes CPU (resize/webp encode) with IO (S3 upload), so
+    * we size it to ~2× cores to keep cores busy while some tasks block on IO. Used by all callers of
+    * [[uploadImageWithVariants]] so total system-wide variant threads are bounded regardless of request concurrency.
+    */
+  private val variantExecutor: ExecutorService =
+    Executors.newFixedThreadPool(math.max(4, Runtime.getRuntime.availableProcessors() * 2))
+  private val variantEc: ExecutionContext =
+    ExecutionContext.fromExecutor(variantExecutor, ex => logger.error("Variant worker failed", ex))
+
+  private val bulkItemParallelism: Int          = 4
+  private val bulkItemExecutor: ExecutorService = Executors.newFixedThreadPool(bulkItemParallelism)
 
   def deleteImageLanguageVersionV2(
       imageId: Long,
@@ -239,9 +252,10 @@ class WriteService(using
     * background worker, and returns immediately. Progress (and the eventual result or failure) is tracked through the
     * Redis state.
     *
-    * The worker processes items sequentially. If any item fails the entire batch is rolled back: previously stored
-    * images are deleted and the upload state is marked as Failed. On success the state is marked Complete with each
-    * stored image attached to its corresponding item.
+    * The worker processes items concurrently with bounded parallelism. If any item fails the entire batch is rolled
+    * back: previously stored images are deleted and the upload state is marked as Failed. Once a failure is observed,
+    * items not yet picked up are skipped; in-flight items finish and are included in the rollback. On success the state
+    * is marked Complete with each stored image attached to its corresponding item.
     *
     * `stagingDir` and the files inside it are deleted by the worker once processing is finished, regardless of outcome.
     */
@@ -286,16 +300,27 @@ class WriteService(using
     val startedAt = System.currentTimeMillis()
     val running   = initialState.copy(status = BulkUploadStatus.Running)
     persistState(uploadId, running)
-    logger.info(s"Bulk upload $uploadId: starting processing of $total item(s)")
+    logger.info(s"Bulk upload $uploadId: starting processing of $total item(s) with parallelism $bulkItemParallelism")
 
-    val progress = items
+    val progressRef                = new AtomicReference(BulkUploadProgress(running))
+    given itemEc: ExecutionContext = ExecutionContext.fromExecutor(
+      bulkItemExecutor,
+      ex => logger.error(s"Bulk upload $uploadId: item worker failed", ex),
+    )
+
+    val itemFutures = items
       .zipWithIndex
-      .foldLeft(BulkUploadProgress(running)) {
-        case (progress, _) if progress.hasFailed => progress
-        case (progress, (item, idx))             => processBulkItem(uploadId, total, idx, item, user, progress)
+      .map { case (item, idx) =>
+        Future {
+          if (!progressRef.get.hasFailed) {
+            processBulkItem(uploadId, total, idx, item, user, progressRef)
+          }
+        }
       }
+    Try(Await.result(Future.sequence(itemFutures), Duration.Inf)): Unit
 
     val elapsedMs  = System.currentTimeMillis() - startedAt
+    val progress   = progressRef.get
     val finalState = progress.failure match {
       case None =>
         logger.info(s"Bulk upload $uploadId: complete — $total item(s) stored in ${elapsedMs}ms")
@@ -318,14 +343,12 @@ class WriteService(using
       itemIdx: Int,
       item: BulkUploadInput,
       user: TokenUser,
-      progress: BulkUploadProgress,
-  ): BulkUploadProgress = {
-    val uploading = progress.state.setUploading(itemIdx)
-    persistState(uploadId, uploading)
-
+      progressRef: AtomicReference[BulkUploadProgress],
+  ): Unit = {
     val whichImg = s"${itemIdx + 1}/$total"
     val fileName = item.file.fileName.getOrElse("<unknown>")
 
+    transitionAndPersist(uploadId, progressRef, p => p.copy(state = p.state.setUploading(itemIdx)))
     logger.info(s"Bulk upload $uploadId: uploading item $whichImg (fileName = $fileName)")
 
     val result = for {
@@ -335,15 +358,19 @@ class WriteService(using
 
     result match {
       case Success((domainImg, dto)) =>
-        val done = uploading.setDone(itemIdx, dto)
-        persistState(uploadId, done)
         logger.info(s"Bulk upload $uploadId: completed item $whichImg")
-        progress.copy(state = done, stored = domainImg :: progress.stored)
+        transitionAndPersist(
+          uploadId,
+          progressRef,
+          p => p.copy(state = p.state.setDone(itemIdx, dto), stored = domainImg :: p.stored),
+        )
       case Failure(ex) =>
         logger.error(s"Bulk upload $uploadId: failed on item $whichImg", ex)
-        val failed = uploading.setFailed(itemIdx, ex)
-        persistState(uploadId, failed)
-        progress.copy(state = failed, failure = Some(ex))
+        transitionAndPersist(
+          uploadId,
+          progressRef,
+          p => p.copy(state = p.state.setFailed(itemIdx, ex), failure = p.failure.orElse(Some(ex))),
+        )
     }
   }
 
@@ -353,6 +380,19 @@ class WriteService(using
       failure: Option[Throwable] = None,
   ) {
     def hasFailed: Boolean = failure.isDefined
+  }
+
+  // Serializes state transitions with their Redis write so SSE consumers never see an older snapshot
+  // arrive after a newer one. Holds the lock only across the in-memory update + Redis set; the
+  // actual upload work happens outside.
+  private def transitionAndPersist(
+      uploadId: UUID,
+      progressRef: AtomicReference[BulkUploadProgress],
+      f: BulkUploadProgress => BulkUploadProgress,
+  ): Unit = progressRef.synchronized {
+    val updated = f(progressRef.get)
+    progressRef.set(updated)
+    persistState(uploadId, updated.state)
   }
 
   private def persistState(uploadId: UUID, state: BulkUploadStateDTO): Unit =
@@ -595,24 +635,35 @@ class WriteService(using
     val originalImageStream =
       ImageStream.Processable(file.createStream(), fileName, file.fileSize, processableStream.format)
 
-    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
-      case given ExecutionContext =>
-        val variantsFuture =
-          generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)
-        val maybeUploadedOriginalImage =
-          uploadImageStream(originalImageStream, Some(dimensions), ExifUtil.extractDate(exifData))
-        val maybeVariants = Try(Await.result(variantsFuture, 1.minute))
+    val variantsFuture =
+      generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)(using
+        variantEc
+      )
+    val maybeUploadedOriginalImage =
+      uploadImageStream(originalImageStream, Some(dimensions), ExifUtil.extractDate(exifData))
+    val maybeVariants = Try(Await.result(variantsFuture, 1.minute))
 
-        (maybeUploadedOriginalImage, maybeVariants) match {
-          case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
-          case (Failure(ex), variants)                     =>
-            variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
-            Failure(ex)
-          case (original, Failure(ex)) =>
-            original.foreach(i => imageStorage.deleteObject(i.fileName))
-            Failure(ex)
-        }
-    }.flatten
+    maybeVariants match {
+      case Failure(_: TimeoutException) => variantsFuture.onComplete {
+          case Success(variants) if variants.nonEmpty =>
+            logger.warn(
+              s"Variant generation for $fileName completed after timeout; deleting ${variants.size} orphan variant(s)"
+            )
+            imageStorage.deleteObjects(variants.map(_.bucketKey)): Unit
+          case _ => ()
+        }(using variantEc)
+      case _ => ()
+    }
+
+    (maybeUploadedOriginalImage, maybeVariants) match {
+      case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
+      case (Failure(ex), variants)                     =>
+        variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
+        Failure(ex)
+      case (original, Failure(ex)) =>
+        original.foreach(i => imageStorage.deleteObject(i.fileName))
+        Failure(ex)
+    }
   }
 
   /** Generate and upload image variants for `image` asynchronously. If any exceptions occur during generation/uploading

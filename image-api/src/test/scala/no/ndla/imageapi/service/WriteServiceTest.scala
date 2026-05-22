@@ -954,12 +954,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val finalState = storeStates.last
     finalState.status should be(BulkUploadStatus.Failed)
+    finalState.completed should be(1)
     finalState.failed should be(1)
     finalState.error should not be None
-    finalState.items.head.status should be(BulkUploadItemStatus.Done)
-    finalState.items(1).status should be(BulkUploadItemStatus.Failed)
+    // Items run in parallel, so either one may be the one that hit the failing insert; just assert one of each
+    finalState.items.count(_.status == BulkUploadItemStatus.Done) should be(1)
+    finalState.items.count(_.status == BulkUploadItemStatus.Failed) should be(1)
 
-    // The first inserted image was rolled back via deleteImageAndFiles
+    // The inserted image was rolled back via deleteImageAndFiles
     verify(imageRepository, times(1)).delete(eqTo(42L))
     Files.exists(stagingDir) should be(false)
   }
