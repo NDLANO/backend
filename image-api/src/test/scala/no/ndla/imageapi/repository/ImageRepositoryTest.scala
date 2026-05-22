@@ -153,13 +153,13 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val inserted = repository.insert(image).failIfFailure
     val id       = inserted.id.get
 
-    repository.getAllEditors.get.toSet should be(Set("creator-1", "editor-1"))
+    repository.getAllEditors.get.toSet should be(Set("editor-1"))
 
     val note    = EditorNote(NDLADate.now(), "note-editor-1", "Some note")
-    val updated = inserted.copy(updatedBy = "editor-2", editorNotes = Seq(note))
+    val updated = inserted.copy(updatedBy = "note-editor-1", editorNotes = Seq(note))
     repository.update(updated, id).failIfFailure
 
-    repository.getAllEditors.get.toSet should be(Set("creator-1", "editor-1", "editor-2", "note-editor-1"))
+    repository.getAllEditors.get.toSet should be(Set("editor-1", "note-editor-1"))
 
     repository.delete(id).failIfFailure
 

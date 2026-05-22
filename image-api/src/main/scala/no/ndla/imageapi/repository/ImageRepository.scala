@@ -72,25 +72,17 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     tsql"select distinct user_id from image_editors".map(rs => rs.string("user_id")).runList()
 
   private def trackEditors(image: ImageMetaInformation)(implicit session: DBSession): Try[ImageMetaInformation] = {
-    image.id match {
-      case None     => Success(image)
-      case Some(id) =>
-        val userIds = (
-          Seq(image.createdBy, image.updatedBy) ++
-            image.editorNotes.map(_.updatedBy)
-        ).distinct
-
-        userIds
-          .map { userId =>
-            tsql"""
+    image
+      .id
+      .map { id =>
+        tsql"""
               insert into image_editors (image_id, user_id)
-              values ($id, $userId)
+              values ($id, ${image.updatedBy})
               on conflict do nothing
             """.update()
-          }
-          .sequence
-          .map(_ => image)
-    }
+      }
+      .getOrElse(Success(()))
+      .map(_ => image)
   }
 
   def delete(imageId: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = Try {
