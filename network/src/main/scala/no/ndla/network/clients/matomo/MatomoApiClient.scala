@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 class MatomoApiClient(using props: MatomoProps, client: NdlaClient) extends StrictLogging {
   import props.{MatomoSubjectDimensionName, MatomoUrl, MatomoSiteId, MatomoTokenAuth}
   private val timeout: FiniteDuration = 30.seconds
-  private val baseUrl                 = uri"$MatomoUrl/index.php"
+  private lazy val baseUrl            = uri"$MatomoUrl/index.php"
 
   def getDimensionIdForSubjectId: Try[String] = {
     val params = Map[String, String](
