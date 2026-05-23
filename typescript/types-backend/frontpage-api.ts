@@ -294,6 +294,12 @@ export type components = {
              */
             statusCode: number;
         };
+        /** PopularArticleDTO */
+        PopularArticleDTO: {
+            contextId: string;
+            /** Format: int64 */
+            numHits: number;
+        };
         /** SubjectPageDTO */
         SubjectPageDTO: {
             /** Format: int64 */
@@ -307,6 +313,7 @@ export type components = {
             connectedTo: string[];
             buildsOn: string[];
             leadsTo: string[];
+            popularArticles: components["schemas"]["PopularArticleDTO"][];
         };
         /** UpdatedSubjectPageDTO */
         UpdatedSubjectPageDTO: {
@@ -381,6 +388,7 @@ export type NewOrUpdatedMovieThemeDTO = components['schemas']['NewOrUpdatedMovie
 export type NewOrUpdatedVisualElementDTO = components['schemas']['NewOrUpdatedVisualElementDTO'];
 export type NewSubjectPageDTO = components['schemas']['NewSubjectPageDTO'];
 export type NotFoundWithSupportedLanguages = components['schemas']['NotFoundWithSupportedLanguages'];
+export type PopularArticleDTO = components['schemas']['PopularArticleDTO'];
 export type SubjectPageDTO = components['schemas']['SubjectPageDTO'];
 export type UpdatedSubjectPageDTO = components['schemas']['UpdatedSubjectPageDTO'];
 export type ValidationErrorBody = components['schemas']['ValidationErrorBody'];
