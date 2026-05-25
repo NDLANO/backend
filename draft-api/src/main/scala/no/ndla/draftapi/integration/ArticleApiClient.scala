@@ -9,156 +9,28 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits.*
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
-import no.ndla.common.CirceUtil
-import no.ndla.common.implicits.*
-import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{Delete, Missing, RelatedContentLinkDTO, UpdateWith}
-import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.article.{
-  ArticleMetaDescriptionDTO,
-  ArticleTagDTO,
-  PartialPublishArticleDTO,
-  PartialPublishArticlesBulkDTO,
-}
+import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api.{ArticleApiValidationErrorDTO, ContentIdDTO}
-import no.ndla.draftapi.service.ConverterService
-import no.ndla.network.NdlaClient
-import no.ndla.network.model.HttpRequestException
+import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.client4.Response
-import sttp.client4.quick.*
 
-import scala.concurrent.duration.{Duration, DurationInt}
-import scala.util.{Failure, Try}
+import scala.util.Try
 import common.getNextRevision
 
-class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, converterService: ConverterService) {
-  def this()(using ndlaClient: NdlaClient, converterService: ConverterService, props: Props) =
-    this(s"http://${props.ArticleApiHost}")
-
-  private val InternalEndpoint = s"$ArticleBaseUrl/intern"
-  private val deleteTimeout    = 10.seconds
-  private val timeout          = 15.seconds
-
-  def partialPublishArticle(id: Long, article: PartialPublishArticleDTO, user: TokenUser): Try[Long] = {
-    patchWithData[ArticleApiId, PartialPublishArticleDTO](s"$InternalEndpoint/partial-publish/$id", article, Some(user))
-      .map(res => res.id)
-  }
-
-  def updateArticle(id: Long, draft: Draft, useSoftValidation: Boolean, user: TokenUser): Try[Draft] = {
-    val params = Seq("use-import-validation" -> false.toString, "use-soft-validation" -> useSoftValidation.toString)
-    for {
-      converted <- converterService.toArticleApiArticle(draft, false)
-      _         <- postWithData[common.article.Article, common.article.Article](
-        s"$InternalEndpoint/article/$id",
-        converted,
-        Some(user),
-        params*
-      )
-    } yield draft
-  }
-
-  def unpublishArticle(article: Draft, user: TokenUser): Try[Draft] = {
-    val id = article.id.get
-    post[ContentIdDTO](s"$InternalEndpoint/article/$id/unpublish/", Some(user)).map(_ => article)
-  }
-
-  def deleteArticle(id: Long, user: TokenUser): Try[ContentIdDTO] = {
-    delete[ContentIdDTO](s"$InternalEndpoint/article/$id/", Some(user))
-  }
-
+trait ArticleApiClient {
+  def partialPublishArticle(id: Long, article: PartialPublishArticleDTO, user: TokenUser): Try[Long]
+  def updateArticle(id: Long, draft: Draft, useSoftValidation: Boolean, user: TokenUser): Try[Draft]
+  def unpublishArticle(article: Draft, user: TokenUser): Try[Draft]
+  def deleteArticle(id: Long, user: TokenUser): Try[ContentIdDTO]
   def validateArticle(
       article: common.article.Article,
       importValidate: Boolean,
       user: Option[TokenUser],
-  ): Try[common.article.Article] = {
-    postWithData[common.article.Article, common.article.Article](
-      s"$InternalEndpoint/validate/article",
-      article,
-      user,
-      ("import_validate", importValidate.toString),
-    ) match {
-      case Failure(ex: HttpRequestException) =>
-        val validationError = CirceUtil.unsafeParseAs[ArticleApiValidationErrorDTO](ex.httpResponse.body)
-        Failure(new ValidationException("Failed to validate article in article-api", validationError.messages))
-      case x => x
-    }
-  }
-
-  def bulkPartialPublishArticles(ids: Map[Long, PartialPublishArticleDTO], user: TokenUser): Try[Unit] = {
-    val articles = PartialPublishArticlesBulkDTO(idTo = ids)
-    patchWithDataRaw[PartialPublishArticlesBulkDTO](
-      s"$InternalEndpoint/partial-publish",
-      articles,
-      Some(user),
-      // NOTE: Long timeout since this potentially updates a bunch of articles
-      10.minutes,
-    ).unit
-  }
-
-  private def post[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
-    ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params*)), user)
-  }
-
-  private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
-    ndlaClient.fetchWithForwardedAuth[A](
-      quickRequest.delete(uri"$endpointUrl".withParams(params*)).readTimeout(deleteTimeout),
-      user,
-    )
-  }
-
-  private def patchWithDataRaw[B: Encoder](
-      endpointUrl: String,
-      data: B,
-      user: Option[TokenUser],
-      timeout: Duration,
-      params: (String, String)*
-  ): Try[Response[String]] = {
-    ndlaClient.fetchRawWithForwardedAuth(
-      quickRequest
-        .patch(uri"$endpointUrl".withParams(params*))
-        .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json")
-        .readTimeout(timeout),
-      user,
-    )
-  }
-
-  private def patchWithData[A: Decoder, B <: AnyRef: Encoder](
-      endpointUrl: String,
-      data: B,
-      user: Option[TokenUser],
-      params: (String, String)*
-  ): Try[A] = {
-    ndlaClient.fetchWithForwardedAuth[A](
-      quickRequest
-        .patch(uri"$endpointUrl".withParams(params*))
-        .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json")
-        .readTimeout(timeout),
-      user,
-    )
-  }
-
-  private def postWithData[A: Decoder, B <: AnyRef: Encoder](
-      endpointUrl: String,
-      data: B,
-      user: Option[TokenUser],
-      params: (String, String)*
-  ): Try[A] = {
-    ndlaClient.fetchWithForwardedAuth[A](
-      quickRequest
-        .post(uri"$endpointUrl".withParams(params*))
-        .body(CirceUtil.toJsonString(data))
-        .header("content-type", "application/json"),
-      user,
-    )
-  }
+  ): Try[common.article.Article]
+  def bulkPartialPublishArticles(ids: Map[Long, PartialPublishArticleDTO], user: TokenUser): Try[Unit]
 }
 
 extension (self: PartialPublishArticleDTO) {
@@ -200,10 +72,4 @@ extension (self: PartialPublishArticleDTO) {
 
 object PartialPublishArticle {
   def empty(): PartialPublishArticleDTO = PartialPublishArticleDTO(None, None, None, None, None, None, Missing, None)
-}
-
-case class ArticleApiId(id: Long)
-object ArticleApiId {
-  implicit val encoder: Encoder[ArticleApiId] = deriveEncoder
-  implicit val decoder: Decoder[ArticleApiId] = deriveDecoder
 }

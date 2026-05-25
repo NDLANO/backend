@@ -1,0 +1,30 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2024 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+package no.ndla.articleapi.integration
+
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.articleapi.Props
+import no.ndla.common.model.api.FrontPageDTO
+import no.ndla.network.NdlaClient
+import sttp.client4.quick.*
+
+import scala.util.Try
+
+class FrontpageApiHttpClient(using ndlaClient: NdlaClient, props: Props)(
+    FrontpageApiBaseUrl: String = props.FrontpageApiUrl
+) extends FrontpageApiClient
+    with StrictLogging {
+
+  private val frontpageApiBaseUrl = s"$FrontpageApiBaseUrl/frontpage-api/v1/frontpage"
+
+  def getFrontpage: Try[FrontPageDTO] = {
+    val req = quickRequest.get(uri"$frontpageApiBaseUrl")
+    ndlaClient.fetch[FrontPageDTO](req)
+  }
+}

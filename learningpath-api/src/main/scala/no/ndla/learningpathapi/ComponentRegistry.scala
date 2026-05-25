@@ -49,16 +49,19 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   given ndlaClient: NdlaClient   = new NdlaClient
 
-  given errorHelpers: ErrorHelpers                          = new ErrorHelpers
-  given errorHandling: ErrorHandling                        = new ControllerErrorHandling
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient    = new TaxonomyApiClient
-  implicit lazy val myndlaApiClient: MyNDLAApiClient        = new MyNDLAApiClient
+  given errorHelpers: ErrorHelpers                        = new ErrorHelpers
+  given errorHandling: ErrorHandling                      = new ControllerErrorHandling
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient  = new TaxonomyApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient      = new MyNDLAApiClient
+  protected def buildSearchApiClient: SearchApiClient     = new SearchApiHttpClient
+  given searchApiClient: SearchApiClient                  = buildSearchApiClient
+  protected def buildOembedProxyClient: OembedProxyClient = new OembedProxyHttpClient
+  given oembedProxyClient: OembedProxyClient              = buildOembedProxyClient
+
   implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                                  = NdlaAuth()
   given feideAuth: FeideAuth                                = FeideAuth()
   given combinedAuth: CombinedAuth                          = CombinedAuth()
-  given searchApiClient: SearchApiClient                    = new SearchApiClient
-  given oembedProxyClient: OembedProxyClient                = new OembedProxyClient
 
   given learningPathRepository: LearningPathRepository          = new LearningPathRepository
   given languageValidator: LanguageValidator                    = new LanguageValidator

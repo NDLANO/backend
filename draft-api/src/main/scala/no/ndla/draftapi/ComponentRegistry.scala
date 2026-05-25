@@ -50,12 +50,15 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   given ndlaAuth: NdlaAuth                                     = NdlaAuth()
   implicit lazy val s3Client: NdlaS3Client                     =
     new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
-  implicit lazy val articleApiClient: ArticleApiClient             = new ArticleApiClient
+  protected def buildArticleApiClient: ArticleApiClient            = new ArticleApiHttpClient
+  implicit lazy val articleApiClient: ArticleApiClient             = buildArticleApiClient
   implicit lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
   implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient   = new BaseTaxonomyApiClient(props.TaxonomyUrl)
-  implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
+  protected def buildLearningpathApiClient: LearningpathApiClient  = new LearningpathApiHttpClient
+  implicit lazy val learningpathApiClient: LearningpathApiClient   = buildLearningpathApiClient
   implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
-  implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient
+  protected def buildImageApiClient: ImageApiClient                = new ImageApiHttpClient
+  implicit lazy val imageApiClient: ImageApiClient                 = buildImageApiClient
   implicit lazy val dbDraft: DBDraft                               = new DBDraft
   implicit lazy val dbUserData: DBUserData                         = new DBUserData
   implicit lazy val draftRepository: DraftRepository               = new DraftRepository

@@ -11,26 +11,13 @@ package no.ndla.draftapi.integration
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.CopyrightDTO
-import no.ndla.draftapi.Props
-import no.ndla.network.NdlaClient
-import sttp.client4.quick.*
 
 import scala.util.Try
 
-class ImageApiClient(using ndlaClient: NdlaClient, props: Props) {
-  private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"
-
-  def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]] = {
-    val idsParam = ids.mkString(",")
-    get[Seq[ImageWithCopyright]](s"$Endpoint/ids", "ids" -> idsParam)
-  }
-
-  private def get[A: Decoder](endpointUrl: String, params: (String, String)*): Try[A] = {
-    val request = quickRequest.get(uri"$endpointUrl".withParams(params*))
-    ndlaClient.fetch[A](request)
-  }
-
+trait ImageApiClient {
+  def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]]
 }
+
 case class ImageWithCopyright(id: String, copyright: CopyrightDTO)
 
 object ImageWithCopyright {

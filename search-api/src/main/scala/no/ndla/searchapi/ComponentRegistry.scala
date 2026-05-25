@@ -23,26 +23,31 @@ import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.service.search.*
 
 class ComponentRegistry(properties: SearchApiProperties) extends TapirApplication[SearchApiProperties] {
-  given props: SearchApiProperties                   = properties
-  given ndlaClient: NdlaClient                       = new NdlaClient
-  given clock: Clock                                 = new Clock
-  given e4sClient: NdlaE4sClient                     = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchLanguage: SearchLanguage               = new SearchLanguage
-  given errorHelpers: ErrorHelpers                   = new ErrorHelpers
-  given errorHandling: ControllerErrorHandling       = new ControllerErrorHandling
-  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given props: SearchApiProperties                                = properties
+  given ndlaClient: NdlaClient                                    = new NdlaClient
+  given clock: Clock                                              = new Clock
+  given e4sClient: NdlaE4sClient                                  = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchLanguage: SearchLanguage                            = new SearchLanguage
+  given errorHelpers: ErrorHelpers                                = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling                    = new ControllerErrorHandling
+  given myndlaApiClient: MyNDLAApiClient                          = new MyNDLAApiClient
   given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                           = NdlaAuth()
   given feideAuth: FeideAuth                         = FeideAuth()
-  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient(props.TaxonomyUrl)
-  given grepApiClient: GrepApiClient                 = new GrepApiClient
-  given draftApiClient: DraftApiClient               = new DraftApiClient(props.DraftApiUrl)
-  given draftConceptApiClient: DraftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
-  given learningPathApiClient: LearningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
-  given articleApiClient: ArticleApiClient           = new ArticleApiClient(props.ArticleApiUrl)
-  given redisClient: FeideRedisClient                = new FeideRedisClient(props.RedisHost, props.RedisPort)
-  given feideApiClient: FeideApiClient               = new FeideApiClient
-  given frontpageApiClient: FrontpageApiClient       = new FrontpageApiClient
+  given taxonomyApiClient: TaxonomyApiClient                      = new TaxonomyApiClient(props.TaxonomyUrl)
+  given grepApiClient: GrepApiClient                              = new GrepApiClient
+  protected def buildDraftApiClient: DraftApiClient               = new DraftApiHttpClient(props.DraftApiUrl)
+  given draftApiClient: DraftApiClient                            = buildDraftApiClient
+  protected def buildDraftConceptApiClient: DraftConceptApiClient = new DraftConceptApiHttpClient(props.ConceptApiUrl)
+  given draftConceptApiClient: DraftConceptApiClient              = buildDraftConceptApiClient
+  protected def buildLearningPathApiClient: LearningPathApiClient =
+    new LearningPathApiHttpClient(props.LearningpathApiUrl)
+  given learningPathApiClient: LearningPathApiClient    = buildLearningPathApiClient
+  protected def buildArticleApiClient: ArticleApiClient = new ArticleApiHttpClient(props.ArticleApiUrl)
+  given articleApiClient: ArticleApiClient              = buildArticleApiClient
+  given redisClient: FeideRedisClient                   = new FeideRedisClient(props.RedisHost, props.RedisPort)
+  given feideApiClient: FeideApiClient                  = new FeideApiClient
+  given frontpageApiClient: FrontpageApiClient          = new FrontpageApiClient
 
   given converterService: ConverterService                 = new ConverterService
   given traitUtil: TraitUtil                               = new TraitUtil

@@ -1,0 +1,39 @@
+package build.monolith
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies, DockerComponent}
+
+object `package` extends BaseModule, DockerComponent {
+  override def moduleName = "monolith"
+  // 10 merged *-apis blow past Mill's prepended-shell-script jar limit (65535 ZIP entries). Disable the prepend; the
+  // resulting fat jar still runs fine via `java -jar`.
+  override def prependShellScript = ""
+  def mvnDeps: T[Seq[Dep]]        = SharedDependencies.logging ++
+    SharedDependencies.enumeratum ++
+    SharedDependencies.tapirCirce ++
+    SharedDependencies.database
+
+  override def moduleDeps: Seq[JavaModule] = Seq(
+    build.common,
+    build.network,
+    build.mapping,
+    build.language,
+    build.validation,
+    build.search,
+    build.database,
+    build.`article-api`,
+    build.`audio-api`,
+    build.`concept-api`,
+    build.`draft-api`,
+    build.`frontpage-api`,
+    build.`image-api`,
+    build.`learningpath-api`,
+    build.`myndla-api`,
+    build.`oembed-proxy`,
+    build.`search-api`,
+  )
+
+  object test extends TestBase {
+    override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
+  }
+}

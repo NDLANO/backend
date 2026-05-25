@@ -67,11 +67,13 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given searchApiClient: SearchApiClient                    = new SearchApiClient(props.SearchApiUrl)
   given feideApiClient: FeideApiClient                      = new FeideApiClient
   given myndlaApiClient: MyNDLAApiClient                    = new MyNDLAApiClient
+  protected def buildFrontpageApiClient: FrontpageApiClient = new FrontpageApiHttpClient
+  given frontpageApiClient: FrontpageApiClient              = buildFrontpageApiClient
+  protected def buildImageApiClient: ImageApiClient         = new ImageApiHttpClient
   implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                                  = NdlaAuth()
   given feideAuth: FeideAuth                                = FeideAuth()
-  given frontpageApiClient: FrontpageApiClient              = new FrontpageApiClient
-  given imageApiClient: ImageApiClient                      = new ImageApiClient
+  given imageApiClient: ImageApiClient                      = buildImageApiClient
   given taxonomyApiClient: TaxonomyApiClient                = new TaxonomyApiClient(props.TaxonomyUrl)
   given contentValidator: ContentValidator                  = new ContentValidator()
   given searchConverterService: SearchConverterService      = new SearchConverterService

@@ -16,8 +16,11 @@ import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.integration.{
   InternalMyNDLAApiClient,
+  InternalMyNDLAApiHttpClient,
   LearningPathApiClient,
+  LearningPathApiHttpClient,
   SearchApiClient,
+  SearchApiHttpClient,
   TaxonomyApiClient,
 }
 import no.ndla.myndlaapi.model.domain.*
@@ -44,30 +47,33 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given dbSavedSharedFolder: DBSavedSharedFolder   = new DBSavedSharedFolder
   given dbRobotDefinition: DBRobotDefinition       = new DBRobotDefinition
 
-  given ndlaClient: NdlaClient                               = new NdlaClient
-  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient = new InternalMyNDLAApiClient
-  implicit lazy val redisClient: FeideRedisClient            = new FeideRedisClient(props.RedisHost, props.RedisPort)
-  implicit lazy val feideApiClient: FeideApiClient           = new FeideApiClient
-  implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
-  given errorHelpers: ErrorHelpers                           = new ErrorHelpers
-  given errorHandling: ControllerErrorHandling               = new ControllerErrorHandling
-  given jwsKeySelectorFactory: JwsKeySelectorFactory         = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                   = NdlaAuth()
-  given feideAuth: FeideAuth                                 = FeideAuth()
-  implicit lazy val folderRepository: FolderRepository       = new FolderRepository
-  given folderConverterService: FolderConverterService       = new FolderConverterService
-  implicit lazy val userRepository: UserRepository           = new UserRepository
-  given configRepository: ConfigRepository                   = new ConfigRepository
-  given configService: ConfigService                         = new ConfigService
-  implicit lazy val folderReadService: FolderReadService     = new FolderReadService
-  implicit lazy val folderWriteService: FolderWriteService   = new FolderWriteService
-  implicit lazy val userService: UserService                 = new UserService
-  given robotRepository: RobotRepository                     = new RobotRepository
-  given robotService: RobotService                           = new RobotService
-  implicit lazy val searchApiClient: SearchApiClient         = new SearchApiClient
-  given taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
-  given learningPathApiClient: LearningPathApiClient         = new LearningPathApiClient
-  implicit lazy val emailClient: NdlaEmailClient             =
+  given ndlaClient: NdlaClient                                        = new NdlaClient
+  protected def buildInternalMyNDLAApiClient: InternalMyNDLAApiClient = new InternalMyNDLAApiHttpClient
+  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient          = buildInternalMyNDLAApiClient
+  implicit lazy val redisClient: FeideRedisClient                     = new FeideRedisClient(props.RedisHost, props.RedisPort)
+  implicit lazy val feideApiClient: FeideApiClient                    = new FeideApiClient
+  implicit lazy val nodebb: NodeBBClient                              = new NodeBBClient
+  given errorHelpers: ErrorHelpers                                    = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling                        = new ControllerErrorHandling
+  given jwsKeySelectorFactory: JwsKeySelectorFactory                  = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                                            = NdlaAuth()
+  given feideAuth: FeideAuth                                          = FeideAuth()
+  implicit lazy val folderRepository: FolderRepository                = new FolderRepository
+  given folderConverterService: FolderConverterService                = new FolderConverterService
+  implicit lazy val userRepository: UserRepository                    = new UserRepository
+  given configRepository: ConfigRepository                            = new ConfigRepository
+  given configService: ConfigService                                  = new ConfigService
+  implicit lazy val folderReadService: FolderReadService              = new FolderReadService
+  implicit lazy val folderWriteService: FolderWriteService            = new FolderWriteService
+  implicit lazy val userService: UserService                          = new UserService
+  given robotRepository: RobotRepository                              = new RobotRepository
+  given robotService: RobotService                                    = new RobotService
+  protected def buildSearchApiClient: SearchApiClient                 = new SearchApiHttpClient
+  implicit lazy val searchApiClient: SearchApiClient                  = buildSearchApiClient
+  given taxonomyApiClient: TaxonomyApiClient                          = new TaxonomyApiClient
+  protected def buildLearningPathApiClient: LearningPathApiClient     = new LearningPathApiHttpClient
+  given learningPathApiClient: LearningPathApiClient                  = buildLearningPathApiClient
+  implicit lazy val emailClient: NdlaEmailClient                      =
     new NdlaEmailClient(props.outgoingEmail, props.outgoingEmailName, props.AWSEmailRegion)
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
 
