@@ -70,6 +70,42 @@ trait BaseProps extends StrictLogging {
     propToAdd
   }
 
+  /** Per-app env-var prefix derived from [[ApplicationName]] (e.g. `"article-api"` → `"ARTICLE_API"`). Used by the
+    * `prefixed*` helpers so a single JVM running multiple [[BaseProps]] instances (monolith mode) can give each app its
+    * own values for shared keys.
+    */
+  protected def applicationEnvPrefix: String = ApplicationName.replace("-", "_").toUpperCase
+
+  /** Reads `${applicationEnvPrefix}_<key>` if set, else `<key>`. Fails (via [[throwIfFailedProps]]) if neither is set —
+    * matches the semantics of [[prop]] but with an app-scoped override taking priority.
+    */
+  def prefixedProp(key: String): Prop[String] = {
+    val prefixed = s"${applicationEnvPrefix}_$key"
+    val toAdd    = propOrNone(prefixed).orElse(propOrNone(key)) match {
+      case Some(value) => Prop.successful(key, value)
+      case None        => Prop.failed[String](key)
+    }
+    loadedProps.put(key, toAdd): Unit
+    toAdd
+  }
+
+  /** Like [[prefixedProp]] but falls back to `default` if neither the prefixed nor the unprefixed env var is set. */
+  def prefixedPropOrElse(key: String, default: => String): Prop[String] = {
+    val prefixed = s"${applicationEnvPrefix}_$key"
+    val value    = propOrNone(prefixed).orElse(propOrNone(key)).getOrElse(default)
+    val p        = Prop.successful(key, value)
+    loadedProps.put(key, p): Unit
+    p
+  }
+
+  /** Like [[prefixedPropOrElse]] but for `Int` values; returns an unwrapped `Int` since the existing call sites that
+    * use this pattern (e.g. `MetaMaxConnections`) read the value directly.
+    */
+  def prefixedIntPropOrElse(key: String, default: => Int): Int = {
+    val prefixed = s"${applicationEnvPrefix}_$key"
+    propOrNone(prefixed).orElse(propOrNone(key)).flatMap(_.toIntOption).getOrElse(default)
+  }
+
   def propMap[T, R](prop: Prop[T])(f: T => R): Prop[R] = {
     val newProp = prop.reference match {
       case LoadedProp(k, v) => Try(f(v)) match {
