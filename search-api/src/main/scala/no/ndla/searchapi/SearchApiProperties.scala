@@ -29,11 +29,11 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
 
-  lazy val articleIndexName      = propOrElse("ARTICLE_SEARCH_INDEX_NAME", "articles")
-  lazy val draftIndexName        = propOrElse("DRAFT_SEARCH_INDEX_NAME", "drafts")
-  lazy val learningpathIndexName = propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "learningpaths")
+  lazy val articleIndexName      = propOrElse("ARTICLE_SEARCH_INDEX_NAME", "search-articles")
   lazy val conceptIndexName      = propOrElse("DRAFT_CONCEPT_SEARCH_INDEX_NAME", "draftconcepts")
+  lazy val draftIndexName        = propOrElse("DRAFT_SEARCH_INDEX_NAME", "drafts")
   lazy val grepIndexName         = propOrElse("GREP_SEARCH_INDEX_NAME", "greps")
+  lazy val learningpathIndexName = propOrElse("LEARNINGPATH_SEARCH_INDEX_NAME", "search-learningpaths")
   lazy val nodeIndexName         = propOrElse("NODE_SEARCH_INDEX_NAME", "nodes")
 
   def SearchIndex(searchType: SearchType) = searchType match {
