@@ -42,6 +42,27 @@ import sttp.tapir.{AttributeKey, DecodeResult, EndpointInput, headers, statusCod
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
+object Routes {
+
+  /** Path-prefix → ApplicationName mapping for every Scala *-api / *-proxy hosted by the monolith. Used by request
+    * middleware to tag MDC with the right per-request `APPLICATION_NAME` so logs are attributed correctly when many
+    * apps share one JVM. Microservice deployments are unaffected — each app's requests still match its own prefix.
+    */
+  val MonolithAppNames: Set[String] = Set(
+    "article-api",
+    "audio-api",
+    "concept-api",
+    "draft-api",
+    "frontpage-api",
+    "image-api",
+    "learningpath-api",
+    "myndla-api",
+    "oembed-proxy",
+    "search-api",
+    "taxonomy-api",
+  )
+}
+
 class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, services: List[TapirController])
     extends StrictLogging {
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
@@ -132,6 +153,15 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     private def setBeforeMDC(info: RequestInfo, req: ServerRequest): Unit = {
       MDC.put("requestPath", RequestLogger.pathWithQueryParams(req))
       MDC.put("method", req.method.toString())
+      // Per-request app name so monolith logs are attributed to the right *-api. The first path segment matches the
+      // app name for every NDLA endpoint (e.g. `/article-api/v2/...`); non-app paths (`/health`, `/metrics`,
+      // `/api-docs`) fall through to the JVM-wide APPLICATION_NAME system property.
+      req
+        .uri
+        .path
+        .headOption
+        .filter(Routes.MonolithAppNames.contains)
+        .foreach(name => MDC.put("APPLICATION_NAME", name))
 
       if (info.taxonomyVersion != TaxonomyData.defaultVersion) {
         MDC.put("taxonomyVersion", info.taxonomyVersion): Unit

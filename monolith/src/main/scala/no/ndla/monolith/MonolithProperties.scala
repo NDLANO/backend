@@ -46,6 +46,12 @@ class MonolithProperties extends BaseProps {
   private def perApps: Seq[BaseProps] =
     Seq(article, audio, concept, draft, frontpage, image, learningpath, myndla, oembed, search)
 
+  // Each per-app props sets `APPLICATION_NAME` as a JVM-wide system property during its own construction; the last
+  // one wins. Re-assert the monolith's name here so non-request log lines (startup, shutdown, background tasks)
+  // are tagged "monolith" rather than whichever per-app props happened to initialise last. Per-request log lines
+  // get their proper app name via MDC set by `Routes` middleware.
+  System.setProperty("APPLICATION_NAME", ApplicationName): Unit
+
   override def throwIfFailedProps(): Unit = {
     super.throwIfFailedProps()
     perApps.foreach(_.throwIfFailedProps())
