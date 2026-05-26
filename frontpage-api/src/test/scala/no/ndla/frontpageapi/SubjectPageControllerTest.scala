@@ -13,7 +13,6 @@ import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.frontpageapi.controller.{ControllerErrorHandling, SubjectPageController}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.when
@@ -28,7 +27,6 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment with Tapi
     given ReadService            = readService
     given WriteService           = writeService
     given FrontpageApiProperties = props
-    given MyNDLAApiClient        = myndlaApiClient
     given ErrorHelpers           = errorHelpers
     new SubjectPageController
   }

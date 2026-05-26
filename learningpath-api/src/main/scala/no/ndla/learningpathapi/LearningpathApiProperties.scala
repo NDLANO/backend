@@ -12,15 +12,14 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.auth.Permission
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.network.Domains
 
 import scala.util.Properties.*
 
 type Props = LearningpathApiProperties
 
 class LearningpathApiProperties extends BaseProps with DatabaseProps with StrictLogging {
-  def ApplicationName            = "learningpath-api"
-  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName = "learningpath-api"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")

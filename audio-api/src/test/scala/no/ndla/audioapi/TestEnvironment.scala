@@ -17,17 +17,10 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
-import no.ndla.database.{DBMigrator, DataSource, DBUtility}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.tapir.*
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 

@@ -10,45 +10,16 @@ package no.ndla.myndlaapi
 
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.myndlaapi.controller.{
-  ConfigController,
-  ControllerErrorHandling,
-  FolderController,
-  RobotController,
-  StatsController,
-  UserController,
-}
-import no.ndla.myndlaapi.integration.{InternalMyNDLAApiClient, LearningPathApiClient, SearchApiClient}
+import no.ndla.myndlaapi.controller.*
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.model.domain.{
-  DBConfigMeta,
-  DBFolder,
-  DBMyNDLAUser,
-  DBResource,
-  DBResourceConnection,
-  DBRobotDefinition,
-  DBSavedSharedFolder,
-}
+import no.ndla.myndlaapi.integration.{InternalMyNDLAApiClient, LearningPathApiClient, SearchApiClient}
+import no.ndla.myndlaapi.model.domain.*
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
-import no.ndla.myndlaapi.service.{
-  ConfigService,
-  FolderConverterService,
-  FolderReadService,
-  FolderWriteService,
-  RobotService,
-  UserService,
-}
+import no.ndla.myndlaapi.service.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
-import no.ndla.network.tapir.{
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.DBUtilityStub
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar

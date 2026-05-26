@@ -23,6 +23,7 @@ object SharedDependencies {
   val JsoupV                = "1.22.2"
   val EnumeratumV           = "1.9.7"
   val ScalaMetaVersion      = "4.16.1"
+  val NimbusOauth2OidcV     = "11.37.1"
 
   def logging: Seq[Dep] = Seq(
     mvn"org.apache.logging.log4j:log4j-api:$Log4JV",
@@ -87,8 +88,9 @@ object SharedDependencies {
 
   val tapirCirce: Seq[Dep] = circe ++ tapir
 
-  def jedis: Dep    = mvn"redis.clients:jedis:7.5.0"
-  def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:11.0.4"
+  def jedis: Dep            = mvn"redis.clients:jedis:7.5.0"
+  def jwtCirce: Dep         = mvn"com.github.jwt-scala::jwt-circe:11.0.4"
+  val nimbusOauth2Oidc: Dep = mvn"com.nimbusds:oauth2-oidc-sdk:$NimbusOauth2OidcV"
 
   def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"
   def scalaUri: Dep = mvn"com.indoorvivants::scala-uri:4.2.0".exclude("org.typelevel" -> "cats-parse")

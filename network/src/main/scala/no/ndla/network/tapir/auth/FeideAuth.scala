@@ -8,21 +8,24 @@
 
 package no.ndla.network.tapir.auth
 
+import cats.implicits.*
 import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.FeideUserWrapper
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
 import sttp.model.headers.{AuthenticationScheme, WWWAuthenticateChallenge}
 import sttp.tapir.*
 import sttp.tapir.EndpointInput.AuthType
+import sttp.tapir.server.PartialServerEndpoint
 
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success}
 
-trait FeideAuth(using myNdlaApiClient: MyNDLAProvider) {
+case class FeideAuth()(using myNdlaApiClient: MyNDLAProvider, errorHelpers: ErrorHelpers) {
   private val headerName       = "FeideAuthorization"
   private val schemeName       = "FeideAuth"
-  private val issuer           = "https://auth.dataporten.no"
-  private val authorizationUrl = s"$issuer/oauth/authorization"
-  private val tokenUrl         = s"$issuer/oauth/token"
+  private val issuerUrl        = "https://auth.dataporten.no"
+  private val authorizationUrl = s"$issuerUrl/oauth/authorization"
+  private val tokenUrl         = s"$issuerUrl/oauth/token"
   private val challenge        = WWWAuthenticateChallenge.bearer
 
   private val bearerMapping: Mapping[String, String] =
@@ -43,12 +46,23 @@ trait FeideAuth(using myNdlaApiClient: MyNDLAProvider) {
   val feideOptionalUncheckedAuth: EndpointInput.Auth[Option[String], AuthType.OAuth2] =
     oauth2EndpointInput(optionalUncheckedHeaderInput)
 
-  private def encodeFeideUserWrapper(user: FeideUserWrapper): String            = user.token
-  private def decodeFeideUserWrapper(s: String): DecodeResult[FeideUserWrapper] = {
-    myNdlaApiClient.getDomainUser(s) match {
-      case Success(user) => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
-      case Failure(ex)   => DecodeResult.Error(s, ex)
-    }
+  extension [INPUT, OUTPUT, R](self: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R]) {
+    def withFeideUser[F[_]]: PartialServerEndpoint[FeideUserWrapper, FeideUserWrapper, INPUT, AllErrors, OUTPUT, R, F] =
+      self
+        .securityIn(feideRequiredAuth)
+        .serverSecurityLogicPure {
+          case user @ FeideUserWrapper(_, Some(_)) => user.asRight
+          case _                                   => errorHelpers.unauthorized.asLeft
+        }
+
+    def withOptionalFeideUser[F[_]]
+        : PartialServerEndpoint[Option[FeideUserWrapper], Option[FeideUserWrapper], INPUT, AllErrors, OUTPUT, R, F] =
+      self
+        .securityIn(feideOptionalAuth)
+        .serverSecurityLogicPure {
+          case user @ Some(FeideUserWrapper(_, Some(_))) => user.asRight
+          case _                                         => None.asRight
+        }
   }
 
   private def oauth2EndpointInput[T](
@@ -59,4 +73,12 @@ trait FeideAuth(using myNdlaApiClient: MyNDLAProvider) {
     EndpointInput.AuthType.OAuth2(Some(authorizationUrl), Some(tokenUrl), ListMap(), None),
     EndpointInput.AuthInfo.Empty.securitySchemeName(schemeName),
   )
+
+  private def encodeFeideUserWrapper(user: FeideUserWrapper): String            = user.token
+  private def decodeFeideUserWrapper(s: String): DecodeResult[FeideUserWrapper] = {
+    myNdlaApiClient.getDomainUser(s) match {
+      case Success(user) => DecodeResult.Value(FeideUserWrapper(s, Some(user)))
+      case Failure(ex)   => DecodeResult.Error(s, ex)
+    }
+  }
 }

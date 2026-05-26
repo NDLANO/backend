@@ -12,7 +12,6 @@ import no.ndla.common.auth.Permission
 import no.ndla.common.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
-import no.ndla.network.AuthUser
 
 import scala.util.Properties.*
 
@@ -21,8 +20,6 @@ type Props = MyNdlaApiProperties
 class MyNdlaApiProperties extends BaseProps with DatabaseProps {
   override def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   override def ApplicationName: String = "myndla-api"
-
-  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt

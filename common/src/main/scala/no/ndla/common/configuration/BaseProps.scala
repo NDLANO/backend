@@ -139,12 +139,16 @@ trait BaseProps extends StrictLogging {
 
   def ndlaAuth0Scopes: Seq[Permission]
 
-  val ndlaAuth0Host: String = Environment match {
-    case "test" | "local" => "login.test.ndla.no"
-    case "staging"        => "login.staging.ndla.no"
-    case _                => "login.ndla.no"
+  val (ndlaAuth0Host, ndlaAuth0LegacyHost) = Environment match {
+    case "test" | "local" => ("login.test.ndla.no", "ndla-test.eu.auth0.com")
+    case "staging"        => ("login.staging.ndla.no", "ndla-staging.eu.auth0.com")
+    case _                => ("login.ndla.no", "ndla.eu.auth0.com")
   }
-  val ndlaAuth0Issuer = s"https://$ndlaAuth0Host"
+
+  // NOTE: Auth0 has a trailing slash in issuer
+  val ndlaAuth0Issuer       = s"https://$ndlaAuth0Host/"
+  val ndlaAuth0LegacyIssuer = s"https://$ndlaAuth0LegacyHost/"
+  val ndlaAuth0Audience     = "ndla_system"
 
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)

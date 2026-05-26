@@ -10,18 +10,18 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.controller.*
 import no.ndla.articleapi.integration.*
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, SearchApiClient, TaxonomyApiClient}
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, SwaggerController, TapirController, TapirHealthController}
+import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar

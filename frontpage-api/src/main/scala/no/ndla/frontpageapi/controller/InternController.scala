@@ -11,13 +11,11 @@ package no.ndla.frontpageapi.controller
 import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
-import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{MatomoService, ReadService}
-import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
@@ -27,10 +25,8 @@ import scala.util.{Failure, Success}
 class InternController(using
     readService: ReadService,
     matomoService: MatomoService,
-    myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    props: Props,
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"

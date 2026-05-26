@@ -22,7 +22,7 @@ import no.ndla.imageapi.model.api.bulk.{
 }
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
-import no.ndla.tapirtesting.TapirControllerTest
+import no.ndla.tapirtesting.{NdlaAuthTestTokens, TapirControllerTest}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import ox.flow.Flow
@@ -39,11 +39,9 @@ class BulkControllerTest extends UnitSuite with TestEnvironment with TapirContro
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
 
-  private val authHeaderWithBatchRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6YmF0Y2giLCJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
+  private val authHeaderWithBatchRole = s"Bearer ${NdlaAuthTestTokens.ImageBatch}"
 
-  private val authHeaderWithoutAnyRoles =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6W10sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.vw9YhRtgUQr_vuDhLNHfBsZz-4XLhCc1Kwxi0w0_qGI"
+  private val authHeaderWithoutAnyRoles = s"Bearer ${NdlaAuthTestTokens.NoPermissions}"
 
   private val sampleCopyright: CopyrightDTO = CopyrightDTO(
     license = LicenseDTO("CC-BY-SA-4.0", None, None),

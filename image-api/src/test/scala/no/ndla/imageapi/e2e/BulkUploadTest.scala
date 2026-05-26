@@ -24,8 +24,10 @@ import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.imageapi.service.search.{ImageIndexService, ImageSearchService, TagIndexService, TagSearchService}
 import no.ndla.imageapi.{ComponentRegistry, ImageApiProperties, MainClass, UnitSuite}
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.jwt.JwsKeySelectorFactory
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import no.ndla.search.NdlaE4sClient
+import no.ndla.tapirtesting.{NdlaAuthTestTokens, TestJwsKeySelectorFactory}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
@@ -72,6 +74,7 @@ class BulkUploadTest extends DatabaseIntegrationSuite with RedisIntegrationSuite
         mock[NdlaCloudFrontClient](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val myndlaApiClient: MyNDLAApiClient =
         mock[MyNDLAApiClient](withSettings.strictness(Strictness.LENIENT))
+      override implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
 
       override implicit lazy val imageStorage: ImageStorageService = {
         val m = mock[ImageStorageService](withSettings.strictness(Strictness.LENIENT))
@@ -107,11 +110,9 @@ class BulkUploadTest extends DatabaseIntegrationSuite with RedisIntegrationSuite
   val baseUrl: String  = s"http://localhost:$imageApiPort"
   val batchUrl: String = s"$baseUrl/image-api/v1/bulk"
 
-  val authHeaderWithBatchRole: String =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJpbWFnZXM6YmF0Y2giLCJpbWFnZXM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.1_j9R9KML2LTqeAE4bpRByJcR6m6Tv3pTOozpYCnTC8"
+  val authHeaderWithBatchRole: String = s"Bearer ${NdlaAuthTestTokens.ImageBatch}"
 
-  val authHeaderWithoutAnyRoles: String =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6W10sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.vw9YhRtgUQr_vuDhLNHfBsZz-4XLhCc1Kwxi0w0_qGI"
+  val authHeaderWithoutAnyRoles: String = s"Bearer ${NdlaAuthTestTokens.NoPermissions}"
 
   override def beforeAll(): Unit = {
     super.beforeAll()

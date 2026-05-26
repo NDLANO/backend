@@ -18,7 +18,7 @@ import no.ndla.common.Clock
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.mapping.License
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
-import no.ndla.tapirtesting.TapirControllerTest
+import no.ndla.tapirtesting.{NdlaAuthTestTokens, TapirControllerTest}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -63,14 +63,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
   when(clock.now()).thenCallRealMethod()
 
-  val authHeaderWithWriteRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6WyJhdWRpbzp3cml0ZSJdfQ.jOyT-eIsra1liu_ahLynDCBZe6ltlimsY8hh6Y2dk7g"
+  val authHeaderWithWriteRole = s"Bearer ${NdlaAuthTestTokens.AudioWrite}"
 
-  val authHeaderWithoutAnyRoles =
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlF6bEVPVFE1TTBOR01EazROakV4T0VKR01qYzJNalZGT0RoRVFrRTFOVUkyTmtFMFJUUXlSZyJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZnNleE9DZkpGR09LdXkxQzJlNzFPc3ZRd3EwTldLQUtAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNjgzODg0OTQ4LCJleHAiOjE2ODM4OTkzNDgsImF6cCI6ImZzZXhPQ2ZKRkdPS3V5MUMyZTcxT3N2UXdxME5XS0FLIiwic2NvcGUiOiIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.oznL95qVdP7HFTwwVm8ZfVv1GSW3_mNKTbAt9No8-PI"
+  val authHeaderWithoutAnyRoles = s"Bearer ${NdlaAuthTestTokens.NoPermissions}"
 
-  val authHeaderWithWrongRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJhenAiOiIxMjMiLCJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.1MYhQy2jRMsmyhaUURBC1rFXjCLSJMQyhuWBlB8qLQE"
+  val authHeaderWithWrongRole = s"Bearer ${NdlaAuthTestTokens.LearningPathAdmin}"
 
   val fileBody: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
 

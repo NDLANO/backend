@@ -20,17 +20,9 @@ import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjec
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, MatomoService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.network.clients.matomo.MatomoApiClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
+import no.ndla.network.tapir.*
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[FrontpageApiProperties] with MockitoSugar {

@@ -11,7 +11,6 @@ package no.ndla.network.tapir
 import cats.implicits.*
 import io.circe.Json
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.clients.MyNDLAProvider
 import sttp.apispec.openapi.{Contact, Info, License}
 import sttp.tapir.*
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
@@ -22,7 +21,6 @@ import scala.util.Try
 
 class SwaggerController(services: TapirController*)(using
     swaggerInfo: SwaggerInfo,
-    myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     props: BaseProps,

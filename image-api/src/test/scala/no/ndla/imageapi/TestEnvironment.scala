@@ -15,24 +15,10 @@ import no.ndla.imageapi.controller.{ImageControllerV2, ImageControllerV3, Intern
 import no.ndla.imageapi.model.domain.DBImageMetaInformation
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
-import no.ndla.imageapi.service.search.{
-  ImageIndexService,
-  ImageSearchService,
-  SearchConverterService,
-  TagIndexService,
-  TagSearchService,
-}
+import no.ndla.imageapi.service.search.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.tapir.*
 import no.ndla.search.NdlaE4sClient
 import org.scalatestplus.mockito.MockitoSugar
 

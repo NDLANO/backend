@@ -11,53 +11,24 @@ package no.ndla.myndlaapi
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaEmailClient
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.myndlaapi.controller.{
-  ConfigController,
-  ControllerErrorHandling,
-  FolderController,
-  InternController,
-  RobotController,
-  StatsController,
-  UserController,
-}
+import no.ndla.myndlaapi.controller.*
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
+import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.integration.{
   InternalMyNDLAApiClient,
   LearningPathApiClient,
   SearchApiClient,
   TaxonomyApiClient,
 }
-import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.model.domain.{
-  DBConfigMeta,
-  DBMyNDLAUser,
-  DBFolder,
-  DBResource,
-  DBResourceConnection,
-  DBRobotDefinition,
-  DBSavedSharedFolder,
-}
+import no.ndla.myndlaapi.model.domain.*
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
-import no.ndla.myndlaapi.service.{
-  ConfigService,
-  FolderConverterService,
-  FolderReadService,
-  FolderWriteService,
-  RobotService,
-  UserService,
-}
+import no.ndla.myndlaapi.service.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.clients.rediscache.FeideRedisClient
-import no.ndla.network.tapir.{
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  SwaggerInfo,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
+import no.ndla.network.tapir.*
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
   given props: MyNdlaApiProperties                 = properties
@@ -80,6 +51,9 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
   given errorHelpers: ErrorHelpers                           = new ErrorHelpers
   given errorHandling: ControllerErrorHandling               = new ControllerErrorHandling
+  given jwsKeySelectorFactory: JwsKeySelectorFactory         = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                                   = NdlaAuth()
+  given feideAuth: FeideAuth                                 = FeideAuth()
   implicit lazy val folderRepository: FolderRepository       = new FolderRepository
   given folderConverterService: FolderConverterService       = new FolderConverterService
   implicit lazy val userRepository: UserRepository           = new UserRepository
