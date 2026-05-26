@@ -67,6 +67,7 @@ class ImageIndexService(using
       dateField("lastUpdated"),
       keywordField("defaultTitle"),
       keywordField("modelReleased"),
+      keywordField("aiGeneratedFilter"),
       booleanField("inactive"),
       textField("editorNotes"),
       keywordField("podcastFriendly"),

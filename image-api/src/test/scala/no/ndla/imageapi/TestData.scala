@@ -454,5 +454,6 @@ class TestData(using imageConverter: ImageConverter) {
     heightFrom = None,
     heightTo = None,
     contentType = None,
+    aiGenerated = Seq.empty,
   )
 }
