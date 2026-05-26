@@ -11,6 +11,7 @@ package no.ndla.network.clients
 import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
@@ -57,18 +58,18 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     if (contentUris.isEmpty) Success(TaxonomyBundle.empty)
     else {
       val pageSize = Math.max(500, contentUris.size)
-      val nodes    = getPaginated[Node](
+      val body     = NodeSearchBody(
+        pageSize = pageSize,
+        page = 1,
+        contentUris = contentUris.toList,
+        nodeType = NodeType.values.toList,
+        includeContexts = true,
+      )
+      postPaginated[Node](
         s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
-        Seq(
-          "pageSize"        -> pageSize.toString,
-          "nodeType"        -> NodeType.values.mkString(","),
-          "includeContexts" -> "true",
-          "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
-          "contentUris"     -> contentUris.mkString(","),
-        ),
-      )
-      nodes.map(TaxonomyBundle.fromNodeList)
+        body = body,
+      ).map(TaxonomyBundle.fromNodeList)
     }
   }
 
@@ -104,34 +105,55 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     )
   }
 
-  private def getPaginated[T: Decoder](
+  private def postPaginated[T: Decoder](
       url: String,
       headers: Map[String, String],
-      params: Seq[(String, String)],
+      body: NodeSearchBody,
   ): Try[List[T]] = {
-    def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] = get[PaginationPage[T]](url, headers, p)
+    def fetchPage(page: Int): Try[PaginationPage[T]] = {
+      val pageBody = body.copy(page = page).asJson.noSpaces
+      ndlaClient.fetchWithForwardedAuth[PaginationPage[T]](
+        quickRequest
+          .post(uri"$url")
+          .body(pageBody)
+          .header("Content-Type", "application/json")
+          .headers(headers)
+          .readTimeout(timeoutSeconds),
+        None,
+      )
+    }
 
-    val pageSize   = params.toMap.getOrElse("pageSize", "100").toInt
-    val pageParams = params :+ ("page" -> "1")
-
-    fetchPage(pageParams).flatMap(firstPage => {
-      val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
-      val pageRange = 1 to numPages
-
-      val numThreads                                                 = Math.min(8, Math.max(1, numPages))
-      implicit val executionContext: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
-
-      try {
-        val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum"))))
-        val mergedFuture = Future.sequence(pages)
-        val awaited      = Await.result(mergedFuture, timeoutSeconds)
-        awaited.toList.sequence.map(_.flatMap(_.results))
-      } finally {
-        executionContext.shutdown()
+    fetchPage(1).flatMap { firstPage =>
+      val numPages = Math.max(1, Math.ceil(firstPage.totalCount.toDouble / body.pageSize.toDouble).toInt)
+      if (numPages == 1) Success(firstPage.results)
+      else {
+        val numThreads                                                 = Math.min(8, numPages - 1)
+        implicit val executionContext: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
+        try {
+          val tailPages = (
+            2 to numPages
+          ).map(p => Future(fetchPage(p)))
+          val mergedFuture = Future.sequence(tailPages)
+          val awaited      = Await.result(mergedFuture, timeoutSeconds)
+          awaited.toList.sequence.map(rest => firstPage.results ++ rest.flatMap(_.results))
+        } finally {
+          executionContext.shutdown()
+        }
       }
-    })
+    }
   }
+}
+
+case class NodeSearchBody(
+    pageSize: Int,
+    page: Int,
+    contentUris: List[String],
+    nodeType: List[NodeType],
+    includeContexts: Boolean,
+)
+object NodeSearchBody {
+  implicit val encoder: Encoder[NodeSearchBody] = deriveEncoder
 }
 
 case class PaginationPage[T](totalCount: Long, results: List[T])

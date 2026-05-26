@@ -22,8 +22,9 @@ import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, R
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import scala.util.{Failure, Success, Try}
+import scala.annotation.tailrec
 import scala.util.boundary
+import scala.util.{Failure, Random, Success, Try}
 
 abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps, searchLanguage: SearchLanguage)
     extends StrictLogging {
@@ -63,6 +64,60 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
       .indexSetting("max_result_window", MaxResultWindowOption)
       .replicas(0) // Spawn with 0 replicas to make indexing faster
       .analysis(analysis)
+  }
+
+  private val MaxBulkRetries       = 6
+  private val InitialBackoffMillis = 500L
+  private val MaxBackoffMillis     = 30000L
+
+  /** Runs `body` and retries with exponential backoff + jitter when Elasticsearch rejects the request with HTTP 429
+    * (`es_rejected_execution_exception`, typically caused by `indexing_pressure.memory.limit`). Other failures pass
+    * through unchanged. Once retries are exhausted the last failure is returned.
+    */
+  protected def retryOn429[A](label: String)(body: => Try[A]): Try[A] = {
+    @tailrec
+    def go(attempt: Int): Try[A] = {
+      val result = body
+      result match {
+        case Failure(ex) if isThrottled(ex) && attempt < MaxBulkRetries =>
+          val delay = backoffDelayMillis(attempt)
+          logger.warn(s"$label rejected by ES (429), retrying in ${delay}ms (attempt ${attempt + 1}/$MaxBulkRetries)")
+          Thread.sleep(delay)
+          go(attempt + 1)
+        case other => other
+      }
+    }
+    go(0)
+  }
+
+  private def isThrottled(ex: Throwable): Boolean = ex match {
+    case nse: NdlaSearchException[?] => nse.rf.exists(_.status == 429)
+    case _                           => false
+  }
+
+  private def backoffDelayMillis(attempt: Int): Long = {
+    val exponential = InitialBackoffMillis * Math.powExact(2L, attempt)
+    val capped      = Math.min(MaxBackoffMillis, exponential)
+    capped + Random.nextInt(250).toLong
+  }
+
+  /** Applies bulk-load-friendly index settings (no periodic refresh, async translog). Must be paired with
+    * [[restoreIndexSettingsAfterBulkLoad]] before the new index is exposed via alias swap.
+    */
+  private def applyBulkLoadIndexSettings(indexName: String): Try[?] = {
+    val bulkSettings: Map[String, String] = Map("refresh_interval" -> "-1", "translog.durability" -> "async")
+    e4sClient.execute(updateSettings(Indexes(indexName), bulkSettings))
+  }
+
+  /** Reverts the bulk-loading index settings set by [[applyBulkLoadIndexSettings]] and forces a refresh so the index is
+    * queryable once the alias points at it.
+    */
+  private def restoreIndexSettingsAfterBulkLoad(indexName: String): Try[?] = {
+    val restoreSettings: Map[String, String] = Map("refresh_interval" -> "1s", "translog.durability" -> "request")
+    for {
+      _ <- e4sClient.execute(updateSettings(Indexes(indexName), restoreSettings))
+      _ <- e4sClient.execute(refreshIndex(indexName))
+    } yield ()
   }
 
   def createIndexWithName(indexName: String): Try[String] = createIndexWithName(indexName, None)
@@ -128,8 +183,10 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
   def indexDocumentsInBulk(numShards: Option[Int])(sendToElasticFunction: SendToElastic): Try[ReindexResult] = for {
     start       <- Try(System.currentTimeMillis())
     indexName   <- createIndexWithGeneratedName(numShards)
+    _           <- applyBulkLoadIndexSettings(indexName)
     indexResult <- sendToElasticFunction(indexName)
     result      <- validateBulkIndexing(indexResult)
+    _           <- restoreIndexSettingsAfterBulkLoad(indexName)
     aliasTarget <- getAliasTarget
     _           <- updateAliasTarget(aliasTarget, indexName)
   } yield ReindexResult(documentType, result.failed, result.count, System.currentTimeMillis() - start)
@@ -150,7 +207,9 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
       for {
         newIndex <- createIndexWithGeneratedName(numShards.some)
         _         = logger.info(s"Created index $newIndex for internal reindexing")
+        _        <- applyBulkLoadIndexSettings(newIndex)
         _        <- e4sClient.execute(reindex(currentIndex, newIndex))
+        _        <- restoreIndexSettingsAfterBulkLoad(newIndex)
         _        <- updateAliasTarget(currentIndex.some, newIndex)
       } yield ()
     }
@@ -352,13 +411,15 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
   protected def executeRequests(requests: Seq[IndexRequest]): Try[BulkIndexResult] = {
     requests match {
       case Nil         => Success(BulkIndexResult(0, requests.size))
-      case head :: Nil => e4sClient
-          .execute(head)
-          .map(r =>
-            if (r.isSuccess) BulkIndexResult(1, requests.size)
-            else BulkIndexResult(0, requests.size)
-          )
-      case reqs => e4sClient.execute(bulk(reqs)).map(r => BulkIndexResult(r.result.successes.size, requests.size))
+      case head :: Nil => retryOn429(s"single-doc index into $searchIndex") {
+          e4sClient.execute(head)
+        }.map(r =>
+          if (r.isSuccess) BulkIndexResult(1, requests.size)
+          else BulkIndexResult(0, requests.size)
+        )
+      case reqs => retryOn429(s"bulk of ${reqs.size} into $searchIndex") {
+          e4sClient.execute(bulk(reqs))
+        }.map(r => BulkIndexResult(r.result.successes.size, requests.size))
     }
   }
 }

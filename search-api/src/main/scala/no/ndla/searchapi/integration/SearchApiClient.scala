@@ -60,6 +60,23 @@ trait SearchApiClient[T](using ndlaClient: NdlaClient, props: Props) extends Str
     }
   }
 
+  /** Returns the total document count and a function for fetching a specific page of results. Useful for callers that
+    * want to drive concurrent fetches themselves rather than walking the iterator returned by [[getChunks]].
+    */
+  def getChunkSource(implicit d: Decoder[T]): Try[ChunkSource[T]] = {
+    val pageSize = props.IndexBulkSize
+    getChunk(0, 0).map { initSearch =>
+      val totalCount = initSearch.totalCount
+      val numPages   = ceil(totalCount.toDouble / pageSize.toDouble).toInt
+      ChunkSource(
+        totalCount = totalCount,
+        pageSize = pageSize,
+        numPages = numPages,
+        fetchPage = (p: Int) => getChunk(p, pageSize).map(_.results),
+      )
+    }
+  }
+
   protected def getChunk(page: Int, pageSize: Int)(implicit d: Decoder[T]): Try[DomainDumpResults[T]] = {
     val params = Map("page" -> page.toString, "page-size" -> pageSize.toString)
     val reqs   = RequestInfo.fromThreadContext()
@@ -82,3 +99,5 @@ trait SearchApiClient[T](using ndlaClient: NdlaClient, props: Props) extends Str
     ndlaClient.fetchWithForwardedAuth[R](request, None)
   }
 }
+
+case class ChunkSource[T](totalCount: Long, pageSize: Int, numPages: Int, fetchPage: Int => Try[Seq[T]])

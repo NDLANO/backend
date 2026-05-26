@@ -22,7 +22,18 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.domain.IndexingBundle
 
+import java.util.concurrent.{Executors, ForkJoinPool, TimeUnit}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
+
+/** Shared, CPU-bounded pool used for parallel JSON conversion of documents within a chunk. One pool per JVM, sized to
+  * the available cores, so that pipelining multiple chunks per index does not oversubscribe the CPUs.
+  */
+private object IndexConversionPool {
+  val executionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(new ForkJoinPool(Math.max(2, Runtime.getRuntime.availableProcessors())))
+}
 
 abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLanguage, e4sClient: NdlaE4sClient)
     extends BaseIndexService {
@@ -175,48 +186,76 @@ trait IndexService[D <: Content](using
     }
   }
 
+  private def processChunk(chunk: Seq[D], indexName: String, indexingBundle: IndexingBundle): Try[(Int, Int)] = {
+    val chunkIndexingBundle = indexingBundle.taxonomyBundle match {
+      case Some(_) => Success(indexingBundle)
+      case None    =>
+        val contentUris = taxonomyContentUris(chunk)
+        if (contentUris.nonEmpty) taxonomyApiClient
+          .getTaxonomyBundleForContentUris(contentUris, taxonomyShouldUsePublished)
+          .map(bundle => indexingBundle.copy(taxonomyBundle = Some(bundle)))
+        else Success(indexingBundle)
+    }
+
+    chunkIndexingBundle
+      .flatMap(bundle => indexDocuments(chunk, indexName, bundle))
+      .map(numIndexed => (numIndexed, chunk.size))
+  }
+
   private def sendToElastic(indexName: String, indexingBundle: IndexingBundle)(implicit
       d: Decoder[D]
   ): Try[BulkIndexResult] = {
+    apiClient.getChunkSource match {
+      case Failure(ex) =>
+        logger.error(s"Failed to determine chunk count from api client '${apiClient.name}'", ex)
+        Failure(ex)
+      case Success(source) =>
+        val parallelism                   = Math.max(1, Math.min(props.IndexPipelineParallelism, Math.max(1, source.numPages)))
+        val executor                      = Executors.newFixedThreadPool(parallelism)
+        implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
 
-    val chunks  = apiClient.getChunks
-    val results = chunks
-      .map({
-        case Failure(ex) =>
-          logger.error(s"Failed to fetch chunk from with api client '${apiClient.name}'", ex)
-          Failure(ex)
-        case Success(c) =>
-          val chunkIndexingBundle = indexingBundle.taxonomyBundle match {
-            case Some(_) => Success(indexingBundle)
-            case None    =>
-              val contentUris = taxonomyContentUris(c)
-              if (contentUris.nonEmpty) taxonomyApiClient
-                .getTaxonomyBundleForContentUris(contentUris, taxonomyShouldUsePublished)
-                .map(bundle => indexingBundle.copy(taxonomyBundle = Some(bundle)))
-              else Success(indexingBundle)
+        try {
+          val futures = (
+            1 to source.numPages
+          ).map { page =>
+            Future {
+              source.fetchPage(page) match {
+                case Failure(ex) =>
+                  logger.error(s"Failed to fetch chunk $page from api client '${apiClient.name}'", ex)
+                  Failure(ex)
+                case Success(chunk) =>
+                  val result = processChunk(chunk, indexName, indexingBundle)
+                  result
+                    .failed
+                    .foreach(ex =>
+                      logger.error(s"Failed to process chunk $page for $documentType: ${ex.getMessage}", ex)
+                    )
+                  result
+              }
+            }
           }
 
-          chunkIndexingBundle
-            .flatMap(bundle => indexDocuments(c, indexName, bundle))
-            .map(numIndexed => (numIndexed, c.size))
-      })
-      .toList
+          val results = Await.result(Future.sequence(futures), Duration(60, TimeUnit.MINUTES))
 
-    results.collect { case Failure(ex) =>
-      Failure(ex)
-    } match {
-      case Nil =>
-        val successfulChunks = results.collect { case Success((chunkIndexed, chunkSize)) =>
-          (chunkIndexed, chunkSize)
+          results.collectFirst { case Failure(ex) =>
+            Failure(ex)
+          } match {
+            case Some(failure) => failure
+            case None          =>
+              val successfulChunks = results
+                .collect { case Success(pair) =>
+                  pair
+                }
+                .toList
+              val indexResult = countIndexed(successfulChunks)
+              logger.info(
+                s"${indexResult.count}/${indexResult.totalCount} documents ($documentType) were indexed successfully."
+              )
+              Success(indexResult)
+          }
+        } finally {
+          executor.shutdown()
         }
-
-        val indexResult = countIndexed(successfulChunks)
-        logger.info(
-          s"${indexResult.count}/${indexResult.totalCount} documents ($documentType) were indexed successfully."
-        )
-        Success(indexResult)
-
-      case notEmpty => notEmpty.head
     }
   }
 
@@ -224,12 +263,20 @@ trait IndexService[D <: Content](using
     if (contents.isEmpty) {
       Success(0)
     } else {
-      val req = contents.map { content =>
-        createIndexRequest(content, indexName, indexingBundle).recoverWith({ case ex =>
-          logger.error(s"Failed to create indexRequest for $documentType with id: ${content.id}", ex)
-          Failure(ex)
-        })
-      }
+      // JSON conversion is CPU-bound (Jsoup HTML-stripping per language field per doc). Run it on the shared
+      // conversion pool so we get per-core utilization even when only one chunk is in flight.
+      implicit val ec: ExecutionContext = IndexConversionPool.executionContext
+      val req                           = Await.result(
+        Future.traverse(contents.toVector) { content =>
+          Future {
+            createIndexRequest(content, indexName, indexingBundle).recoverWith { case ex =>
+              logger.error(s"Failed to create indexRequest for $documentType with id: ${content.id}", ex)
+              Failure(ex)
+            }
+          }
+        },
+        Duration(60, TimeUnit.MINUTES),
+      )
 
       val indexRequests = req.collect { case Success(indexRequest) =>
         indexRequest
@@ -240,8 +287,8 @@ trait IndexService[D <: Content](using
 
       val filteredRequests = indexRequests.flatten
       if (filteredRequests.nonEmpty) {
-        val response = e4sClient.execute {
-          bulk(filteredRequests)
+        val response = retryOn429(s"bulk of ${filteredRequests.size} into $searchIndex ($documentType)") {
+          e4sClient.execute(bulk(filteredRequests))
         }
 
         response match {
