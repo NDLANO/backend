@@ -9,6 +9,7 @@
 package no.ndla.monolith
 
 import no.ndla.common.Clock
+import no.ndla.monolith.inprocess.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
@@ -23,33 +24,60 @@ import no.ndla.network.tapir.{
 }
 
 /** Orchestrating registry that constructs every per-app [[no.ndla.network.tapir.TapirApplication]] in this repo and
-  * merges their controllers into a single Netty server.
-  *
-  * Inter-app calls in this initial version still go via HTTP loopback — each per-app `ComponentRegistry` constructs its
-  * default `*HttpClient` which talks to `localhost:${APPLICATION_PORT}`. Real in-process clients land incrementally by
-  * overriding the `buildXApiClient` hooks on each per-app `ComponentRegistry`.
+  * merges their controllers into a single Netty server. Each consumer-side `*ApiClient` for an in-repo peer is
+  * overridden to use an in-process implementation that calls the producer's services directly, skipping JSON ser/de and
+  * the Netty hop. External clients (Taxonomy, H5P, Feide, Matomo, Grep) stay HTTP.
   */
 class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApplication[MonolithProperties] {
 
   given props: MonolithProperties = properties
 
-  // Per-app component registries. lazy val so per-app initialisation can be overridden lazily and so cross-app
-  // references (when we add in-process clients) don't trip on construction order.
-  lazy val articleApi: no.ndla.articleapi.ComponentRegistry =
-    new no.ndla.articleapi.ComponentRegistry(properties.article)
-  lazy val audioApi: no.ndla.audioapi.ComponentRegistry     = new no.ndla.audioapi.ComponentRegistry(properties.audio)
-  lazy val conceptApi: no.ndla.conceptapi.ComponentRegistry =
-    new no.ndla.conceptapi.ComponentRegistry(properties.concept)
-  lazy val draftApi: no.ndla.draftapi.ComponentRegistry         = new no.ndla.draftapi.ComponentRegistry(properties.draft)
+  // Per-app component registries. lazy val so cross-app references through in-process clients resolve via the
+  // by-name constructors on each `*InProcessClient`, regardless of init order.
   lazy val frontpageApi: no.ndla.frontpageapi.ComponentRegistry =
     new no.ndla.frontpageapi.ComponentRegistry(properties.frontpage)
-  lazy val imageApi: no.ndla.imageapi.ComponentRegistry               = new no.ndla.imageapi.ComponentRegistry(properties.image)
-  lazy val learningpathApi: no.ndla.learningpathapi.ComponentRegistry =
-    new no.ndla.learningpathapi.ComponentRegistry(properties.learningpath)
-  lazy val myndlaApi: no.ndla.myndlaapi.ComponentRegistry     = new no.ndla.myndlaapi.ComponentRegistry(properties.myndla)
+
+  lazy val imageApi: no.ndla.imageapi.ComponentRegistry = new no.ndla.imageapi.ComponentRegistry(properties.image)
+
+  lazy val audioApi: no.ndla.audioapi.ComponentRegistry = new no.ndla.audioapi.ComponentRegistry(properties.audio)
+
+  lazy val conceptApi: no.ndla.conceptapi.ComponentRegistry =
+    new no.ndla.conceptapi.ComponentRegistry(properties.concept)
+
   lazy val oembedProxy: no.ndla.oembedproxy.ComponentRegistry =
     new no.ndla.oembedproxy.ComponentRegistry(properties.oembed)
-  lazy val searchApi: no.ndla.searchapi.ComponentRegistry = new no.ndla.searchapi.ComponentRegistry(properties.search)
+
+  lazy val articleApi: no.ndla.articleapi.ComponentRegistry =
+    new no.ndla.articleapi.ComponentRegistry(properties.article) {
+      override protected def buildFrontpageApiClient = new FrontpageForArticleApiInProcessClient(frontpageApi)
+      override protected def buildImageApiClient     = new ImageForArticleApiInProcessClient(imageApi)
+    }
+
+  lazy val searchApi: no.ndla.searchapi.ComponentRegistry = new no.ndla.searchapi.ComponentRegistry(properties.search) {
+    override protected def buildArticleApiClient      = new ArticleForSearchApiInProcessClient(articleApi)
+    override protected def buildDraftApiClient        = new DraftForSearchApiInProcessClient(draftApi)
+    override protected def buildDraftConceptApiClient = new ConceptForSearchApiInProcessClient(conceptApi)
+    override protected def buildLearningPathApiClient =
+      new LearningpathForSearchApiInProcessClient(learningpathApi, baseUrl = "in-process://learningpath-api")
+  }
+
+  lazy val learningpathApi: no.ndla.learningpathapi.ComponentRegistry =
+    new no.ndla.learningpathapi.ComponentRegistry(properties.learningpath) {
+      override protected def buildSearchApiClient   = new SearchForLearningpathApiInProcessClient(searchApi)
+      override protected def buildOembedProxyClient = new OembedForLearningpathApiInProcessClient(oembedProxy)
+    }
+
+  lazy val draftApi: no.ndla.draftapi.ComponentRegistry = new no.ndla.draftapi.ComponentRegistry(properties.draft) {
+    self =>
+    override protected def buildArticleApiClient      = new ArticleForDraftApiInProcessClient(articleApi, self)
+    override protected def buildImageApiClient        = new ImageForDraftApiInProcessClient(imageApi)
+    override protected def buildLearningpathApiClient = new LearningpathForDraftApiInProcessClient(learningpathApi)
+  }
+
+  lazy val myndlaApi: no.ndla.myndlaapi.ComponentRegistry = new no.ndla.myndlaapi.ComponentRegistry(properties.myndla) {
+    override protected def buildLearningPathApiClient = new LearningpathForMyndlaApiInProcessClient(learningpathApi)
+    override protected def buildSearchApiClient       = new SearchForMyndlaApiInProcessClient(searchApi)
+  }
 
   private lazy val allAppCrs: List[TapirApplication[?]] = List(
     articleApi,

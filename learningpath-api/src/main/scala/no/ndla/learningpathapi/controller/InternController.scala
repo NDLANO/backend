@@ -149,11 +149,6 @@ class InternController(using
     .in("stats")
     .out(jsonBody[commonApi.LearningPathStatsDTO])
     .serverLogicPure { _ =>
-      commonApi
-        .LearningPathStatsDTO(
-          learningPathRepository.myNdlaLearningPathCount,
-          learningPathRepository.myNdlaLearningPathOwnerCount,
-        )
-        .asRight
+      readService.getLearningPathStats.asRight
     }
 }

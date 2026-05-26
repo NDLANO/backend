@@ -12,14 +12,11 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.controller.ArticleErrorHelpers.ArticleGoneException
-import no.ndla.articleapi.model.NotFoundException
 import no.ndla.articleapi.model.api.*
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.common.implicits.toTry
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.database.DBUtility
 import no.ndla.language.Language
@@ -167,12 +164,7 @@ class InternController(using
     .out(jsonBody[Article])
     .errorOut(errorOutputsFor(404, 410, 500))
     .serverLogicPure { articleId =>
-      dBUtility.readOnly { implicit session =>
-        articleRepository
-          .withId(articleId)
-          .flatMap(_.toTry(NotFoundException(s"Article with ID $articleId was not found")))
-          .flatMap(_.article.toTry(ArticleGoneException(s"Article data for ID $articleId was missing")))
-      }
+      readService.getSingleDomainArticle(articleId)
     }
 
   def validateArticle: ServerEndpoint[Any, Eff] = endpoint

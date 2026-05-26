@@ -130,6 +130,15 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
     }
   }
 
+  // Exposed on ReadService (rather than computed inline in InternController) so the in-process client used by the
+  // monolith can reuse the exact same code path as the HTTP controller.
+  def getLearningPathStats: commonApi.learningpath.LearningPathStatsDTO = commonApi
+    .learningpath
+    .LearningPathStatsDTO(
+      learningPathRepository.myNdlaLearningPathCount,
+      learningPathRepository.myNdlaLearningPathOwnerCount,
+    )
+
   def getLearningPathDomainDump(
       pageNo: Int,
       pageSize: Int,

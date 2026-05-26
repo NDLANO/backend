@@ -115,6 +115,12 @@ class ReadService(using
     }
   }
 
+  // Added to enable in-process clients (monolith) to fetch a single draft by id
+  // without going through the HTTP controller path.
+  def getSingleArticleForDump(id: Long): Try[Draft] = dbUtility.readOnly { implicit session =>
+    draftRepository.withId(id).flatMap(_.toTry(NotFoundException(s"Could not find draft with id: '$id")))
+  }
+
   def getAllGrepCodes(input: String, pageSize: Int, page: Int): Try[api.GrepCodesSearchResultDTO] = {
     val result = grepCodesSearchService.matchingQuery(input, page, pageSize)
     result.map(converterService.toApiArticleGrepCodes)

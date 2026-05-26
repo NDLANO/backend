@@ -151,6 +151,15 @@ class ReadService(using
       } yield api.ArticleDomainDumpDTO(articleCount, pageNo, pageSize, articlesWithUrl)
     }
 
+  // Adapter exposing the single-domain-article fetch as a service-level call so both the HTTP InternController and the
+  // monolith in-process search-api client can share the same lookup logic.
+  def getSingleDomainArticle(articleId: Long): Try[Article] = dBUtility.readOnly { implicit session =>
+    articleRepository
+      .withId(articleId)
+      .flatMap(_.toTry(NotFoundException(s"Article with ID $articleId was not found")))
+      .flatMap(_.article.toTry(ArticleErrorHelpers.ArticleGoneException(s"Article data for ID $articleId was missing")))
+  }
+
   private[service] def addUrlOnResource(content: String): String = {
     val doc = stringToJsoupDocument(content)
 

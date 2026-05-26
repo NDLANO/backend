@@ -146,9 +146,9 @@ class InternController(using
     .out(jsonBody[Concept])
     .errorOut(errorOutputsFor(400, 404))
     .serverLogicPure { id =>
-      draftConceptRepository.withId(id) match {
-        case Some(concept) => concept.asRight
-        case None          => returnLeftError(NotFoundException(s"Could not find draft concept with id '$id'"))
+      readService.getSingleDraftConceptForDump(id) match {
+        case Success(concept) => concept.asRight
+        case Failure(ex)      => returnLeftError(ex)
       }
     }
 

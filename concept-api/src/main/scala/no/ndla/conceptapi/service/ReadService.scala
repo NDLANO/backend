@@ -8,13 +8,14 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.language.Language
 import no.ndla.network.tapir.auth.TokenUser
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class ReadService(using
     draftConceptRepository: DraftConceptRepository,
@@ -82,5 +83,12 @@ class ReadService(using
     val results                    = draftConceptRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
     api.ConceptDomainDump(draftConceptRepository.conceptCount, pageNo, pageSize, results)
+  }
+
+  // Added to enable in-process clients (monolith) to fetch a single draft concept by id
+  // without going through the HTTP controller path.
+  def getSingleDraftConceptForDump(id: Long): Try[Concept] = draftConceptRepository.withId(id) match {
+    case Some(concept) => Success(concept)
+    case None          => Failure(NotFoundException(s"Could not find draft concept with id '$id'"))
   }
 }

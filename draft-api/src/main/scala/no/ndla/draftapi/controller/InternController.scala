@@ -258,9 +258,7 @@ class InternController(using
     .errorOut(errorOutputsFor(404))
     .out(jsonBody[Draft])
     .serverLogicPure { id =>
-      dbUtility.readOnly { implicit session =>
-        draftRepository.withId(id).flatMap(_.toTry(NotFoundException(s"Could not find draft with id: '$id")))
-      }
+      readService.getSingleArticleForDump(id)
     }
 
   def postDump: ServerEndpoint[Any, Eff] = endpoint
