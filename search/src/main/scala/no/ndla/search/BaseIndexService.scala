@@ -96,8 +96,8 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
   }
 
   private def backoffDelayMillis(attempt: Int): Long = {
-    val exponential = InitialBackoffMillis * (1L << Math.min(attempt, 10))
-    val capped      = Math.min(MaxBackoffMillis, exponential)
+    val exponential = InitialBackoffMillis * Math.pow(2, attempt)
+    val capped      = Math.min(MaxBackoffMillis, exponential.toLong)
     capped + Random.nextInt(250).toLong
   }
 
