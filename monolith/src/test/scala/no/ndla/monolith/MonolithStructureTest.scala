@@ -8,7 +8,7 @@
 
 package no.ndla.monolith
 
-import no.ndla.monolith.inprocess.MyndlaForPeersInProcessClient
+import no.ndla.monolith.inprocess.{FrontpageForSearchApiInProcessClient, MyndlaForPeersInProcessClient}
 import no.ndla.network.tapir.LegacyPrefixAlias
 import no.ndla.testbase.UnitTestSuiteBase
 
@@ -82,6 +82,13 @@ class MonolithStructureTest extends UnitTestSuiteBase {
     cr.imageApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
     cr.learningpathApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
     cr.searchApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+  }
+
+  test("That search-api's FrontpageApiClient is the in-process variant in monolith mode") {
+    // search-api's NodeIndexService calls FrontpageApiClient.getSubjectPage during indexing. The HTTP impl would hit
+    // /intern/frontpage-api/dump/subjectpage/N on a real network — pin the override so the path stays in-process.
+    val cr = new MonolithComponentRegistry(new MonolithProperties)
+    cr.searchApi.frontpageApiClient shouldBe a[FrontpageForSearchApiInProcessClient]
   }
 
   test("That no endpoints are shadowed across the merged per-app controllers") {

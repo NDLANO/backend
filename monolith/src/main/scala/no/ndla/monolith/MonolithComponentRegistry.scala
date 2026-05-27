@@ -69,7 +69,8 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
     override protected def buildDraftConceptApiClient = new ConceptForSearchApiInProcessClient(conceptApi)
     override protected def buildLearningPathApiClient =
       new LearningpathForSearchApiInProcessClient(learningpathApi, baseUrl = "in-process://learningpath-api")
-    override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
+    override protected def buildMyNDLAApiClient   = new MyndlaForPeersInProcessClient(myndlaApi)
+    override protected def buildFrontpageApiClient = new FrontpageForSearchApiInProcessClient(frontpageApi)
   }
 
   lazy val learningpathApi: no.ndla.learningpathapi.ComponentRegistry =

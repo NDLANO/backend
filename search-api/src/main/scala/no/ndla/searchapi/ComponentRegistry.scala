@@ -48,7 +48,8 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given articleApiClient: ArticleApiClient              = buildArticleApiClient
   given redisClient: FeideRedisClient                   = new FeideRedisClient(props.RedisHost, props.RedisPort)
   given feideApiClient: FeideApiClient                  = new FeideApiClient
-  given frontpageApiClient: FrontpageApiClient          = new FrontpageApiClient
+  protected def buildFrontpageApiClient: FrontpageApiClient = new FrontpageApiClient
+  given frontpageApiClient: FrontpageApiClient              = buildFrontpageApiClient
 
   given converterService: ConverterService                 = new ConverterService
   given traitUtil: TraitUtil                               = new TraitUtil
