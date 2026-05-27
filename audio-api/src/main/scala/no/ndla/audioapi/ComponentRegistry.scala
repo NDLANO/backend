@@ -47,8 +47,10 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given audioRepository: AudioRepository   = new AudioRepository
   given seriesRepository: SeriesRepository = new SeriesRepository
 
-  given ndlaClient: NdlaClient                       = new NdlaClient
-  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given ndlaClient: NdlaClient                        = new NdlaClient
+  protected def buildMyNDLAApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient              = buildMyNDLAApiClient
+
   given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                           = NdlaAuth()
 

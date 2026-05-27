@@ -67,7 +67,8 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given ndlaClient: NdlaClient                              = new NdlaClient
   given searchApiClient: SearchApiClient                    = new SearchApiClient(props.SearchApiUrl)
   given feideApiClient: FeideApiClient                      = new FeideApiClient
-  given myndlaApiClient: MyNDLAApiClient                    = new MyNDLAApiClient
+  protected def buildMyNDLAApiClient: MyNDLAApiClient       = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient                    = buildMyNDLAApiClient
   protected def buildFrontpageApiClient: FrontpageApiClient = new FrontpageApiHttpClient
   given frontpageApiClient: FrontpageApiClient              = buildFrontpageApiClient
   protected def buildImageApiClient: ImageApiClient         = new ImageApiHttpClient

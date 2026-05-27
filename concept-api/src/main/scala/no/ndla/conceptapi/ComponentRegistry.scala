@@ -49,9 +49,11 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
   given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
   given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
 
-  given ndlaClient: NdlaClient                       = new NdlaClient
-  given searchApiClient: SearchApiClient             = new SearchApiClient(props.SearchApiUrl)
-  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given ndlaClient: NdlaClient                        = new NdlaClient
+  given searchApiClient: SearchApiClient              = new SearchApiClient(props.SearchApiUrl)
+  protected def buildMyNDLAApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient              = buildMyNDLAApiClient
+
   given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                           = NdlaAuth()
 

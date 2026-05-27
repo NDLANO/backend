@@ -30,10 +30,11 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given searchLanguage: SearchLanguage                            = new SearchLanguage
   given errorHelpers: ErrorHelpers                                = new ErrorHelpers
   given errorHandling: ControllerErrorHandling                    = new ControllerErrorHandling
-  given myndlaApiClient: MyNDLAApiClient                          = new MyNDLAApiClient
-  given jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                           = NdlaAuth()
-  given feideAuth: FeideAuth                         = FeideAuth()
+  protected def buildMyNDLAApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient                          = buildMyNDLAApiClient
+  given jwsKeySelectorFactory: JwsKeySelectorFactory              = DefaultJwsKeySelectorFactory
+  given ndlaAuth: NdlaAuth                                        = NdlaAuth()
+  given feideAuth: FeideAuth                                      = FeideAuth()
   given taxonomyApiClient: TaxonomyApiClient                      = new TaxonomyApiClient(props.TaxonomyUrl)
   given grepApiClient: GrepApiClient                              = new GrepApiClient
   protected def buildDraftApiClient: DraftApiClient               = new DraftApiHttpClient(props.DraftApiUrl)

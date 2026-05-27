@@ -45,7 +45,8 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
   implicit lazy val ndlaClient: NdlaClient                     = new NdlaClient
   implicit lazy val searchApiClient: SearchApiClient           = new SearchApiClient(props.SearchApiUrl)
-  implicit lazy val myndlaApiClient: MyNDLAApiClient           = new MyNDLAApiClient
+  protected def buildMyNDLAApiClient: MyNDLAApiClient          = new MyNDLAApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient           = buildMyNDLAApiClient
   given jwsKeySelectorFactory: JwsKeySelectorFactory           = DefaultJwsKeySelectorFactory
   given ndlaAuth: NdlaAuth                                     = NdlaAuth()
   implicit lazy val s3Client: NdlaS3Client                     =

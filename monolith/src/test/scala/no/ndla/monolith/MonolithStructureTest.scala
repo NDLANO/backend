@@ -8,6 +8,7 @@
 
 package no.ndla.monolith
 
+import no.ndla.monolith.inprocess.MyndlaForPeersInProcessClient
 import no.ndla.network.tapir.LegacyPrefixAlias
 import no.ndla.testbase.UnitTestSuiteBase
 
@@ -66,6 +67,21 @@ class MonolithStructureTest extends UnitTestSuiteBase {
     val cr      = new MonolithComponentRegistry(new MonolithProperties)
     val aliases = cr.services.filter(_.isInstanceOf[LegacyPrefixAlias])
     aliases shouldBe empty
+  }
+
+  test("That every peer-app CR uses the in-process MyNDLAApiClient in monolith mode") {
+    // Each peer of myndla-api gets its `MyNDLAApiClient` overridden to a [[MyndlaForPeersInProcessClient]] so cross-app
+    // myndla calls (user lookup, stats) skip the Netty hop. Pin every peer so a new *-api or a forgotten override
+    // surfaces here instead of silently calling myndla over HTTP.
+    val cr = new MonolithComponentRegistry(new MonolithProperties)
+    cr.articleApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.audioApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.conceptApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.draftApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.frontpageApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.imageApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.learningpathApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
+    cr.searchApi.myndlaApiClient shouldBe a[MyndlaForPeersInProcessClient]
   }
 
   test("That no endpoints are shadowed across the merged per-app controllers") {

@@ -52,7 +52,8 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given errorHelpers: ErrorHelpers                        = new ErrorHelpers
   given errorHandling: ErrorHandling                      = new ControllerErrorHandling
   implicit lazy val taxonomyApiClient: TaxonomyApiClient  = new TaxonomyApiClient
-  implicit lazy val myndlaApiClient: MyNDLAApiClient      = new MyNDLAApiClient
+  protected def buildMyNDLAApiClient: MyNDLAApiClient     = new MyNDLAApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient      = buildMyNDLAApiClient
   protected def buildSearchApiClient: SearchApiClient     = new SearchApiHttpClient
   given searchApiClient: SearchApiClient                  = buildSearchApiClient
   protected def buildOembedProxyClient: OembedProxyClient = new OembedProxyHttpClient

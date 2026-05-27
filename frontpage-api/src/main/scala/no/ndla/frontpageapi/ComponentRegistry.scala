@@ -38,7 +38,8 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given frontPageRepository: FrontPageRepository         = new FrontPageRepository
   given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
   given converterService: ConverterService               = new ConverterService
-  given myndlaApiClient: MyNDLAApiClient                 = new MyNDLAApiClient
+  protected def buildMyNDLAApiClient: MyNDLAApiClient    = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient                 = buildMyNDLAApiClient
   given taxonomyApiClient: TaxonomyApiClient             = new TaxonomyApiClient(props.TaxonomyUrl)
   given matomoApiClient: MatomoApiClient                 = new MatomoApiClient
   given matomoService: MatomoService                     = new MatomoService

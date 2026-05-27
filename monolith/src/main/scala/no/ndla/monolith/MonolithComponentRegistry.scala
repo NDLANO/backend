@@ -36,14 +36,22 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
   // Per-app component registries. lazy val so cross-app references through in-process clients resolve via the
   // by-name constructors on each `*InProcessClient`, regardless of init order.
   lazy val frontpageApi: no.ndla.frontpageapi.ComponentRegistry =
-    new no.ndla.frontpageapi.ComponentRegistry(properties.frontpage)
+    new no.ndla.frontpageapi.ComponentRegistry(properties.frontpage) {
+      override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
+    }
 
-  lazy val imageApi: no.ndla.imageapi.ComponentRegistry = new no.ndla.imageapi.ComponentRegistry(properties.image)
+  lazy val imageApi: no.ndla.imageapi.ComponentRegistry = new no.ndla.imageapi.ComponentRegistry(properties.image) {
+    override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
+  }
 
-  lazy val audioApi: no.ndla.audioapi.ComponentRegistry = new no.ndla.audioapi.ComponentRegistry(properties.audio)
+  lazy val audioApi: no.ndla.audioapi.ComponentRegistry = new no.ndla.audioapi.ComponentRegistry(properties.audio) {
+    override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
+  }
 
   lazy val conceptApi: no.ndla.conceptapi.ComponentRegistry =
-    new no.ndla.conceptapi.ComponentRegistry(properties.concept)
+    new no.ndla.conceptapi.ComponentRegistry(properties.concept) {
+      override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
+    }
 
   lazy val oembedProxy: no.ndla.oembedproxy.ComponentRegistry =
     new no.ndla.oembedproxy.ComponentRegistry(properties.oembed)
@@ -52,6 +60,7 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
     new no.ndla.articleapi.ComponentRegistry(properties.article) {
       override protected def buildFrontpageApiClient = new FrontpageForArticleApiInProcessClient(frontpageApi)
       override protected def buildImageApiClient     = new ImageForArticleApiInProcessClient(imageApi)
+      override protected def buildMyNDLAApiClient    = new MyndlaForPeersInProcessClient(myndlaApi)
     }
 
   lazy val searchApi: no.ndla.searchapi.ComponentRegistry = new no.ndla.searchapi.ComponentRegistry(properties.search) {
@@ -60,12 +69,14 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
     override protected def buildDraftConceptApiClient = new ConceptForSearchApiInProcessClient(conceptApi)
     override protected def buildLearningPathApiClient =
       new LearningpathForSearchApiInProcessClient(learningpathApi, baseUrl = "in-process://learningpath-api")
+    override protected def buildMyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
   }
 
   lazy val learningpathApi: no.ndla.learningpathapi.ComponentRegistry =
     new no.ndla.learningpathapi.ComponentRegistry(properties.learningpath) {
       override protected def buildSearchApiClient   = new SearchForLearningpathApiInProcessClient(searchApi)
       override protected def buildOembedProxyClient = new OembedForLearningpathApiInProcessClient(oembedProxy)
+      override protected def buildMyNDLAApiClient   = new MyndlaForPeersInProcessClient(myndlaApi)
     }
 
   lazy val draftApi: no.ndla.draftapi.ComponentRegistry = new no.ndla.draftapi.ComponentRegistry(properties.draft) {
@@ -73,6 +84,7 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
     override protected def buildArticleApiClient      = new ArticleForDraftApiInProcessClient(articleApi, self)
     override protected def buildImageApiClient        = new ImageForDraftApiInProcessClient(imageApi)
     override protected def buildLearningpathApiClient = new LearningpathForDraftApiInProcessClient(learningpathApi)
+    override protected def buildMyNDLAApiClient       = new MyndlaForPeersInProcessClient(myndlaApi)
   }
 
   lazy val myndlaApi: no.ndla.myndlaapi.ComponentRegistry = new no.ndla.myndlaapi.ComponentRegistry(properties.myndla) {
@@ -96,7 +108,7 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
   given clock: Clock                     = new Clock
   given errorHelpers: ErrorHelpers       = new ErrorHelpers
   given ndlaClient: NdlaClient           = new NdlaClient
-  given myNDLAApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given myNDLAApiClient: MyNDLAApiClient = new MyndlaForPeersInProcessClient(myndlaApi)
 
   // Each per-app CR carries its own ControllerErrorHandling with domain-specific PartialFunctions; compose them so
   // every domain error gets matched by its owning app's handler.
