@@ -927,7 +927,7 @@ public class NodesTest extends RestTest {
                 name = Optional.of("Resource");
                 contentUri = Optional.of(URI.create("urn:article:1"));
                 context = Optional.of(Boolean.TRUE);
-                resourceTypes = List.of(resourceType.getPublicId());
+                resourceTypes = Optional.of(List.of(resourceType.getPublicId()));
             }
         };
 
