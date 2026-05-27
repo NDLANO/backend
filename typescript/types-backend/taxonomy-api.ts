@@ -2065,6 +2065,8 @@ export type components = {
             nodeType?: components["schemas"]["NodeType"];
             /** @description The quality evaluation of the node. Consist of a score from 1 to 5 and a comment. Can be null to remove existing evaluation. */
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
+            /** @description ResourceType public ids to assign to the node. Only works on create for nodes of type RESOURCE */
+            resourceTypes?: string[];
             /**
              * @deprecated
              * @description The node is a root node. Default is false. Only used if present.
