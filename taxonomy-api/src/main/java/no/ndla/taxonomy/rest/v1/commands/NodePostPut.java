@@ -58,7 +58,9 @@ public class NodePostPut implements UpdatableDto<Node> {
     @Schema(description = "The node is visible. Default is true.")
     public Optional<Boolean> visible = Optional.empty();
 
-    @Schema(description = "Resource type uris to assign to the node.")
+    @Schema(
+            description =
+                    "ResourceType public ids to assign to the node. Only works on create for nodes of type RESOURCE")
     public Optional<List<URI>> resourceTypes = Optional.empty();
 
     @JsonProperty
