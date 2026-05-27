@@ -241,7 +241,7 @@ class WriteService(using
       newImage: NewImageMetaInformationV2DTO,
       file: UploadedFile,
       user: TokenUser,
-  ): Try[ImageMetaInformation] = permitTry {
+  ): Try[ImageMetaInformation] = {
     val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user)
     insertAndStoreImage(toInsert, file, None, newImage.language)
   }
