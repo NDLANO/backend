@@ -29,6 +29,7 @@ import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, Tapir
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.typelevel.MatchType.bool
 
 import scala.util.{Failure, Success, Try}
 
@@ -263,17 +264,14 @@ class ImageControllerV3(using
           val sort                = searchParams.sort
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
-          val aiGeneratedStatus   = searchParams
-            .aiGenerated
-            .getOrElse(Seq.empty)
-            .flatMap(value => AiGenerated.values.find(_.toString == value))
-          val userFilter  = searchParams.users.getOrElse(List.empty)
-          val inactive    = searchParams.inactive
-          val widthFrom   = searchParams.widthFrom
-          val widthTo     = searchParams.widthTo
-          val heightFrom  = searchParams.heightFrom
-          val heightTo    = searchParams.heightTo
-          val contentType = searchParams.contentType
+          val aiGeneratedStatus   = searchParams.aiGenerated
+          val userFilter          = searchParams.users.getOrElse(List.empty)
+          val inactive            = searchParams.inactive
+          val widthFrom           = searchParams.widthFrom
+          val widthTo             = searchParams.widthTo
+          val heightFrom          = searchParams.heightFrom
+          val heightTo            = searchParams.heightTo
+          val contentType         = searchParams.contentType
 
           searchV3(
             minimumSize,

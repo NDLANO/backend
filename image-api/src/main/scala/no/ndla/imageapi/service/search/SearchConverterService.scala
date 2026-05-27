@@ -23,6 +23,7 @@ import no.ndla.network.ApplicationUrl
 import cats.implicits.*
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.auth.Permission.IMAGE_API_WRITE
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
@@ -72,7 +73,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       lastUpdated = image.updated,
       defaultTitle = defaultTitle.map(t => t.title),
       modelReleased = Some(image.modelReleased.toString),
-      aiGenerated = Some(image.aiGenerated.toString),
+      aiGenerated = image.aiGenerated,
       editorNotes = image.editorNotes.map(_.note),
       imageFiles = asSearchableImageFiles(image.images),
       podcastFriendly = podcastFriendly,
@@ -136,6 +137,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
         license = searchableImage.license,
         supportedLanguages = supportedLanguages,
         modelRelease = searchableImage.modelReleased,
+        aiGenerated = searchableImage.aiGenerated,
         editorNotes = editorNotes,
         lastUpdated = searchableImage.lastUpdated,
         fileSize = imageFile.fileSize,

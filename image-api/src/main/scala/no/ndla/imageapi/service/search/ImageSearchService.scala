@@ -214,16 +214,17 @@ class ImageSearchService(using
       case None     => None
     }
 
-    val aiGeneratedFilter = Option.when(settings.aiGenerated.nonEmpty)(
-      boolQuery().should(settings.aiGenerated.map(ag => termQuery("aiGenerated", ag.toString)))
-    )
+    val aiGeneratedFilters =
+      if (settings.aiGenerated.nonEmpty)
+        List(boolQuery().should(settings.aiGenerated.map(ag => termQuery("aiGenerated", ag.toString))))
+      else Nil
 
     val filters = List(
       languageFilter,
       licenseFilter,
       sizeFilter,
       modelReleasedFilter,
-      aiGeneratedFilter,
+      aiGeneratedFilters,
       inactiveFilter,
       podcastFilter,
       userFilter,

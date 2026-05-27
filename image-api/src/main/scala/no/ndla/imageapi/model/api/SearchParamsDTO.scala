@@ -11,6 +11,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, Sort}
 import sttp.tapir.Schema.annotations.{deprecated, description}
 
@@ -48,7 +49,7 @@ case class SearchParamsDTO(
     @description("Return only images with one of the provided values for modelReleased.")
     modelReleased: Option[Seq[String]],
     @description("Return only images with one of the provided values for aiGenerated.")
-    aiGenerated: Option[Seq[String]],
+    aiGenerated: Seq[AiGenerated],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")
     users: Option[List[String]],
     @description("Filter images with width greater than or equal to this value.")

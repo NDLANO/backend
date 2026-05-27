@@ -132,6 +132,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       License.CC_BY_SA.toString,
       Seq("nb"),
       Some("yes"),
+      AiGenerated.No,
       None,
       date,
       123,

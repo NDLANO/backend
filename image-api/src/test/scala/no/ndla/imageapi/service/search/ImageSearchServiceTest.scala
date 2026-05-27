@@ -682,6 +682,34 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   }
 
+  test("That filtering for aiGenerated pictures works as expected") {
+    import AiGenerated.*
+
+    val Success(searchResult1) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", aiGenerated = Seq(Yes)), None): @unchecked
+    searchResult1.results.map(_.id) should be(Seq("1", "5"))
+
+    val Success(searchResult2) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", aiGenerated = Seq(No)), None): @unchecked
+    searchResult2.results.map(_.id) should be(Seq("2", "4", "6", "7", "9", "10"))
+
+    val Success(searchResult3) = imageSearchService.matchingQuery(
+      searchSettings.copy(language = "*", aiGenerated = Seq(Partial)),
+      None,
+    ): @unchecked
+    searchResult3.results.map(_.id) should be(Seq("3", "8"))
+
+    val Success(searchResult4) = imageSearchService.matchingQuery(
+      searchSettings.copy(language = "*", aiGenerated = Seq(Yes, Partial)),
+      None,
+    ): @unchecked
+    searchResult4.results.map(_.id) should be(Seq("1", "3", "5", "8"))
+
+    val Success(searchResult5) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", aiGenerated = Seq.empty), None): @unchecked
+    searchResult5.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+  }
+
   test("That search result includes updatedBy field") {
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"), None): @unchecked
