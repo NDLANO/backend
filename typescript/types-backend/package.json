@@ -33,6 +33,6 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
-  "version": "1.0.140",
+  "version": "1.0.141",
   "packageManager": "yarn@4.10.3"
 }
