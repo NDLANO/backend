@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import no.ndla.taxonomy.config.Constants;
@@ -21,6 +22,7 @@ import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.service.UpdatableDto;
 import no.ndla.taxonomy.service.dtos.QualityEvaluationDTO;
 import no.ndla.taxonomy.service.dtos.TechnicalEvaluationDTO;
+import no.ndla.taxonomy.service.dtos.TranslationDTO;
 
 @Schema(name = "NodePostPut")
 public class NodePostPut implements UpdatableDto<Node> {
@@ -83,6 +85,13 @@ public class NodePostPut implements UpdatableDto<Node> {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public UpdateOrDelete<TechnicalEvaluationDTO> technicalEvaluation = UpdateOrDelete.Default();
 
+    @JsonProperty
+    @Schema(
+            implementation = TranslationDTO.class,
+            description = "The translations for the node. Contains an array of translations in different languages",
+            types = {"object", "null"})
+    public Optional<List<TranslationDTO>> translations = Optional.empty();
+
     public Optional<String> getNodeId() {
         return nodeId;
     }
@@ -124,6 +133,12 @@ public class NodePostPut implements UpdatableDto<Node> {
             });
         }
 
+        translations.ifPresent(ts -> {
+            node.setTranslations(ts.stream()
+                    .map(t -> new JsonTranslation(t.name, t.language))
+                    .toList());
+        });
+
         root.ifPresent(node::setContext);
         context.ifPresent(node::setContext);
         name.ifPresent(node::setName);
@@ -131,7 +146,7 @@ public class NodePostPut implements UpdatableDto<Node> {
         visible.ifPresent(node::setVisible);
         // Add translation only on post
         name.ifPresent(name -> {
-            if (node.getId() == null) {
+            if (node.getId() == null && translations.isEmpty()) {
                 node.addTranslation(name, language);
             }
         });

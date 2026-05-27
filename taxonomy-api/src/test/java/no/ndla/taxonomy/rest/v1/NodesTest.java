@@ -937,6 +937,21 @@ public class NodesTest extends RestTest {
     }
 
     @Test
+    public void can_update_node_with_new_translations() throws Exception {
+        Node n = builder.node();
+
+        testUtils.updateResource("/v1/nodes/" + n.getPublicId(), new NodePostPut() {
+            {
+                translations =
+                        Optional.of(List.of(new TranslationDTO("nb", "tester"), new TranslationDTO("nn", "testar")));
+            }
+        });
+        Node node = nodeRepository.getByPublicId(n.getPublicId());
+        assertEquals("tester", node.getTranslatedName("nb"));
+        assertEquals("testar", node.getTranslatedName("nn"));
+    }
+
+    @Test
     public void can_update_node_with_new_id() throws Exception {
         URI publicId = builder.node(NodeType.TOPIC).getPublicId();
         URI randomId = URI.create("urn:topic:random");
