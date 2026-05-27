@@ -2074,6 +2074,8 @@ export type components = {
             root?: boolean;
             /** @description The technical evaluation of the node. Contains a flag and an optional comment. Can be null to remove existing evaluation. */
             technicalEvaluation?: components["schemas"]["TechnicalEvaluationDTO"];
+            /** @description The translations for the node. Contains an array of translations in different languages */
+            translations?: components["schemas"]["Translation"];
             /** @description The node is visible. Default is true. */
             visible?: boolean;
         };
