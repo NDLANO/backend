@@ -1719,19 +1719,19 @@ export type components = {
         Metadata: {
             customFields: {
                 [key: string]: string;
-            };
-            grepCodes: string[];
-            visible: boolean;
+            } | null;
+            grepCodes: string[] | null;
+            visible: boolean | null;
         };
         MetadataPUT: {
             /** @description Custom fields, Only updated if present */
             customFields?: {
                 [key: string]: string;
-            };
+            } | null;
             /** @description Set of grep codes, Only updated if present */
-            grepCodes?: string[];
+            grepCodes?: string[] | null;
             /** @description Visibility of the node, Only updated if present */
-            visible?: boolean;
+            visible?: boolean | null;
         };
         Node: {
             /**
