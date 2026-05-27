@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import no.ndla.taxonomy.config.Constants;
@@ -56,6 +57,11 @@ public class NodePostPut implements UpdatableDto<Node> {
 
     @Schema(description = "The node is visible. Default is true.")
     public Optional<Boolean> visible = Optional.empty();
+
+    @Schema(
+            description =
+                    "ResourceType public ids to assign to the node. Only works on create for nodes of type RESOURCE")
+    public Optional<List<URI>> resourceTypes = Optional.empty();
 
     @JsonProperty
     @Schema(description = "The language used at create time. Used to set default translation.", example = "nb")

@@ -14,13 +14,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.ndla.taxonomy.domain.ResourceResourceType;
-import no.ndla.taxonomy.domain.ResourceType;
-import no.ndla.taxonomy.repositories.NodeRepository;
 import no.ndla.taxonomy.repositories.ResourceResourceTypeRepository;
-import no.ndla.taxonomy.repositories.ResourceTypeRepository;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceResourceTypeDTO;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceResourceTypePOST;
 import no.ndla.taxonomy.rest.v1.responses.Created201ApiResponse;
+import no.ndla.taxonomy.service.NodeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,16 +30,12 @@ import org.springframework.web.bind.annotation.*;
 public class ResourceResourceTypes {
 
     private final ResourceResourceTypeRepository resourceResourceTypeRepository;
-    private final ResourceTypeRepository resourceTypeRepository;
-    private final NodeRepository nodeRepository;
+    private final NodeService nodeService;
 
     public ResourceResourceTypes(
-            ResourceResourceTypeRepository resourceResourceTypeRepository,
-            ResourceTypeRepository resourceTypeRepository,
-            NodeRepository nodeRepository) {
+            ResourceResourceTypeRepository resourceResourceTypeRepository, NodeService nodeService) {
         this.resourceResourceTypeRepository = resourceResourceTypeRepository;
-        this.resourceTypeRepository = resourceTypeRepository;
-        this.nodeRepository = nodeRepository;
+        this.nodeService = nodeService;
     }
 
     @PostMapping
@@ -54,13 +48,8 @@ public class ResourceResourceTypes {
     public ResponseEntity<Void> createResourceResourceType(
             @Parameter(name = "connection", description = "The new resource/resource type connection") @RequestBody
                     ResourceResourceTypePOST command) {
-
-        var resource = nodeRepository.getByPublicId(command.resourceId);
-
-        ResourceType resourceType = resourceTypeRepository.getByPublicId(command.resourceTypeId);
-
-        ResourceResourceType resourceResourceType = resource.addResourceType(resourceType);
-        resourceResourceTypeRepository.save(resourceResourceType);
+        ResourceResourceType resourceResourceType =
+                nodeService.connectNodeResourceType(command.resourceId, command.resourceTypeId);
 
         URI location = URI.create("/resource-resourcetypes/" + resourceResourceType.getPublicId());
         return ResponseEntity.created(location).build();

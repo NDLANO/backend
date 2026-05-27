@@ -331,6 +331,11 @@ class Nodes(
       val oldGrade = entity.qualityEvaluationGrade
       command.apply(entity)
       nodeRepository.saveAndFlush(entity)
+      if (command.nodeType == NodeType.RESOURCE && command.resourceTypes.isPresent) {
+        command.resourceTypes.map { types ->
+          types.forEach { type -> nodeService.connectNodeResourceType(entity.publicId, type) }
+        }
+      }
       contextUpdaterService.updateContexts(entity)
       if (locked) {
         qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(

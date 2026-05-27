@@ -919,6 +919,58 @@ public class NodesTest extends RestTest {
     }
 
     @Test
+    public void can_create_node_with_resourcetype() throws Exception {
+        var resourceType = builder.resourceType("type1", rt -> rt.name("Resourcetype"));
+        {
+            final var createNodeCommand = new NodePostPut() {
+                {
+                    nodeType = NodeType.RESOURCE;
+                    name = Optional.of("Resource");
+                    contentUri = Optional.of(URI.create("urn:article:1"));
+                    context = Optional.of(Boolean.TRUE);
+                    resourceTypes = Optional.of(List.of(resourceType.getPublicId()));
+                }
+            };
+
+            var response = testUtils.createResource("/v1/nodes", createNodeCommand);
+            URI id = getId(response);
+
+            Node node = nodeRepository.getByPublicId(id);
+            assertEquals(NodeType.RESOURCE, node.getNodeType());
+            assertEquals("Resource", node.getName());
+            assertEquals(URI.create("urn:article:1"), node.getContentUri());
+            assertTrue(node.isContext());
+            assertNotNull(node.getCreatedAt());
+            assertNotNull(node.getUpdatedAt());
+            assertEquals(1, node.getResourceResourceTypes().size());
+        }
+        {
+            // Setting resourcetypes only works for resource
+            final var createNodeCommand = new NodePostPut() {
+                {
+                    nodeType = NodeType.NODE;
+                    name = Optional.of("Node");
+                    contentUri = Optional.of(URI.create("urn:article:1"));
+                    context = Optional.of(Boolean.TRUE);
+                    resourceTypes = Optional.of(List.of(resourceType.getPublicId()));
+                }
+            };
+
+            var response = testUtils.createResource("/v1/nodes", createNodeCommand);
+            URI id = getId(response);
+
+            Node node = nodeRepository.getByPublicId(id);
+            assertEquals(NodeType.NODE, node.getNodeType());
+            assertEquals("Node", node.getName());
+            assertEquals(URI.create("urn:article:1"), node.getContentUri());
+            assertTrue(node.isContext());
+            assertNotNull(node.getCreatedAt());
+            assertNotNull(node.getUpdatedAt());
+            assertEquals(0, node.getResourceResourceTypes().size());
+        }
+    }
+
+    @Test
     public void can_update_node() throws Exception {
         Node n = builder.node();
 
