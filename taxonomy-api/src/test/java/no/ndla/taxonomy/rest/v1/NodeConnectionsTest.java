@@ -19,8 +19,8 @@ import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.rest.v1.dtos.NodeConnectionDTO;
 import no.ndla.taxonomy.rest.v1.dtos.NodeConnectionPOST;
 import no.ndla.taxonomy.rest.v1.dtos.NodeConnectionPUT;
-import no.ndla.taxonomy.rest.v1.dtos.TopicSubtopicDTO;
 import no.ndla.taxonomy.service.dtos.MetadataDTO;
+import no.ndla.taxonomy.service.dtos.NodeChildDTO;
 import no.ndla.taxonomy.service.dtos.SearchResultDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,11 +204,11 @@ public class NodeConnectionsTest extends RestTest {
         });
 
         var response = testUtils.getResource("/v1/nodes/" + subject.getPublicId() + "/nodes?recursive=true");
-        TopicSubtopicDTO[] topics = testUtils.getObject(TopicSubtopicDTO[].class, response);
+        NodeChildDTO[] topics = testUtils.getObject(NodeChildDTO[].class, response);
 
-        assertEquals(electricity.getPublicId(), topics[0].id);
-        assertEquals(wiring.getPublicId(), topics[1].id);
-        assertEquals(alternatingCurrents.getPublicId(), topics[2].id);
+        assertEquals(electricity.getPublicId(), topics[0].getId());
+        assertEquals(wiring.getPublicId(), topics[1].getId());
+        assertEquals(alternatingCurrents.getPublicId(), topics[2].getId());
     }
 
     @Test
