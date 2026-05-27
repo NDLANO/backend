@@ -46,7 +46,7 @@ class InternController(using
 
   import errorHelpers.*
 
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "image-api"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 

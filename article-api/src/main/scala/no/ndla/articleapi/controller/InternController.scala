@@ -47,7 +47,7 @@ class InternController(using
     ndlaAuth: NdlaAuth,
 ) extends TapirController
     with StrictLogging {
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "article-api"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 

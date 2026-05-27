@@ -36,7 +36,7 @@ class InternController(using
     errorHandling: ErrorHandling,
 ) extends TapirController {
   import errorHandling.*
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "concept-api"
   override val enableSwagger               = false
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

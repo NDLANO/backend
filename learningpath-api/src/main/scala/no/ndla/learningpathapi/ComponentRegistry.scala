@@ -85,8 +85,13 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
 
   given swaggerInfo: SwaggerInfo =
     SwaggerInfo(prefix = "learningpath-api", description = "Services for accessing learningpaths")
-  given swagger: SwaggerController =
-    new SwaggerController(learningpathControllerV2, internController, statsController, healthController)
+  given swagger: SwaggerController = new SwaggerController(
+    learningpathControllerV2,
+    internController,
+    new LegacyPrefixAlias(internController, "intern"),
+    statsController,
+    healthController,
+  )
 
   given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes

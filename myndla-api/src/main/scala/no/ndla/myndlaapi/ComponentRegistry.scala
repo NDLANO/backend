@@ -95,6 +95,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
     folderController,
     robotController,
     internController,
+    new LegacyPrefixAlias(internController, "intern"),
   )
 
   given services: List[TapirController] = swagger.allServices

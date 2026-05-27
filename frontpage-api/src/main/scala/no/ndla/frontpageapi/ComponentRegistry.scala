@@ -61,6 +61,7 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
     frontPageController,
     filmPageController,
     internController,
+    new LegacyPrefixAlias(internController, "intern"),
     healthController,
   )
 

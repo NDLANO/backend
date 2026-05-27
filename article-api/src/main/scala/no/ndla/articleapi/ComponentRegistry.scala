@@ -37,6 +37,7 @@ import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
+  LegacyPrefixAlias,
   Routes,
   SwaggerController,
   SwaggerInfo,
@@ -106,7 +107,12 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
       "returned articles, and typical examples of this are language and license.\n" +
       "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
   )
-  given swagger: SwaggerController = new SwaggerController(internController, articleControllerV2, healthController)
+  given swagger: SwaggerController = new SwaggerController(
+    internController,
+    new LegacyPrefixAlias(internController, "intern"),
+    articleControllerV2,
+    healthController,
+  )
 
   given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes

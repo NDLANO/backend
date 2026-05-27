@@ -43,7 +43,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
 
     val response = quickRequest
-      .post(uri"http://localhost:$serverPort/intern/validate/article")
+      .post(uri"http://localhost:$serverPort/intern/article-api/validate/article")
       .body(invalidArticle)
       .send()
     response.code.code should be(400)
@@ -57,7 +57,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     import io.circe.syntax.*
     val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces
 
-    val response = quickRequest.post(uri"http://localhost:$serverPort/intern/validate/article").body(jsonStr).send()
+    val response = quickRequest
+      .post(uri"http://localhost:$serverPort/intern/article-api/validate/article")
+      .body(jsonStr)
+      .send()
     response.code.code should be(200)
   }
 
@@ -66,7 +69,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/article-api/index").send()
     response.code.code should be(200)
     response.body should be("Deleted 2 indexes")
 
@@ -84,7 +87,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       .findAllIndexes(props.ArticleSearchIndex)
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/article-api/index").send()
     response.code.code should be(500)
     response.body should be("Failed to find indexes")
 
@@ -102,7 +105,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
-    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/index").send()
+    val response = quickRequest.delete(uri"http://localhost:$serverPort/intern/article-api/index").send()
     response.code.code should be(500)
     response.body should be(
       "Failed to delete 1 index: No index with name 'index2' exists. 1 index were deleted successfully."
@@ -123,7 +126,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val jsonStr = art.asJson.deepDropNullValues.noSpaces
 
     val response = quickRequest
-      .post(uri"http://localhost:$serverPort/intern/article/10?external-id=")
+      .post(uri"http://localhost:$serverPort/intern/article-api/article/10?external-id=")
       .headers(Map("Authorization" -> authHeaderWithWriteRole))
       .body(jsonStr)
       .send()

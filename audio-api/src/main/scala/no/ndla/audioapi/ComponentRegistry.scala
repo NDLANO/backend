@@ -83,6 +83,7 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   )
   given swagger: SwaggerController = new SwaggerController(
     internController,
+    new LegacyPrefixAlias(internController, "intern"),
     audioApiController,
     seriesController,
     healthController,

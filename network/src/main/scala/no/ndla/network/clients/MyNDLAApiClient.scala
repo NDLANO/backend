@@ -22,7 +22,7 @@ import scala.util.Try
 class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends MyNDLAProvider with StrictLogging {
   private val statsEndpoint  = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
   private val userEndpoint   = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/users"
-  private val internEndpoint = uri"http://${props.MyNDLAApiHost}/intern"
+  private val internEndpoint = uri"http://${props.MyNDLAApiHost}/intern/myndla-api"
 
   def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUserDTO] = {
     val req = quickRequest.get(userEndpoint)

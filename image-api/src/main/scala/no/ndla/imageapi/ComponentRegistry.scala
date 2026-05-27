@@ -85,6 +85,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
     imageControllerV3,
     rawController,
     internController,
+    new LegacyPrefixAlias(internController, "intern"),
     healthController,
     bulkController,
   )

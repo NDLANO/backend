@@ -23,7 +23,8 @@ class LearningPathApiHttpClient(using ndlaClient: NdlaClient, props: Props)
     with StrictLogging {
   private val learningPathTimeout = 20.seconds
 
-  def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
+  def getStats: Try[LearningPathStatsDTO] =
+    get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/learningpath-api/stats")
 
   private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
     val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)

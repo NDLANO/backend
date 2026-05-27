@@ -38,10 +38,10 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   )
 
   def internalApiUrls: Map[String, String] = Map(
-    "article-api" -> s"http://$ArticleApiHost/intern",
-    "audio-api"   -> s"http://$AudioApiHost/intern",
-    "draft-api"   -> s"http://$DraftApiHost/intern",
-    "image-api"   -> s"http://$ImageApiHost/intern",
+    "article-api" -> s"http://$ArticleApiHost/intern/article-api",
+    "audio-api"   -> s"http://$AudioApiHost/intern/audio-api",
+    "draft-api"   -> s"http://$DraftApiHost/intern/draft-api",
+    "image-api"   -> s"http://$ImageApiHost/intern/image-api",
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")

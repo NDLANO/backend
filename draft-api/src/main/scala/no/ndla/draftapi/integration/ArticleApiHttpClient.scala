@@ -33,7 +33,7 @@ class ArticleApiHttpClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient,
   def this()(using ndlaClient: NdlaClient, converterService: ConverterService, props: Props) =
     this(s"http://${props.ArticleApiHost}")
 
-  private val InternalEndpoint = s"$ArticleBaseUrl/intern"
+  private val InternalEndpoint = s"$ArticleBaseUrl/intern/article-api"
   private val deleteTimeout    = 10.seconds
   private val timeout          = 15.seconds
 

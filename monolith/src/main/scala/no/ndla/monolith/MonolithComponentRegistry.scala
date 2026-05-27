@@ -15,6 +15,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
+  LegacyPrefixAlias,
   Routes,
   SwaggerController,
   SwaggerInfo,
@@ -122,11 +123,14 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
   given healthController: TapirHealthController = new TapirHealthController
 
   // Pull every TapirController out of each per-app CR's swagger, drop per-app Swagger/Health (we provide merged
-  // versions). Keep everything else.
+  // versions). Also drop LegacyPrefixAlias instances: each per-app CR registers an alias of its InternController at
+  // the bare `intern` prefix to keep microservice-mode callers working during the per-app prefix transition; the
+  // monolith only serves the canonical `intern/<app-name>` paths so the legacy aliases would collide across apps.
   private lazy val perAppControllers: List[TapirController] = allAppCrs
     .flatMap(_.swagger.allServices)
     .filterNot { c =>
-      c.isInstanceOf[SwaggerController] || c.isInstanceOf[TapirHealthController]
+      c.isInstanceOf[SwaggerController] || c.isInstanceOf[TapirHealthController] ||
+      c.isInstanceOf[LegacyPrefixAlias]
     }
 
   given swagger: SwaggerController = new SwaggerController(perAppControllers*)
@@ -144,7 +148,6 @@ class MonolithComponentRegistry(properties: MonolithProperties) extends TapirApp
     imageApi.migrator.migrate()
     learningpathApi.migrator.migrate()
     myndlaApi.migrator.migrate()
-    // oembed-proxy and search-api have no DB / migrator
   }
 
   /** Endpoints to hit during warmup so each app's route handlers are JIT-warmed before traffic ramps up. */

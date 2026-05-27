@@ -66,7 +66,7 @@ class InternController(using
   implicit val ec: ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "search-api"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 

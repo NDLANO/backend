@@ -75,7 +75,12 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
       "Note that the query parameter is based on the Elasticsearch simple search language. For more information, see " +
       "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html",
   )
-  given swagger: SwaggerController = new SwaggerController(searchController, healthController, internController)
+  given swagger: SwaggerController = new SwaggerController(
+    searchController,
+    healthController,
+    internController,
+    new LegacyPrefixAlias(internController, "intern"),
+  )
 
   given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes

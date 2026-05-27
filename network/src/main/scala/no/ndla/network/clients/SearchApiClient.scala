@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) extends StrictLogging {
-  private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
+  private val InternalEndpoint        = s"$SearchApiBaseUrl/intern/search-api"
   private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
   private val indexTimeout            = 60.seconds
   private val indexRetryCount         = 3

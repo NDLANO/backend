@@ -100,8 +100,14 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
 
   given swaggerInfo: SwaggerInfo =
     SwaggerInfo(prefix = "draft-api", description = "Services for accessing draft articles.")
-  implicit lazy val swagger: SwaggerController =
-    new SwaggerController(internController, draftController, fileController, userDataController, healthController)
+  implicit lazy val swagger: SwaggerController = new SwaggerController(
+    internController,
+    new LegacyPrefixAlias(internController, "intern"),
+    draftController,
+    fileController,
+    userDataController,
+    healthController,
+  )
 
   implicit lazy val services: List[TapirController] = swagger.allServices
   implicit lazy val routes: Routes                  = new Routes

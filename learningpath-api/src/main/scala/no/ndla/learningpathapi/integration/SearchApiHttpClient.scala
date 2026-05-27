@@ -30,7 +30,9 @@ class SearchApiHttpClient(using ndlaClient: NdlaClient, props: Props) extends Se
   private val SearchApiBaseUrl = s"http://${props.SearchApiHost}"
 
   def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[?] = {
-    val req = quickRequest.delete(uri"http://${props.SearchApiHost}/intern/learningpath/$id").readTimeout(IndexTimeout)
+    val req = quickRequest
+      .delete(uri"http://${props.SearchApiHost}/intern/search-api/learningpath/$id")
+      .readTimeout(IndexTimeout)
 
     doRawRequest(req, user)
   }
@@ -42,7 +44,7 @@ class SearchApiHttpClient(using ndlaClient: NdlaClient, props: Props) extends Se
       val body = CirceUtil.toJsonString(document)
 
       val req = quickRequest
-        .post(uri"http://${props.SearchApiHost}/intern/learningpath/")
+        .post(uri"http://${props.SearchApiHost}/intern/search-api/learningpath/")
         .header("Content-Type", "application/json")
         .body(body)
         .readTimeout(IndexTimeout)

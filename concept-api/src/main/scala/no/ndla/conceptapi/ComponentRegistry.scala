@@ -68,8 +68,13 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
   given internController: InternController                     = new InternController
 
   given swaggerInfo: SwaggerInfo   = SwaggerInfo(prefix = "concept-api", description = "Services for accessing concepts")
-  given swagger: SwaggerController =
-    new SwaggerController(draftConceptController, publishedConceptController, healthController, internController)
+  given swagger: SwaggerController = new SwaggerController(
+    draftConceptController,
+    publishedConceptController,
+    healthController,
+    internController,
+    new LegacyPrefixAlias(internController, "intern"),
+  )
 
   given services: List[TapirController] = swagger.allServices
   given routes: Routes                  = new Routes

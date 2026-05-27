@@ -25,7 +25,7 @@ import no.ndla.myndlaapi.service.UserService
 class InternController(using errorHandling: ControllerErrorHandling, userService: UserService, feideAuth: FeideAuth)
     extends TapirController
     with StrictLogging {
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "myndla-api"
   override val enableSwagger               = false
 
   private def getDomainUser: ServerEndpoint[Any, Eff] = endpoint

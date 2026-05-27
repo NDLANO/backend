@@ -8,6 +8,7 @@
 
 package no.ndla.monolith
 
+import no.ndla.network.tapir.LegacyPrefixAlias
 import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.Properties.{clearProp, propOrNone, setProp}
@@ -55,5 +56,31 @@ class MonolithStructureTest extends UnitTestSuiteBase {
     val cr = new MonolithComponentRegistry(new MonolithProperties)
     cr should not be null
     cr.warmupEndpoints.map(_._1) should contain allOf ("/article-api/v2/articles", "/draft-api/v1/drafts/", "/health")
+  }
+
+  test("That LegacyPrefixAlias controllers are dropped from the merged monolith services") {
+    // Each per-app CR registers a LegacyPrefixAlias of its InternController at the bare `intern` prefix to keep
+    // microservice-mode callers working during the per-app prefix migration. The monolith must drop these because
+    // their `intern/*` paths would collide across apps. Pin the filter so a regression surfaces here, not as a
+    // production shadowing bug.
+    val cr      = new MonolithComponentRegistry(new MonolithProperties)
+    val aliases = cr.services.filter(_.isInstanceOf[LegacyPrefixAlias])
+    aliases shouldBe empty
+  }
+
+  test("That no endpoints are shadowed across the merged per-app controllers") {
+    // Per-controller TapirControllerTest catches shadowing inside a single controller. This is the application-wide
+    // equivalent: every per-app CR's controllers are merged into one Netty server in monolith mode, so collisions
+    // across apps (e.g. nine `/intern` prefixes) only surface here.
+    //
+    // Forces every per-app CR via `cr.services`. DataSource and Elastic4sClient are constructed lazily inside each
+    // CR, so this does not open a DB connection or hit Elasticsearch.
+    val cr           = new MonolithComponentRegistry(new MonolithProperties)
+    val allEndpoints = cr.services.flatMap(_.builtEndpoints.map(_.endpoint))
+    val errors       = sttp.tapir.testing.EndpointVerifier(allEndpoints)
+    if (errors.nonEmpty) {
+      val errString = errors.map(_.toString).mkString("\n\t- ", "\n\t- ", "")
+      fail(s"Found shadowed endpoints across merged monolith controllers:$errString")
+    }
   }
 }

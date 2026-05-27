@@ -35,7 +35,7 @@ class InternController(using
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
 ) extends TapirController {
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "learningpath-api"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
   import errorHelpers.*

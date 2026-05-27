@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class SearchApiHttpClient(using ndlaClient: NdlaClient, props: Props) extends SearchApiClient with StrictLogging {
-  private val internEndpoint = s"${props.SearchApiUrl}/intern"
+  private val internEndpoint = s"${props.SearchApiUrl}/intern/search-api"
 
   private def reindex(id: String, documentType: String): Try[Unit] = {
     val req = quickRequest.post(uri"$internEndpoint/reindex/$documentType/$id").readTimeout(60.seconds)

@@ -37,7 +37,7 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
 ) extends TapirController {
-  override val prefix: EndpointInput[Unit] = "intern"
+  override val prefix: EndpointInput[Unit] = "intern" / "audio-api"
   override val enableSwagger               = false
   private val internalErrorStringBody      = statusCode(StatusCode.InternalServerError).and(stringBody)
 

@@ -20,7 +20,7 @@ class FrontpageApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
   val timeout: FiniteDuration = 15.seconds
 
   def getSubjectPage(id: Long): Try[SubjectPage] = {
-    get[SubjectPage](s"${props.FrontpageApiUrl}/intern/dump/subjectpage/$id", Map.empty, Seq.empty)
+    get[SubjectPage](s"${props.FrontpageApiUrl}/intern/frontpage-api/dump/subjectpage/$id", Map.empty, Seq.empty)
   }
 
   private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {
