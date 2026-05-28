@@ -389,7 +389,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
 
     val res = quickRequest
       .post(uri"http://localhost:$serverPort/image-api/v2/images/search/")
-      .body(s"""{"scrollId":"$scrollId","aiGenerated":[]}""")
+      .body(s"""{"scrollId":"$scrollId"}""")
       .send()
     res.code.code should be(200)
 

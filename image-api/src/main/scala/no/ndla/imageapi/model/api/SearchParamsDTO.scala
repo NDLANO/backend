@@ -49,7 +49,7 @@ case class SearchParamsDTO(
     @description("Return only images with one of the provided values for modelReleased.")
     modelReleased: Option[Seq[String]],
     @description("Return only images with one of the provided values for aiGenerated.")
-    aiGenerated: Seq[AiGenerated],
+    aiGenerated: Option[Seq[AiGenerated]],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")
     users: Option[List[String]],
     @description("Filter images with width greater than or equal to this value.")

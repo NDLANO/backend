@@ -262,7 +262,7 @@ class ImageControllerV3(using
           val sort                = searchParams.sort
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
-          val aiGeneratedStatus   = searchParams.aiGenerated
+          val aiGeneratedStatus   = searchParams.aiGenerated.getOrElse(Seq.empty)
           val userFilter          = searchParams.users.getOrElse(List.empty)
           val inactive            = searchParams.inactive
           val widthFrom           = searchParams.widthFrom
