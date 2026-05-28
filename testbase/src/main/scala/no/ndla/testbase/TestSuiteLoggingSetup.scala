@@ -59,16 +59,19 @@ trait TestSuiteLoggingSetup extends AnyFunSuite with BeforeAndAfterEach with Bef
   override def withFixture(test: NoArgTest): Outcome = {
     val result = super.withFixture(test)
     if (!result.isSucceeded) {
+      val printColor =
+        if (result.isCanceled) Yellow
+        else Red
       // If test fails, print the buffered logs
       val testName = s"${this.suiteName}$$'${test.name}'"
-      ColoredText.print(Red, s"\n---- Captured Logs for test: $testName ----")
+      ColoredText.print(printColor, s"\n---- Captured Logs for test: $testName ----")
       if (beforeAllLog.nonEmpty) {
-        ColoredText.print(Red, s">>> Captured Logs from $suiteName$$beforeAll: >>>")
+        ColoredText.print(printColor, s">>> Captured Logs from $suiteName$$beforeAll: >>>")
         beforeAllLog.foreach(print)
-        ColoredText.print(Red, s"<<< End of Captured Logs from $suiteName$$beforeAll <<<")
+        ColoredText.print(printColor, s"<<< End of Captured Logs from $suiteName$$beforeAll <<<")
       }
       appender.printLogs()
-      ColoredText.print(Red, s"---- End of Captured Logs for test: $testName ----\n")
+      ColoredText.print(printColor, s"---- End of Captured Logs for test: $testName ----\n")
     }
     result
   }
