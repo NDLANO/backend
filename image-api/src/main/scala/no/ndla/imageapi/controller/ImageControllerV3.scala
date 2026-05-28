@@ -11,6 +11,7 @@ package no.ndla.imageapi.controller
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
+import no.ndla.common.model.domain.AiGenerated
 import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, ModelReleasedStatus, SearchSettings, Sort}
@@ -81,6 +82,7 @@ class ImageControllerV3(using
       podcastFriendly: Option[Boolean],
       shouldScroll: Boolean,
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
+      aiGeneratedStatus: Seq[AiGenerated],
       user: Option[TokenUser],
       userFilter: List[String],
       inactive: Option[Boolean],
@@ -104,6 +106,7 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
+          aiGenerated = aiGeneratedStatus,
           userFilter = userFilter,
           inactive = inactive,
           widthFrom = widthFrom,
@@ -125,6 +128,7 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
+          aiGenerated = aiGeneratedStatus,
           userFilter = userFilter,
           inactive = inactive,
           widthFrom = widthFrom,
@@ -158,6 +162,7 @@ class ImageControllerV3(using
     .in(podcastFriendly)
     .in(scrollId)
     .in(modelReleased)
+    .in(aiGenerated)
     .in(userFilter)
     .in(inactive)
     .in(widthFrom)
@@ -185,6 +190,7 @@ class ImageControllerV3(using
               podcastFriendly,
               scrollId,
               modelReleased,
+              aiGenerated,
               userFilter,
               inactive,
               widthFrom,
@@ -211,6 +217,7 @@ class ImageControllerV3(using
               podcastFriendly,
               shouldScroll,
               modelReleasedStatus,
+              aiGenerated.values,
               user,
               userFilter.values,
               inactive,
@@ -254,6 +261,7 @@ class ImageControllerV3(using
           val sort                = searchParams.sort
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+          val aiGeneratedStatus   = searchParams.aiGenerated.getOrElse(Seq.empty)
           val userFilter          = searchParams.users.getOrElse(List.empty)
           val inactive            = searchParams.inactive
           val widthFrom           = searchParams.widthFrom
@@ -275,6 +283,7 @@ class ImageControllerV3(using
             podcastFriendly,
             shouldScroll,
             modelReleasedStatus,
+            aiGeneratedStatus,
             user,
             userFilter,
             inactive,

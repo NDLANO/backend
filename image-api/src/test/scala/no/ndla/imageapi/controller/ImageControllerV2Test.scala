@@ -129,6 +129,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       License.CC_BY_SA.toString,
       Seq("nb"),
       Some("yes"),
+      AiGenerated.No,
       None,
       date,
       123,
@@ -137,7 +138,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       false,
     )
     val expectedBody =
-      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"CC-BY-SA-4.0","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg","inactive":false}]}"""
+      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"CC-BY-SA-4.0","supportedLanguages":["nb"],"modelRelease":"yes","aiGenerated":"No","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg","inactive":false}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResultDTO(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))

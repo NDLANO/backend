@@ -8,6 +8,8 @@
 
 package no.ndla.imageapi.model.domain
 
+import no.ndla.common.model.domain.AiGenerated
+
 case class SearchSettings(
     query: Option[String],
     queryFields: List[ImageSearchField],
@@ -28,4 +30,5 @@ case class SearchSettings(
     heightFrom: Option[Int],
     heightTo: Option[Int],
     contentType: Option[ImageContentType],
+    aiGenerated: Seq[AiGenerated],
 )

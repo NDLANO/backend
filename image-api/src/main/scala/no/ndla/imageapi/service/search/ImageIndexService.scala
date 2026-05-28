@@ -67,11 +67,11 @@ class ImageIndexService(using
       dateField("lastUpdated"),
       keywordField("defaultTitle"),
       keywordField("modelReleased"),
+      keywordField("aiGenerated"),
       booleanField("inactive"),
       textField("editorNotes"),
       keywordField("podcastFriendly"),
       keywordField("users"),
-      keywordField("aiGenerated"),
       nestedField("imageFiles").fields(
         intField("imageSize"),
         textField("previewUrl"),

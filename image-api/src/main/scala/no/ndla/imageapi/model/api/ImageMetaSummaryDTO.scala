@@ -11,6 +11,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.AiGenerated
 import sttp.tapir.Schema.annotations.description
 
 @description("Summary of meta information for an image")
@@ -35,6 +36,8 @@ case class ImageMetaSummaryDTO(
     supportedLanguages: Seq[String],
     @description("Describes if the model has released use of the image")
     modelRelease: Option[String],
+    @description("Describes if the image is AI generated")
+    aiGenerated: AiGenerated,
     @description("Describes the changes made to the image, only visible to editors")
     editorNotes: Option[Seq[String]],
     @description("The time and date of last update")
