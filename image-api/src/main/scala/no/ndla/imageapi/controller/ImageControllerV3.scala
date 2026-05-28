@@ -29,7 +29,6 @@ import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, Tapir
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.typelevel.MatchType.bool
 
 import scala.util.{Failure, Success, Try}
 

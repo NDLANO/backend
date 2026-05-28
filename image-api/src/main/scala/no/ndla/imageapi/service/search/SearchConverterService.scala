@@ -23,7 +23,6 @@ import no.ndla.network.ApplicationUrl
 import cats.implicits.*
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.auth.Permission.IMAGE_API_WRITE
-import no.ndla.common.model.domain.AiGenerated
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
