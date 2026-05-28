@@ -20,7 +20,7 @@ import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.tapirtesting.{NdlaAuthTestTokens, TapirControllerTest}
+import no.ndla.tapirtesting.{FeideAuthTestData, NdlaAuthTestTokens, TapirControllerTest}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, reset, times, verify, when}
@@ -238,11 +238,11 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
       arenaEnabled = false,
       lastSeen = TestData.today,
     )
+    val feideWrapper = FeideAuthTestData.FrankForeleser.copy(user = teacherUser)
 
-    val multiResult  = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
-    val teacherToken = "abcd"
+    val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
-    when(myndlaApiClient.getDomainUser(teacherToken)).thenReturn(Success(teacherUser))
+    when(myndlaApiClient.getFeideUserWrapperFromIdToken(any)).thenReturn(Right(feideWrapper))
 
     val baseSettings = TestData
       .searchSettings
@@ -250,12 +250,12 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val response = quickRequest
       .get(uri"http://localhost:$serverPort/search-api/v1/search/")
-      .header("FeideAuthorization", s"Bearer $teacherToken")
+      .header("FeideAuthorization", s"Bearer ${FeideAuthTestData.FrankForeleser.idToken.originalToken}")
       .send()
     val expectedSettings = baseSettings.copy(availability = List(Availability.everyone, Availability.teacher))
     response.code.code should be(200)
     verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
-    verify(myndlaApiClient, times(1)).getDomainUser(eqTo(teacherToken))
+    verify(myndlaApiClient, times(1)).getFeideUserWrapperFromIdToken(any)
   }
 
   test("That retrieving datetime strings from request works") {

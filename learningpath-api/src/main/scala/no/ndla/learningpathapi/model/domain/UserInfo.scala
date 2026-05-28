@@ -36,7 +36,7 @@ object UserInfo {
   extension (self: CombinedUser) {
     def id: Option[String] = {
       val tokenId = self.tokenUser.map(_.id)
-      val feideId = self.myndlaUser.map(_.feideId)
+      val feideId = self.myndlaUser.map(_.user.feideId)
       tokenId.orElse(feideId)
     }
 

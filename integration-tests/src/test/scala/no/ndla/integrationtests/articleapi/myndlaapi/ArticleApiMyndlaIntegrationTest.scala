@@ -9,16 +9,21 @@
 package no.ndla.integrationtests.articleapi.myndlaapi
 
 import no.ndla.articleapi.{ArticleApiProperties, TestData as ArticleTestData}
+import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.integrationtests.UnitSuite
+import no.ndla.myndlaapi.model.api.FeideSessionDTO
 import no.ndla.myndlaapi.{ComponentRegistry, MyNdlaApiProperties}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
-import no.ndla.scalatestsuite.DatabaseIntegrationSuite
+import no.ndla.network.model.FeideUserWrapper
+import no.ndla.network.tapir.auth.FeideAuth
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
+import no.ndla.tapirtesting.{FeideAuthTest, FeideAuthTestData}
 import no.ndla.{articleapi, myndlaapi}
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
 import org.scalatestplus.mockito.MockitoSugar
@@ -28,7 +33,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with MockitoSugar {
+class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite, RedisIntegrationSuite, UnitSuite, MockitoSugar {
   override def setPropEnv(key: String, value: String): String = {
     sys.props.put(key, value)
     value
@@ -47,12 +52,15 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
   val myndlaApiProperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int = myndlaApiPort
 
-    override val MetaServer: Prop[String]           = propFromTestValue("META_SERVER", pgc.host)
-    override val MetaResource: Prop[String]         = propFromTestValue("META_RESOURCE", pgc.databaseName)
-    override val MetaUserName: Prop[String]         = propFromTestValue("META_USER_NAME", pgc.username)
-    override val MetaPassword: Prop[String]         = propFromTestValue("META_PASSWORD", pgc.password)
-    override val MetaPort: Prop[Int]                = propFromTestValue("META_PORT", pgc.port)
-    override val MetaSchema: Prop[String]           = propFromTestValue("META_SCHEMA", myndlaSchema)
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.port)
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", myndlaSchema)
+
+    override def RedisHost: String                  = "localhost"
+    override def RedisPort: Int                     = redisPort.get
     override def MetaMigrationTable: Option[String] = Some("myndla_schema_version")
     override def disableWarmup: Boolean             = true
   }
@@ -78,8 +86,8 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
   val articleApiBaseUrl: String        = s"http://localhost:${articleApiProperties.ApplicationPort}"
   val myndlaApiBaseUrl: String         = s"http://localhost:${myndlaApiProperties.ApplicationPort}"
 
-  val studentFeideToken: String = "student-token"
-  val teacherFeideToken: String = "teacher-token"
+  val studentFeide: FeideUserWrapper = FeideAuthTestData.AsbjornElev
+  val teacherFeide: FeideUserWrapper = FeideAuthTestData.FrankForeleser
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -103,6 +111,7 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
       override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaApiProperties) {
         override implicit lazy val feideApiClient: FeideApiClient =
           mock[FeideApiClient](withSettings().strictness(Strictness.LENIENT))
+        override implicit lazy val feideAuth: FeideAuth = FeideAuthTest()
       }
     }
 
@@ -115,7 +124,12 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
           ex.printStackTrace()
         })
     }: Unit
-    articleApi = new articleapi.MainClass(articleApiProperties)
+    articleApi = new articleapi.MainClass(articleApiProperties) {
+      override val componentRegistry: articleapi.ComponentRegistry =
+        new articleapi.ComponentRegistry(articleApiProperties) {
+          override implicit lazy val feideAuth: FeideAuth = FeideAuthTest()
+        }
+    }
     Future {
       val result = articleApi.run(Array.empty)
       result
@@ -126,18 +140,20 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
         })
     }: Unit
 
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(Some(teacherFeideToken))).thenReturn(Success("teacher"))
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(Some(teacherFeideToken))).thenReturn(
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(teacherFeide.accessToken))).thenReturn(
       Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
-    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(Some(teacherFeideToken))).thenReturn(Success("org"))
+    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(eqTo(teacherFeide.accessToken))).thenReturn(
+      Success("org")
+    )
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
 
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(Some(studentFeideToken))).thenReturn(Success("student"))
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(Some(studentFeideToken))).thenReturn(
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(studentFeide.accessToken))).thenReturn(
       Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
-    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(Some(studentFeideToken))).thenReturn(Success("org"))
+    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(eqTo(studentFeide.accessToken))).thenReturn(
+      Success("org")
+    )
 
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
@@ -195,14 +211,23 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
 
     insertResult.isSuccess should be(true)
 
+    Seq(teacherFeide, studentFeide).foreach { feide =>
+      val body = CirceUtil.toJsonString(FeideSessionDTO(feide.accessToken))
+      quickRequest
+        .put(uri"$myndlaApiBaseUrl/myndla-api/v1/users/session")
+        .header("FeideAuthorization", s"Bearer ${feide.idToken.originalToken}")
+        .body(body)
+        .send()
+    }
+
     val teacherResponse = quickRequest
       .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
-      .header("FeideAuthorization", s"Bearer $teacherFeideToken")
+      .header("FeideAuthorization", s"Bearer ${teacherFeide.idToken.originalToken}")
       .send()
 
     val studentResponse = quickRequest
       .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
-      .header("FeideAuthorization", s"Bearer $studentFeideToken")
+      .header("FeideAuthorization", s"Bearer ${studentFeide.idToken.originalToken}")
       .send()
     val unauthedResponse = quickRequest.get(uri"$articleApiBaseUrl/article-api/v2/articles/123").send()
 

@@ -51,9 +51,9 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
   given errorHelpers: ErrorHelpers                           = new ErrorHelpers
   given errorHandling: ControllerErrorHandling               = new ControllerErrorHandling
-  given jwsKeySelectorFactory: JwsKeySelectorFactory         = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                   = NdlaAuth()
-  given feideAuth: FeideAuth                                 = FeideAuth()
+  implicit val jwsKeySelectorFactory: JwsKeySelectorFactory  = DefaultJwsKeySelectorFactory
+  implicit lazy val ndlaAuth: NdlaAuth                       = NdlaAuth()
+  implicit lazy val feideAuth: FeideAuth                     = FeideAuth()
   implicit lazy val folderRepository: FolderRepository       = new FolderRepository
   given folderConverterService: FolderConverterService       = new FolderConverterService
   implicit lazy val userRepository: UserRepository           = new UserRepository

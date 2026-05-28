@@ -83,6 +83,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/myndla-api/v1/users/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Feide session data
+         * @description Set Feide ID and access token for a user session
+         */
+        put: operations["putMyndla-apiV1UsersSession"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/stats": {
         parameters: {
             query?: never;
@@ -858,6 +878,10 @@ export type components = {
             /** @description Resources saved on the root level */
             rootResources: components["schemas"]["ResourceDTO"][];
         };
+        /** FeideSessionDTO */
+        FeideSessionDTO: {
+            accessToken: string;
+        };
         /** FolderDTO */
         FolderDTO: {
             /**
@@ -1325,6 +1349,7 @@ export type CopyResourcesDTO = components['schemas']['CopyResourcesDTO'];
 export type CreateRobotDefinitionDTO = components['schemas']['CreateRobotDefinitionDTO'];
 export type ErrorBody = components['schemas']['ErrorBody'];
 export type ExportedUserDataDTO = components['schemas']['ExportedUserDataDTO'];
+export type FeideSessionDTO = components['schemas']['FeideSessionDTO'];
 export type FolderDTO = components['schemas']['FolderDTO'];
 export type FolderDataDTO = components['schemas']['FolderDataDTO'];
 export type FolderSortRequestDTO = components['schemas']['FolderSortRequestDTO'];
@@ -1617,6 +1642,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportedUserDataDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "putMyndla-apiV1UsersSession": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeideSessionDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNDLAUserDTO"];
                 };
             };
             400: {

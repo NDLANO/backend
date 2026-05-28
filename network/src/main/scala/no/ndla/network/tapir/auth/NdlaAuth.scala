@@ -36,11 +36,8 @@ case class NdlaAuth()(using
     jwsKeySelectorFactory,
     props.ndlaAuth0Issuer,
     Some(props.ndlaAuth0Audience),
-    Set(props.ndlaAuth0Issuer, props.ndlaAuth0LegacyIssuer),
+    Set(props.ndlaAuth0LegacyIssuer),
   )
-
-  private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
-  private val forbiddenErrorOutput    = errorOutputVariantFor(StatusCode.Forbidden.code)
 
   val ndlaOptionalAuth: EndpointInput.Auth[Option[TokenUser], AuthType.OAuth2] = TapirAuth
     .oauth2
@@ -48,46 +45,48 @@ case class NdlaAuth()(using
     .securitySchemeName(schemeName)
     .map(optionalTokenUserMapping)
 
-  extension [INPUT, OUTPUT, R](self: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R]) {
-    def requirePermission[F[_]](
-        requiredPermission: Permission*
-    ): PartialServerEndpoint[Option[TokenUser], TokenUser, INPUT, AllErrors, OUTPUT, R, F] = self
-      .errorOutVariantPrepend(unauthorizedErrorOutput)
-      .errorOutVariantPrepend(forbiddenErrorOutput)
-      .securityIn(ndlaOptionalAuth(requiredPermission))
-      .serverSecurityLogicPure(requireScope(requiredPermission*))
-
-    def withOptionalUser[F[_]]
-        : PartialServerEndpoint[Option[TokenUser], Option[TokenUser], INPUT, AllErrors, OUTPUT, R, F] = self
-      .securityIn(ndlaOptionalAuth)
-      .serverSecurityLogicPure(Right(_))
-  }
-
-  def ndlaOptionalAuth(
+  /** Creates a Tapir endpoint input with documentation (but not validation) for required scopes. */
+  def ndlaRequiredAuthWithPermissions(
       requiredPermissions: Seq[Permission]
-  ): EndpointInput.Auth[Option[TokenUser], AuthType.ScopedOAuth2] = {
+  ): EndpointInput.Auth[TokenUser, AuthType.ScopedOAuth2] = {
     val scopes         = ListMap.from(props.ndlaAuth0Scopes.map(p => p.entryName -> p.entryName))
     val requiredScopes = requiredPermissions.map(_.entryName)
     TapirAuth
       .oauth2
-      .authorizationCodeFlowOptional(authorizationUrl, tokenUrl, scopes = scopes)
+      .authorizationCodeFlow(authorizationUrl, tokenUrl, scopes = scopes)
       .securitySchemeName(schemeName)
-      .map(optionalTokenUserMapping)
+      .map(tokenUserMapping)
       .requiredScopes(requiredScopes)
+  }
+
+  extension [INPUT, OUTPUT, R](self: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R]) {
+    private def selfWithErrorOut: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R] = self
+      .errorOutVariantPrepend(errorOutputVariantFor(StatusCode.Unauthorized.code))
+      .errorOutVariantPrepend(errorOutputVariantFor(StatusCode.Forbidden.code))
+
+    def requirePermission[F[_]](
+        requiredPermission: Permission*
+    ): PartialServerEndpoint[TokenUser, TokenUser, INPUT, AllErrors, OUTPUT, R, F] = selfWithErrorOut
+      .securityIn(ndlaRequiredAuthWithPermissions(requiredPermission))
+      .serverSecurityLogicPure(requireScope(requiredPermission*))
+
+    def withOptionalUser[F[_]]
+        : PartialServerEndpoint[Option[TokenUser], Option[TokenUser], INPUT, AllErrors, OUTPUT, R, F] = selfWithErrorOut
+      .securityIn(ndlaOptionalAuth)
+      .serverSecurityLogicPure(Right(_))
   }
 
   /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
     * some endpoint.
     */
-  private def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
-    case Some(user) if user.hasPermissions(scope) => user.asRight
-    case Some(_)                                  => errorHelpers.forbidden.asLeft
-    case None                                     => errorHelpers.unauthorized.asLeft
+  private def requireScope(scope: Permission*): TokenUser => Either[AllErrors, TokenUser] = {
+    case user if user.hasPermissions(scope) => user.asRight
+    case _                                  => errorHelpers.forbidden.asLeft
   }
 
   private def encodeTokenUser(user: TokenUser): String            = user.originalToken.getOrElse("")
   private def decodeTokenUser(s: String): DecodeResult[TokenUser] = {
-    jwtVerifier.decode(s) match {
+    jwtVerifier.decode[TokenUser](s) match {
       case Success(user) => DecodeResult.Value(user)
       case Failure(ex)   => DecodeResult.Error(s, ex)
     }

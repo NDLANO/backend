@@ -16,6 +16,7 @@ import scala.util.{Failure, Success, Try}
 
 trait UnitTestSuite extends UnitTestSuiteBase with HasBaseProps {
   setPropEnv("DISABLE_LICENSE", "true"): Unit
+  setPropEnv("FEIDE_CLIENT_ID", "feide-client-id"): Unit
 
   def setPropEnv(key: String, value: String): String = {
     props.propFromTestValue(key, value): Unit

@@ -151,16 +151,8 @@ class FolderReadService(using
   ): Try[List[domain.Folder]] =
     folders.traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
-  private def withFeideId[T](user: FeideUserWrapper)(func: FeideID => Try[T]): Try[T] = {
-    for {
-      user   <- user.userOrAccessDenied
-      result <- func(user.feideId)
-    } yield result
-  }
-
-  def getFolders(includeSubfolders: Boolean, includeResources: Boolean, feide: FeideUserWrapper): Try[UserFolderDTO] = {
-    withFeideId(feide)((feideId: FeideID) => getFoldersAuthenticated(includeSubfolders, includeResources, feideId))
-  }
+  def getFolders(includeSubfolders: Boolean, includeResources: Boolean, feide: FeideUserWrapper): Try[UserFolderDTO] =
+    getFoldersAuthenticated(includeSubfolders, includeResources, feide.user.feideId)
 
   def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.BreadcrumbDTO]] = {
     @tailrec
@@ -192,16 +184,16 @@ class FolderReadService(using
   ): Try[FolderDTO] = {
     dbUtility.writeSession { implicit session =>
       for {
-        user              <- feide.userOrAccessDenied
+        feideId            = feide.user.feideId
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
-        _                 <- folderWithContent.isOwner(user.feideId)
+        _                 <- folderWithContent.isOwner(feideId)
         feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
         converted         <- folderConverterService.toApiFolder(
           folderWithContent,
           breadcrumbs,
           feideUser,
-          user.feideId == folderWithContent.feideId,
+          feideId == folderWithContent.feideId,
         )
       } yield converted
     }
@@ -210,8 +202,7 @@ class FolderReadService(using
   def getAllResources(size: Int, feide: FeideUserWrapper): Try[List[ResourceDTO]] = {
     dbUtility.writeSession { implicit session =>
       for {
-        user               <- feide.userOrAccessDenied
-        resources          <- folderRepository.resourcesWithFeideId(user.feideId, size)
+        resources          <- folderRepository.resourcesWithFeideId(feide.user.feideId, size)
         convertedResources <- folderConverterService.domainToApiModel(
           resources,
           resource => folderConverterService.toApiResource(resource, isOwner = true),
@@ -220,20 +211,14 @@ class FolderReadService(using
     }
   }
 
-  def getAllTags(feide: FeideUserWrapper): Try[List[String]] = {
-    dbUtility.readOnly { implicit session =>
-      for {
-        user <- feide.userOrAccessDenied
-        tags <- folderRepository.getDistinctTags(user.feideId)
-      } yield tags
-    }
+  def getAllTags(feide: FeideUserWrapper): Try[List[String]] = dbUtility.readOnly { implicit session =>
+    folderRepository.getDistinctTags(feide.user.feideId)
   }
 
   def getRootResources(feide: FeideUserWrapper): Try[List[ResourceDTO]] = {
     dbUtility.readOnly { implicit session =>
       for {
-        user               <- feide.userOrAccessDenied
-        resources          <- folderRepository.getRootResources(user.feideId)
+        resources          <- folderRepository.getRootResources(feide.user.feideId)
         convertedResources <- folderConverterService.domainToApiModel(
           resources,
           resource => folderConverterService.toApiResource(resource, isOwner = true),
@@ -244,10 +229,7 @@ class FolderReadService(using
 
   def hasFavoritedResource(path: String, feide: FeideUserWrapper): Try[Boolean] = dbUtility.readOnly {
     implicit session =>
-      for {
-        user     <- feide.userOrAccessDenied
-        resource <- folderRepository.userResourceWithId(path, user.feideId)
-      } yield resource.isDefined
+      folderRepository.userResourceWithId(path, feide.user.feideId).map(_.isDefined)
   }
 
   private def getUserStats(numberOfUsersWithLearningpath: Long, session: DBSession): Try[Option[UserStatsDTO]] = {
@@ -299,11 +281,10 @@ class FolderReadService(using
 
   def exportUserData(feide: FeideUserWrapper): Try[ExportedUserDataDTO] = {
     for {
-      user          <- feide.userOrAccessDenied
       rootResources <- getRootResources(feide)
-      folders       <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, user.feideId)
+      folders       <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feide.user.feideId)
     } yield api.ExportedUserDataDTO(
-      userData = folderConverterService.toApiUserData(user),
+      userData = folderConverterService.toApiUserData(feide.user),
       folders = folders.folders,
       rootResources = rootResources,
     )
@@ -340,18 +321,17 @@ class FolderReadService(using
 
   def getResourceConnectionsByPath(path: String, feide: FeideUserWrapper): Try[List[ResourceConnectionDTO]] = {
     implicit val session: DBSession = folderRepository.getSession(true)
-    for {
-      user        <- feide.userOrAccessDenied
-      connections <- folderRepository.getConnectionsByPath(path, user.feideId)
-    } yield connections.map(c => folderConverterService.toApiResourceConnection(c))
-
+    folderRepository
+      .getConnectionsByPath(path, feide.user.feideId)
+      .map { connections =>
+        connections.map(c => folderConverterService.toApiResourceConnection(c))
+      }
   }
 
   def getResourceByPath(path: String, feide: FeideUserWrapper): Try[Option[ResourceDTO]] = {
     implicit val session: DBSession = folderRepository.getSession(true)
     for {
-      user      <- feide.userOrAccessDenied
-      resource  <- folderRepository.userResourceWithId(path, user.feideId)
+      resource  <- folderRepository.userResourceWithId(path, feide.user.feideId)
       converted <- resource.traverse(r => folderConverterService.toApiResource(r, isOwner = true))
     } yield converted
   }

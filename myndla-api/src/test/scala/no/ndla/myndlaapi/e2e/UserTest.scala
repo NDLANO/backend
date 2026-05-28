@@ -16,12 +16,14 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.api.FolderDTO
+import no.ndla.myndlaapi.model.api.{FeideSessionDTO, FolderDTO}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
+import no.ndla.network.tapir.auth.FeideAuth
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
+import no.ndla.tapirtesting.{FeideAuthTest, FeideAuthTestData}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.mockito.quality.Strictness
@@ -52,7 +54,8 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     override def RedisPort: Int    = testRedisPort
   }
 
-  val feideId = "feide"
+  val feideId: String      = FeideAuthTestData.FrankForeleser.idToken.sub
+  val feideIdToken: String = FeideAuthTestData.FrankForeleser.idToken.originalToken
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
@@ -64,10 +67,9 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
       override implicit lazy val userService: UserService           = spy(new UserService)
       override implicit lazy val searchApiClient: SearchApiClient   = mock[SearchApiClient]
       override implicit lazy val nodebb: NodeBBClient               = mock[NodeBBClient]
+      override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
-      when(feideApiClient.getFeideID(any)).thenReturn(Success("feideid"))
-      when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
         Success(
@@ -103,13 +105,22 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
 
     implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers
+
+    val feideSessionDto  = FeideSessionDTO(FeideAuthTestData.FrankForeleser.accessToken)
+    val feideSessionBody = CirceUtil.toJsonString(feideSessionDto)
+    quickRequest
+      .put(uri"$myndlaApiUserUrl/session")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
+      .contentType("application/json")
+      .body(feideSessionBody)
+      .send()
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
   }
 
-  def createFolder(feideId: String, name: String, parentId: Option[String]): api.FolderDTO = {
+  def createFolder(name: String, parentId: Option[String]): api.FolderDTO = {
     import io.circe.generic.auto.*
     val newFolderData = api.NewFolderDTO(
       name = name,
@@ -121,7 +132,7 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
 
     val newFolder = quickRequest
       .post(uri"$myndlaApiFolderUrl/")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .contentType("application/json")
       .body(body)
       .send()
@@ -131,24 +142,24 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     CirceUtil.unsafeParseAs[api.FolderDTO](newFolder.body)
   }
 
-  def getFolders(feideId: String, includeSubfolders: Boolean): api.UserFolderDTO = {
+  def getFolders(includeSubfolders: Boolean): api.UserFolderDTO = {
     import io.circe.generic.auto.*
     var uri = uri"$myndlaApiFolderUrl/"
     if (includeSubfolders) uri = uri.addParam("include-subfolders", "true")
-    val folders = quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId").send()
+    val folders = quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideIdToken").send()
     if (!folders.isSuccess)
       fail(s"Fetching all folders for $feideId failed with code ${folders.code} and body:\n${folders.body}")
 
     CirceUtil.unsafeParseAs[api.UserFolderDTO](folders.body)
   }
 
-  def addRootResource(feideId: String, resource: api.NewResourceDTO): api.ResourceDTO = {
+  def addRootResource(resource: api.NewResourceDTO): api.ResourceDTO = {
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
     val newResource = quickRequest
       .post(uri"$myndlaApiFolderUrl/resources/root")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .contentType("application/json")
       .body(body)
       .send()
@@ -159,13 +170,13 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
 
   }
 
-  def addResourceToFolder(feideId: String, folderId: UUID, resource: api.NewResourceDTO): api.ResourceDTO = {
+  def addResourceToFolder(folderId: UUID, resource: api.NewResourceDTO): api.ResourceDTO = {
     import io.circe.generic.auto.*
     val body = CirceUtil.toJsonString(resource)
 
     val newResource = quickRequest
       .post(uri"$myndlaApiFolderUrl/$folderId/resources")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .contentType("application/json")
       .body(body)
       .send()
@@ -175,10 +186,10 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     CirceUtil.unsafeParseAs[api.ResourceDTO](newResource.body)
   }
 
-  def getFolderResources(feideId: String, folderId: UUID): api.FolderDTO = {
+  def getFolderResources(folderId: UUID): api.FolderDTO = {
     val resources = quickRequest
       .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .send()
     if (!resources.isSuccess)
       fail(s"Fetching all resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
@@ -186,10 +197,10 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     CirceUtil.unsafeParseAs[api.FolderDTO](resources.body)
   }
 
-  def getRootResources(feideId: String): List[api.ResourceDTO] = {
+  def getRootResources: List[api.ResourceDTO] = {
     val resources = quickRequest
       .get(uri"$myndlaApiFolderUrl/resources/root")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .send()
     if (!resources.isSuccess)
       fail(s"Fetching root resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
@@ -197,41 +208,41 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     CirceUtil.unsafeParseAs[List[api.ResourceDTO]](resources.body)
   }
 
-  def deleteUser(feideId: String): Unit = {
+  def deleteUser(): Unit = {
     val response = quickRequest
       .delete(uri"$myndlaApiUserUrl/delete-personal-data")
-      .header("FeideAuthorization", s"Bearer $feideId")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
       .send()
 
     if (!response.isSuccess) fail(s"Deleting $feideId failed with code ${response.code} and body:\n${response.body}")
   }
 
   test("Creating and deleting user also deletes folders and resources") {
-    val f1 = createFolder(feideId, "folder1", None)
-    addResourceToFolder(feideId, f1.id, api.NewResourceDTO(ResourceType.Article, "/article/1", None, "1"))
-    addResourceToFolder(feideId, f1.id, api.NewResourceDTO(ResourceType.Article, "/article/2", None, "2"))
-    val f2 = createFolder(feideId, "folder2", None)
+    val f1 = createFolder("folder1", None)
+    addResourceToFolder(f1.id, api.NewResourceDTO(ResourceType.Article, "/article/1", None, "1"))
+    addResourceToFolder(f1.id, api.NewResourceDTO(ResourceType.Article, "/article/2", None, "2"))
+    val f2 = createFolder("folder2", None)
 
-    addRootResource(feideId, api.NewResourceDTO(ResourceType.Topic, "/topic/3", None, "3"))
+    addRootResource(api.NewResourceDTO(ResourceType.Topic, "/topic/3", None, "3"))
 
-    val foldersForU1 = getFolders(feideId, false)
+    val foldersForU1 = getFolders(false)
     foldersForU1.sharedFolders.length should be(0)
     foldersForU1.folders.length should be(2)
     foldersForU1.folders.head.id should be(f1.id)
     foldersForU1.folders.head.rank should be(1)
     foldersForU1.folders(1).id should be(f2.id)
     foldersForU1.folders(1).rank should be(2)
-    val resourcesForF1 = getFolderResources(feideId, f1.id)
+    val resourcesForF1 = getFolderResources(f1.id)
     resourcesForF1.resources.length should be(2)
-    val rootResourcesForU1 = getRootResources(feideId)
+    val rootResourcesForU1 = getRootResources
     rootResourcesForU1.length should be(1)
 
-    deleteUser(feideId)
+    deleteUser()
 
-    val foldersForU1again = getFolders(feideId, false)
+    val foldersForU1again = getFolders(false)
     foldersForU1again.sharedFolders.length should be(0)
     foldersForU1again.folders.length should be(0)
-    val rootResourcesForU1again = getRootResources(feideId)
+    val rootResourcesForU1again = getRootResources
     rootResourcesForU1again.length should be(0)
 
   }

@@ -27,21 +27,22 @@ class RobotService(using
     folderWriteService: FolderWriteService,
 ) {
 
-  def getAllRobots(feide: FeideUserWrapper): Try[ListOfRobotDefinitionsDTO] = dbUtility.writeSession { session =>
-    for {
-      user   <- feide.userOrAccessDenied
-      robots <- robotRepository.getRobotsWithFeideId(user.feideId)(using session)
-    } yield ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
+  def getAllRobots(feide: FeideUserWrapper): Try[ListOfRobotDefinitionsDTO] = dbUtility.writeSession {
+    implicit session =>
+      robotRepository
+        .getRobotsWithFeideId(feide.user.feideId)
+        .map { robots =>
+          ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
+        }
   }
 
   def getSingleRobot(robotId: UUID, feide: FeideUserWrapper): Try[RobotDefinitionDTO] =
     dbUtility.writeSession { session =>
       lazy val nfe = NotFoundException(s"Could not find robot definition with id $robotId")
       for {
-        user       <- feide.userOrAccessDenied
         maybeRobot <- robotRepository.getRobotWithId(robotId)(using session)
         robot      <- maybeRobot.toTry(nfe)
-        _          <- robot.canRead(user.feideId, notFound = true)
+        _          <- robot.canRead(feide.user.feideId, notFound = true)
       } yield RobotDefinitionDTO.fromDomain(robot)
     }
 

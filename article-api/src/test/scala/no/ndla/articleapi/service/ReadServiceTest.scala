@@ -20,7 +20,7 @@ import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.clients.FeideExtendedUserInfo
-import no.ndla.network.model.FeideUserWrapper
+import no.ndla.network.model.{FeideIdToken, FeideUserWrapper}
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
 
@@ -180,7 +180,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .get
     result.length should be(3)
 
-    verify(feideApiClient, times(0)).getFeideExtendedUser(Some(feideId))
+    verify(feideApiClient, times(0)).getFeideExtendedUser(feideId)
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
@@ -197,7 +197,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(true)
-    val feideUserInfo = FeideUserWrapper("test-token", Some(userMock))
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
 
     val result = readService
       .getArticlesByIds(
@@ -220,7 +220,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(false)
-    val feideUserInfo = FeideUserWrapper("test-token", Some(userMock))
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
 
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
@@ -241,7 +241,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds performs filter if feideAccessToken is not set") {
-    val feideId  = "asd"
     val ids      = List(1L, 2L, 3L)
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
@@ -257,8 +256,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
-
-    verify(feideApiClient, times(0)).getFeideAccessTokenOrFail(Some(feideId))
   }
 
   test("that getArticlesByIds fails if no ids were given") {

@@ -19,7 +19,7 @@ case class JwtVerifier(
     jwsKeySelectorFactory: JwsKeySelectorFactory,
     issuer: String,
     audience: Option[String],
-    issuers: Set[String],
+    extraIssuers: Set[String],
 ) {
   @volatile
   private var processor: Option[DefaultJWTProcessor[Null]] = None
@@ -30,11 +30,12 @@ case class JwtVerifier(
     verify(token).flatMap(claims => decoder.decode(claims, token).toTry)
 
   def verify(token: String): Try[JWTClaimsSetWrapper] = process(token) match {
+    case _ if audience.isEmpty                 => Failure(MissingAudienceConfiguration(issuer))
     case Success(claims)                       => Success(claims)
     case Failure(_: ParseException)            => Failure(JwtParseException())
     case Failure(_: NimbusExpiredJWTException) => Failure(ExpiredJwtException())
-    case Failure(_: BadJWSException)           => Failure(InvalidJwsException())
-    case Failure(ex: BadJOSEException)         => Failure(InvalidJoseException(ex))
+    case Failure(_: BadJWSException)           => Failure(InvalidJwtSignatureException())
+    case Failure(ex: BadJOSEException)         => Failure(InvalidJwtException(ex))
     case Failure(ex)                           => Failure(UnexpectedNimbusException(ex))
   }
 
@@ -52,7 +53,7 @@ case class JwtVerifier(
               val jwsKeySelector = jwsKeySelectorFactory.fromIssuer(issuer)
               val proc           = new DefaultJWTProcessor[Null]()
               proc.setJWSKeySelector(jwsKeySelector)
-              proc.setJWTClaimsSetVerifier(MultiIssuerClaimsVerifier(audience, issuers))
+              proc.setJWTClaimsSetVerifier(MultiIssuerClaimsVerifier(audience, extraIssuers + issuer))
               processor = Some(proc)
               proc
             }

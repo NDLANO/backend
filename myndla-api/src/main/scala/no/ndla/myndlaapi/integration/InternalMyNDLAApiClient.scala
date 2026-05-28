@@ -8,19 +8,17 @@
 
 package no.ndla.myndlaapi.integration
 
-import no.ndla.network.clients.MyNDLAProvider
-import no.ndla.common.model.api.myndla.MyNDLAUserDTO
-import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.myndlaapi.service.UserService
+import no.ndla.network.clients.MyNDLAProvider
+import no.ndla.network.model.*
 
-import scala.util.Try
+import scala.util.{Failure, Success}
 
 class InternalMyNDLAApiClient(using userService: UserService) extends MyNDLAProvider {
-  def getUserWithFeideToken(feideToken: String): Try[MyNDLAUserDTO] = {
-    userService.getMyNdlaUserDataDTO(Some(feideToken))
-  }
-
-  override def getDomainUser(feideToken: String): Try[MyNDLAUser] = {
-    userService.getMyNdlaUserDataDomain(Some(feideToken))
-  }
+  override def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Either[AuthException, FeideUserWrapper] =
+    userService.getFeideUserWrapperFromIdToken(idToken) match {
+      case Success(Some(userWrapper)) => Right(userWrapper)
+      case Success(None)              => Left(MissingFeideAccessTokenException())
+      case Failure(ex)                => Left(GetFeideUserWrapperException(ex))
+    }
 }
