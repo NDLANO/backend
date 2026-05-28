@@ -666,7 +666,7 @@ export type components = {
             /** @description Describes if the image is inactive or not */
             inactive: boolean;
             /** @description Describes whether the image is AI generated */
-            aiGenerated: components["schemas"]["AiGenerated"];
+            aiGenerated?: components["schemas"]["AiGenerated"];
         };
         /**
          * ImageMetaSummaryDTO
@@ -694,7 +694,7 @@ export type components = {
             /** @description Describes if the model has released use of the image */
             modelRelease?: string;
             /** @description Describes if the image is AI generated */
-            aiGenerated: components["schemas"]["AiGenerated"];
+            aiGenerated?: components["schemas"]["AiGenerated"];
             /** @description Describes the changes made to the image, only visible to editors */
             editorNotes?: string[];
             /** @description The time and date of last update */
@@ -781,10 +781,8 @@ export type components = {
             /** @description Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no' */
             modelReleased?: string;
             /** @description Describes whether the image is AI generated */
-            aiGenerated: components["schemas"]["AiGenerated"];
+            aiGenerated?: components["schemas"]["AiGenerated"];
         };
-        /** No */
-        No: Record<string, never>;
         /**
          * NotFoundWithSupportedLanguages
          * @description Information about an error
@@ -804,8 +802,6 @@ export type components = {
              */
             statusCode: number;
         };
-        /** Partial */
-        Partial: Record<string, never>;
         /**
          * SearchParamsDTO
          * @description The search parameters
@@ -1016,8 +1012,6 @@ export type components = {
             /** @description The validation message */
             message: string;
         };
-        /** Yes */
-        Yes: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -1055,9 +1049,7 @@ export type ImageVariantSize = components['schemas']['ImageVariantSize'];
 export type LicenseDTO = components['schemas']['LicenseDTO'];
 export type MetaDataAndFileForm = components['schemas']['MetaDataAndFileForm'];
 export type NewImageMetaInformationV2DTO = components['schemas']['NewImageMetaInformationV2DTO'];
-export type No = components['schemas']['No'];
 export type NotFoundWithSupportedLanguages = components['schemas']['NotFoundWithSupportedLanguages'];
-export type Partial = components['schemas']['Partial'];
 export type SearchParamsDTO = components['schemas']['SearchParamsDTO'];
 export type SearchResultDTO = components['schemas']['SearchResultDTO'];
 export type SearchResultV3DTO = components['schemas']['SearchResultV3DTO'];
@@ -1067,7 +1059,6 @@ export type UpdateImageMetaInformationDTO = components['schemas']['UpdateImageMe
 export type UpdateMetaDataAndFileForm = components['schemas']['UpdateMetaDataAndFileForm'];
 export type ValidationErrorBody = components['schemas']['ValidationErrorBody'];
 export type ValidationMessage = components['schemas']['ValidationMessage'];
-export type Yes = components['schemas']['Yes'];
 export type $defs = Record<string, never>;
 export interface operations {
     "getImage-apiV2Images": {
