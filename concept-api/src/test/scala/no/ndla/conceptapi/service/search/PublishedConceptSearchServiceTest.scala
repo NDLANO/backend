@@ -26,9 +26,8 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 
 class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val searchLanguage: SearchLanguage                               = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient                                     = Elastic4sClientFactory.getClient(elasticSearchHost)
   override implicit lazy val publishedConceptSearchService: PublishedConceptSearchService =
     new PublishedConceptSearchService
   override implicit lazy val publishedConceptIndexService: PublishedConceptIndexService =

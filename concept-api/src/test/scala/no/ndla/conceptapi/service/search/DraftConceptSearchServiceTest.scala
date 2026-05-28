@@ -35,8 +35,7 @@ import java.util.UUID
 
 class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   val indexName: String                                                           = UUID.randomUUID().toString
   override implicit lazy val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {

@@ -19,7 +19,7 @@ import sys.env
 
 trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val EnableElasticsearchContainer: Boolean = true
-  val ElasticsearchImage: String            = "c3f7a34" // elasticsearch 8.18.1
+  val ElasticsearchImage: String            = "e9290a7" // elasticsearch 8.18.1
 
   val elasticSearchContainer: Try[ElasticsearchContainer] =
     if (EnableElasticsearchContainer) {
@@ -54,11 +54,13 @@ trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
       Failure(new RuntimeException("Search disabled for this IntegrationSuite"))
     }
 
-  val elasticSearchHost: Try[String] = elasticSearchContainer.map(c => {
-    val addr = s"http://${c.getHttpHostAddress}"
-    println(s"Running '${this.getClass.getName}' elasticsearch at $addr")
-    addr
-  })
+  val elasticSearchHost: String = elasticSearchContainer match {
+    case Success(c) =>
+      val addr = s"http://${c.getHttpHostAddress}"
+      println(s"Running '${this.getClass.getName}' elasticsearch at $addr")
+      addr
+    case Failure(ex) => throw ex
+  }
 
   override def afterAll(): Unit = {
     super.afterAll()

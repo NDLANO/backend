@@ -42,7 +42,7 @@ class DraftApiClientTest
 
   val draftApiPort: Int                      = findFreePort
   val pgc: PostgreSQLContainer               = postgresContainer.get
-  val esHost: String                         = elasticSearchHost.get
+  val esHost: String                         = elasticSearchHost
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int                  = draftApiPort
     override val MetaServer: Prop[String]              = propFromTestValue("META_SERVER", pgc.getHost)

@@ -18,8 +18,7 @@ class GrepCodesIndexServiceTest extends ElasticsearchIntegrationSuite with TestE
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val traitUtil: TraitUtil           = new TraitUtil
 
-  override implicit lazy val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
     override val indexShards = 1

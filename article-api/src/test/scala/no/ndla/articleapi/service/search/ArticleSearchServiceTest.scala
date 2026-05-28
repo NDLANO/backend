@@ -21,8 +21,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  override given e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val searchLanguage: SearchLanguage             = new SearchLanguage
   override implicit lazy val articleSearchService: ArticleSearchService = new ArticleSearchService

@@ -34,8 +34,7 @@ import scala.util.Success
 
 class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
-  override implicit lazy val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val e4sClient: NdlaE4sClient                           = Elastic4sClientFactory.getClient(elasticSearchHost)
   override implicit lazy val searchLanguage: SearchLanguage                     = new SearchLanguage
   override implicit lazy val converterService: ConverterService                 = new ConverterService
   override implicit lazy val traitUtil: TraitUtil                               = new TraitUtil

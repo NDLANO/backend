@@ -19,8 +19,7 @@ import scala.util.Success
 
 class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val tagSearchService: TagSearchService = new TagSearchService
   override implicit lazy val tagIndexService: TagIndexService   = new TagIndexService {

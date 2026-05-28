@@ -20,8 +20,7 @@ import no.ndla.imageapi.model.domain.ImageMetaInformation
 
 class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
-  override implicit lazy val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   val indexName = "tags-testing"
 

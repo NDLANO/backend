@@ -26,11 +26,10 @@ import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  override implicit lazy val converterService: ConverterService             = new ConverterService
-  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
-  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
-  override implicit lazy val e4sClient: NdlaE4sClient                       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val converterService: ConverterService                 = new ConverterService
+  override implicit lazy val searchLanguage: SearchLanguage                     = new SearchLanguage
+  override implicit lazy val searchConverterService: SearchConverterService     = new SearchConverterService
+  override implicit lazy val e4sClient: NdlaE4sClient                           = Elastic4sClientFactory.getClient(elasticSearchHost)
   override implicit lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
