@@ -9,9 +9,8 @@
 package no.ndla.scalatestsuite
 
 import org.mockito.Mockito.when
-import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.elasticsearch.ElasticsearchContainer
-import org.testcontainers.utility.DockerImageName
+import org.testcontainers.utility.{DockerImageName, MountableFile}
 
 import java.time.Duration
 import scala.util.{Failure, Success, Try}
@@ -19,7 +18,7 @@ import sys.env
 
 trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val EnableElasticsearchContainer: Boolean = true
-  val ElasticsearchImage: String            = "e9290a7" // elasticsearch 8.18.1
+  val ElasticsearchImage: String            = "docker.elastic.co/elasticsearch/elasticsearch:8.18.1"
 
   val elasticSearchContainer: Try[ElasticsearchContainer] =
     if (EnableElasticsearchContainer) {
@@ -29,22 +28,23 @@ trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
         when(esMock.getHttpHostAddress).thenReturn(found.getOrElse("localhost:9200")): Unit
         Success(esMock)
       } else {
-        val imageFromEnv = env.get("SEARCH_ENGINE_IMAGE")
-        val imgName      = imageFromEnv.getOrElse(
-          s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage"
-        )
-
-        val searchEngineImage = DockerImageName
-          .parse(imgName)
-          .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")
+        val imgName           = env.getOrElse("SEARCH_ENGINE_IMAGE", ElasticsearchImage)
+        val searchEngineImage = DockerImageName.parse(imgName)
 
         Try {
-          val container = new ElasticsearchContainer(searchEngineImage) {
-            this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
-          }
+          val container = new ElasticsearchContainer(searchEngineImage)
+          container.withStartupTimeout(Duration.ofSeconds(180))
           container.addEnv("xpack.security.enabled", "false")
           container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
           container.addEnv("discovery.type", "single-node")
+          container.withCopyFileToContainer(
+            MountableFile.forClasspathResource("search-engine/compound-words-norwegian-wordlist.txt"),
+            "/usr/share/elasticsearch/config/compound-words-norwegian-wordlist.txt",
+          )
+          container.withCopyFileToContainer(
+            MountableFile.forClasspathResource("search-engine/hyph"),
+            "/usr/share/elasticsearch/config/hyph",
+          )
           container.start()
           container
         }
