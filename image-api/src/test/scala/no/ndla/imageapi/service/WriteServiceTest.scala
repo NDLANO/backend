@@ -50,7 +50,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "",
     "en",
     Some(ModelReleasedStatus.YES.toString),
-    AiGenerated.No,
+    Some(AiGenerated.No),
   )
   val userId                        = "ndla124"
   val userWithWriteScope: TokenUser = TokenUser(userId, Set(IMAGE_API_WRITE), None)
@@ -87,7 +87,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   override def beforeEach(): Unit = {

@@ -248,7 +248,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     val now       = clock.now()
     val newNote   = domain.EditorNote(now, user.id, s"Updated image file for '$language' language.")
     val newImages = imageMeta.images.filterNot(_.language == language) :+ image
-    imageMeta.copy(images = newImages, editorNotes = imageMeta.editorNotes :+ newNote)
+    imageMeta.copy(images = newImages, editorNotes = imageMeta.editorNotes :+ newNote, aiGenerated = None)
   }
 
   def asDomainImageMetaInformationV2(

@@ -62,7 +62,7 @@ class BulkControllerTest extends UnitSuite with TestEnvironment with TapirContro
     caption = "captionheredude",
     language = "nb",
     modelReleased = None,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   private val sampleNewImageMeta: String = CirceUtil.toJsonString(sampleNewImageMetaDTO)

@@ -24,7 +24,7 @@ case class NewImageMetaInformationV2DTO(
     @description("Caption for the image") caption: String,
     @description("ISO 639-1 code that represents the language used in the caption") language: String,
     @description("Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no'") modelReleased: Option[String],
-    @description("Describes whether the image is AI generated") aiGenerated: AiGenerated,
+    @description("Describes whether the image is AI generated") aiGenerated: Option[AiGenerated],
 )
 
 object NewImageMetaInformationV2DTO{

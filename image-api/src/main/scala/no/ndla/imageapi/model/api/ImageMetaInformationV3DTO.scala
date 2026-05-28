@@ -46,7 +46,7 @@ case class ImageMetaInformationV3DTO(
     @description("Describes if the image is inactive or not")
     inactive: Boolean,
     @description("Describes whether the image is AI generated")
-    aiGenerated: AiGenerated,
+    aiGenerated: Option[AiGenerated],
 )
 
 object ImageMetaInformationV3DTO {

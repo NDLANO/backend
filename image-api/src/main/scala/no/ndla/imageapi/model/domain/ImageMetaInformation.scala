@@ -34,7 +34,7 @@ case class ImageMetaInformation(
     modelReleased: ModelReleasedStatus.Value,
     editorNotes: Seq[EditorNote],
     inactive: Boolean,
-    aiGenerated: AiGenerated,
+    aiGenerated: Option[AiGenerated],
 )
 
 object ImageMetaInformation {

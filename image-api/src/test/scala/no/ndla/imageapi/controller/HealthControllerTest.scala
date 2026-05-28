@@ -70,7 +70,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     ModelReleasedStatus.NOT_APPLICABLE,
     Seq.empty,
     false,
-    AiGenerated.No,
+    Some(AiGenerated.No),
   )
 
   test("that /health/readiness returns 200 on success") {
