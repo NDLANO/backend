@@ -203,7 +203,6 @@ class ImageControllerV3(using
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
-            val aiGeneratedStatus   = aiGenerated.values.flatMap(value => AiGenerated.values.find(_.toString == value))
             val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
 
             searchV3(
@@ -219,7 +218,7 @@ class ImageControllerV3(using
               podcastFriendly,
               shouldScroll,
               modelReleasedStatus,
-              aiGeneratedStatus,
+              aiGenerated.values,
               user,
               userFilter.values,
               inactive,

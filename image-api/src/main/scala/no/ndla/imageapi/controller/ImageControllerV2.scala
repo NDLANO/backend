@@ -214,8 +214,6 @@ class ImageControllerV2(using
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
-            val aiGeneratedStatus   = aiGenerated.values.flatMap(value => AiGenerated.values.find(_.toString == value))
-
             search(
               minimumSize,
               query,
@@ -229,7 +227,7 @@ class ImageControllerV2(using
               podcastFriendly,
               shouldScroll,
               modelReleasedStatus,
-              aiGeneratedStatus,
+              aiGenerated.values,
               user,
               inactive,
               widthFrom,
