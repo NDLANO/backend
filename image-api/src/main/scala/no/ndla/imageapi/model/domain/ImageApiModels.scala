@@ -88,6 +88,9 @@ enum ModelReleasedStatus(val entryName: String) {
 object ModelReleasedStatus {
   def withNameOption(name: String): Option[ModelReleasedStatus] = values.find(_.entryName == name)
 
+  implicit val schema: Schema[ModelReleasedStatus] =
+    Schema.derivedEnumeration[ModelReleasedStatus](encode = Some(_.entryName))
+
   implicit val codec: PlainCodec[ModelReleasedStatus] =
     Codec.derivedEnumeration[String, ModelReleasedStatus](decode = withNameOption, encode = _.entryName)
 
