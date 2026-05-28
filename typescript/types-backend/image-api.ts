@@ -418,7 +418,6 @@ export type components = {
     schemas: {
         /**
          * AiGenerated
-         * @description Describes whether the image is AI generated
          * @enum {string}
          */
         AiGenerated: "No" | "Partial" | "Yes";
@@ -666,6 +665,7 @@ export type components = {
             image: components["schemas"]["ImageFileDTO"];
             /** @description Describes if the image is inactive or not */
             inactive: boolean;
+            /** @description Describes whether the image is AI generated */
             aiGenerated: components["schemas"]["AiGenerated"];
         };
         /**
@@ -693,6 +693,8 @@ export type components = {
             supportedLanguages: string[];
             /** @description Describes if the model has released use of the image */
             modelRelease?: string;
+            /** @description Describes if the image is AI generated */
+            aiGenerated: components["schemas"]["AiGenerated"];
             /** @description Describes the changes made to the image, only visible to editors */
             editorNotes?: string[];
             /** @description The time and date of last update */
@@ -778,8 +780,11 @@ export type components = {
             language: string;
             /** @description Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no' */
             modelReleased?: string;
+            /** @description Describes whether the image is AI generated */
             aiGenerated: components["schemas"]["AiGenerated"];
         };
+        /** No */
+        No: Record<string, never>;
         /**
          * NotFoundWithSupportedLanguages
          * @description Information about an error
@@ -799,6 +804,8 @@ export type components = {
              */
             statusCode: number;
         };
+        /** Partial */
+        Partial: Record<string, never>;
         /**
          * SearchParamsDTO
          * @description The search parameters
@@ -843,6 +850,8 @@ export type components = {
             inactive?: boolean;
             /** @description Return only images with one of the provided values for modelReleased. */
             modelReleased?: string[];
+            /** @description Return only images with one of the provided values for aiGenerated. */
+            aiGenerated?: components["schemas"]["AiGenerated"][];
             /** @description Filter editors of the image(s). Multiple values can be specified in a comma separated list. */
             users?: string[];
             /**
@@ -969,6 +978,7 @@ export type components = {
             modelReleased?: string;
             /** @description Whether the image is inactive */
             inactive?: boolean;
+            /** @description Describes whether the image is AI generated */
             aiGenerated?: components["schemas"]["AiGenerated"];
         };
         /** UpdateMetaDataAndFileForm */
@@ -1006,6 +1016,8 @@ export type components = {
             /** @description The validation message */
             message: string;
         };
+        /** Yes */
+        Yes: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -1043,7 +1055,9 @@ export type ImageVariantSize = components['schemas']['ImageVariantSize'];
 export type LicenseDTO = components['schemas']['LicenseDTO'];
 export type MetaDataAndFileForm = components['schemas']['MetaDataAndFileForm'];
 export type NewImageMetaInformationV2DTO = components['schemas']['NewImageMetaInformationV2DTO'];
+export type No = components['schemas']['No'];
 export type NotFoundWithSupportedLanguages = components['schemas']['NotFoundWithSupportedLanguages'];
+export type Partial = components['schemas']['Partial'];
 export type SearchParamsDTO = components['schemas']['SearchParamsDTO'];
 export type SearchResultDTO = components['schemas']['SearchResultDTO'];
 export type SearchResultV3DTO = components['schemas']['SearchResultV3DTO'];
@@ -1053,6 +1067,7 @@ export type UpdateImageMetaInformationDTO = components['schemas']['UpdateImageMe
 export type UpdateMetaDataAndFileForm = components['schemas']['UpdateMetaDataAndFileForm'];
 export type ValidationErrorBody = components['schemas']['ValidationErrorBody'];
 export type ValidationMessage = components['schemas']['ValidationMessage'];
+export type Yes = components['schemas']['Yes'];
 export type $defs = Record<string, never>;
 export interface operations {
     "getImage-apiV2Images": {
@@ -1091,6 +1106,8 @@ export interface operations {
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
                 "model-released"?: string[];
+                /** @description Filter whether the image(s) is AI generated or not. Multiple values can be specified in a comma separated list. Possible values include: Partial,Yes,No */
+                "ai-generated"?: components["schemas"]["AiGenerated"][];
                 /** @description Include inactive images */
                 inactive?: boolean;
                 /** @description Filter images with width greater than or equal to this value. */
@@ -1671,6 +1688,8 @@ export interface operations {
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
                 "model-released"?: string[];
+                /** @description Filter whether the image(s) is AI generated or not. Multiple values can be specified in a comma separated list. Possible values include: Partial,Yes,No */
+                "ai-generated"?: components["schemas"]["AiGenerated"][];
                 /**
                  * @description List of users to filter by.
                  *     The value to search for is the user-id from Auth0.
