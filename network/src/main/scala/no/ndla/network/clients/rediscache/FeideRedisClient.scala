@@ -10,10 +10,9 @@ package no.ndla.network.clients.rediscache
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.rediscache.RedisStoredType
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup}
-import no.ndla.network.model.{FeideAccessToken, FeideID}
+import no.ndla.network.model.{FeideAccessToken, FeideID, FeideIdToken}
 
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
@@ -22,16 +21,19 @@ object FeideToken extends RedisStoredType {
   override val cacheTime: Duration = 8.hours
   override val prefix: String      = "feide"
 
-  val feideIdField     = "feideId"
-  val feideUserField   = "feideUser"
-  val feideGroupField  = "feideGroup"
-  val feideGroupsField = "feideGroups"
+  val feideIdField      = "feideId"
+  val feideUserField    = "feideUser"
+  val feideGroupField   = "feideGroup"
+  val feideGroupsField  = "feideGroups"
+  val feideSessionField = "feideSession"
 }
 
-class FeideRedisClient(host: String, port: Int)(using props: BaseProps) extends StrictLogging {
-  val jedis = new ScalaJedis(host, port, props.Environment)
+class FeideRedisClient(host: String, port: Int) extends StrictLogging {
+  val jedis = new ScalaJedis(host, port)
 
   import FeideToken.*
+
+  def ping(): Try[Unit] = jedis.ping()
 
   private def updateFeideCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
     for {
@@ -93,4 +95,12 @@ class FeideRedisClient(host: String, port: Int)(using props: BaseProps) extends 
   def updateCacheAndReturnGroups(accessToken: FeideAccessToken, feideGroups: Seq[FeideGroup]): Try[Seq[FeideGroup]] = {
     updateFeideCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
   }
+
+  def getFeideSession(idToken: FeideIdToken): Try[Option[FeideAccessToken]] = jedis.get(FeideToken, idToken.sub)
+
+  def setFeideSession(idToken: FeideIdToken, accessToken: FeideAccessToken): Try[Unit] = for {
+    key = idToken.sub
+    _  <- jedis.set(FeideToken, key, accessToken)
+    _  <- jedis.expireAt(FeideToken, key, idToken.exp)
+  } yield ()
 }

@@ -73,19 +73,13 @@ class FolderWriteService(using
   private[service] def isOperationAllowedOrAccessDenied(
       feide: FeideUserWrapper,
       updatedFolder: UpdatedFolderDTO,
-  ): Try[?] = {
-    feide
-      .userOrAccessDenied
-      .flatMap(myNDLAUser => {
-        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
-          Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-        else canWriteNow(myNDLAUser).flatMap {
-          case true  => Success(())
-          case false =>
-            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-        }
-      })
-  }
+  ): Try[?] =
+    if (feide.user.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
+      Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+    else canWriteNow(feide.user).flatMap {
+      case true  => Success(())
+      case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+    }
 
   private def canWriteNow(myNDLAUser: MyNDLAUser): Try[Boolean] = {
     if (myNDLAUser.isTeacher) return Success(true)
@@ -109,10 +103,9 @@ class FolderWriteService(using
       feide: FeideUserWrapper,
   ): Try[List[UUID]] = dbUtility.rollbackOnFailure({ implicit session =>
     for {
-      user       <- feide.userOrAccessDenied
       _          <- isTeacherOrAccessDenied(feide)
       folder     <- folderRepository.folderWithId(folderId)
-      _          <- folder.isOwner(user.feideId)
+      _          <- folder.isOwner(feide.user.feideId)
       ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
       updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
       _          <- handleFolderUserConnectionsOnUnShare(ids, newStatus, folder.status)
@@ -223,21 +216,17 @@ class FolderWriteService(using
   def cloneFolder(sourceId: UUID, destinationId: Option[UUID], feide: FeideUserWrapper): Try[FolderDTO] = {
     dbUtility.rollbackOnFailure { implicit session =>
       for {
-        user       <- feide.userOrAccessDenied
+        feideId     = feide.user.feideId
         _          <- canWriteOrAccessDenied(feide)
-        maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(
-          sourceId,
-          FolderStatus.SHARED,
-          Some(user.feideId),
-        )
+        maybeFolder =
+          folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED, Some(feideId))
         sourceFolder <- folderReadService.getWith404IfNone(sourceId, maybeFolder)
-        isOwner       = sourceFolder.feideId == user.feideId
+        isOwner       = sourceFolder.feideId == feideId
         _            <- sourceFolder.isClonable
-        clonedFolder <-
-          cloneRecursively(sourceFolder, destinationId, user.feideId, "_Kopi".some, isOwner)(using session)
-        breadcrumbs <- folderReadService.getBreadcrumbs(clonedFolder)
-        feideUser   <- userRepository.userWithFeideId(user.feideId)
-        converted   <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
+        clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some, isOwner)(using session)
+        breadcrumbs  <- folderReadService.getBreadcrumbs(clonedFolder)
+        feideUser    <- userRepository.userWithFeideId(feideId)
+        converted    <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
       } yield converted
     }
   }
@@ -254,13 +243,12 @@ class FolderWriteService(using
   ): Try[ExportedUserDataDTO] = {
     dbUtility.rollbackOnFailure { session =>
       for {
-        user <- feide.userOrAccessDenied
-        _    <- canWriteOrAccessDenied(feide)
-        _    <- userService.importUser(toImport.userData, feide)(using session)
-        _    <- toImport
+        _ <- canWriteOrAccessDenied(feide)
+        _ <- userService.importUser(toImport.userData, feide)(using session)
+        _ <- toImport
           .rootResources
           .traverse(resource => newResourceConnection(None, folderConverterService.toNewResource(resource), feide))
-        _ <- importFolders(toImport.folders, user.feideId)(using session)
+        _ <- importFolders(toImport.folders, feide.user.feideId)(using session)
       } yield toImport
     }
   }
@@ -280,33 +268,32 @@ class FolderWriteService(using
   def updateFolder(id: UUID, updatedFolder: UpdatedFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      user                    <- feide.userOrAccessDenied
+      feideId                  = feide.user.feideId
       _                       <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
       existingFolder          <- folderRepository.folderWithId(id)
-      _                       <- existingFolder.isOwner(user.feideId)
+      _                       <- existingFolder.isOwner(feideId)
       converted               <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
-      maybeSiblings           <- getFolderWithDirectChildren(converted.parentId, user.feideId)
+      maybeSiblings           <- getFolderWithDirectChildren(converted.parentId, feideId)
       _                       <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
       convertedWithUpdatedRank =
         if (converted.parentId != existingFolder.parentId) {
           converted.copy(rank = getNextRank(maybeSiblings.childrenFolders))
         } else converted
-      updated        <- folderRepository.updateFolder(id, user.feideId, convertedWithUpdatedRank)
+      updated        <- folderRepository.updateFolder(id, feideId, convertedWithUpdatedRank)
       crumbs         <- folderReadService.getBreadcrumbs(updated)(using dbUtility.readOnlySession)
-      siblingsToSort <- getFolderWithDirectChildren(updated.parentId, user.feideId)
+      siblingsToSort <- getFolderWithDirectChildren(updated.parentId, feideId)
       sortRequest     = FolderSortRequestDTO(sortedIds = siblingsToSort.childrenFolders.map(_.id))
-      _              <- performSort(siblingsToSort.childrenFolders, sortRequest, user.feideId, sharedFolderSort = false)
-      feideUser      <- userRepository.userWithFeideId(user.feideId)
+      _              <- performSort(siblingsToSort.childrenFolders, sortRequest, feideId, sharedFolderSort = false)
+      feideUser      <- userRepository.userWithFeideId(feideId)
       api            <- folderConverterService.toApiFolder(updated, crumbs, feideUser, isOwner = true)
     } yield api
   }
 
   def updateResource(id: UUID, updatedResource: UpdatedResourceDTO, feide: FeideUserWrapper): Try[ResourceDTO] = {
     for {
-      user             <- feide.userOrAccessDenied
       _                <- canWriteOrAccessDenied(feide)
       existingResource <- folderRepository.resourceWithId(id)
-      _                <- existingResource.isOwner(user.feideId)
+      _                <- existingResource.isOwner(feide.user.feideId)
       converted         = folderConverterService.mergeResource(existingResource, updatedResource)
       updated          <- folderRepository.updateResource(converted)
       api              <- folderConverterService.toApiResource(updated, isOwner = true)
@@ -335,17 +322,17 @@ class FolderWriteService(using
   def deleteFolder(id: UUID, feide: FeideUserWrapper): Try[UUID] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      user           <- feide.userOrAccessDenied
+      feideId         = feide.user.feideId
       _              <- canWriteOrAccessDenied(feide)
       folder         <- folderRepository.folderWithId(id)
-      _              <- folder.isOwner(user.feideId)
-      parent         <- getFolderWithDirectChildren(folder.parentId, user.feideId)
+      _              <- folder.isOwner(feideId)
+      parent         <- getFolderWithDirectChildren(folder.parentId, feideId)
       folderWithData <-
         folderReadService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
-      deletedFolderId <- deleteRecursively(folderWithData, user.feideId)
+      deletedFolderId <- deleteRecursively(folderWithData, feideId)
       siblingsToSort   = parent.childrenFolders.filterNot(_.id == deletedFolderId)
       sortRequest      = FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.id))
-      _               <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
+      _               <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
     } yield deletedFolderId
   }
 
@@ -383,7 +370,7 @@ class FolderWriteService(using
   def copyResourceConnections(move: CopyResourcesDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility
     .rollbackOnFailure { implicit session =>
       for {
-        user        <- feide.userOrAccessDenied
+        user         = feide.user
         _           <- canWriteOrAccessDenied(feide)
         toFolderId   = move.toFolderId.toOption
         toFolder    <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
@@ -404,7 +391,7 @@ class FolderWriteService(using
     .rollbackOnFailure { implicit session =>
       for {
         (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
-        user                       <- feide.userOrAccessDenied
+        user                        = feide.user
         _                          <- canWriteOrAccessDenied(feide)
         _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
         toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
@@ -432,7 +419,7 @@ class FolderWriteService(using
     implicit session =>
       for {
         (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
-        user                       <- feide.userOrAccessDenied
+        user                        = feide.user
         _                          <- canWriteOrAccessDenied(feide)
         _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
         toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
@@ -469,7 +456,7 @@ class FolderWriteService(using
   def deleteConnection(folderId: Option[UUID], resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = dbUtility
     .rollbackOnFailure { implicit session =>
       for {
-        user           <- feide.userOrAccessDenied
+        user            = feide.user
         _              <- canWriteOrAccessDenied(feide)
         resource       <- doDeleteResourceConnection(folderId, resourceId, user)
         siblingsToSort <- folderId match {
@@ -492,7 +479,7 @@ class FolderWriteService(using
   def deleteConnections(folderId: Option[UUID], resourceIds: List[UUID], feide: FeideUserWrapper): Try[List[UUID]] =
     dbUtility.rollbackOnFailure { implicit session =>
       for {
-        user             <- feide.userOrAccessDenied
+        user              = feide.user
         _                <- canWriteOrAccessDenied(feide)
         deletedResources <- resourceIds.traverse(resourceId => doDeleteResourceConnection(folderId, resourceId, user))
         siblingsToSort   <- folderId match {
@@ -511,12 +498,7 @@ class FolderWriteService(using
       } yield resourceIds
     }
 
-  def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
-    for {
-      user <- feide.userOrAccessDenied
-      _    <- userRepository.deleteUser(user.feideId)
-    } yield ()
-  }
+  def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = userRepository.deleteUser(feide.user.feideId).map(_ => ())
 
   private def performSort(
       rankables: Seq[Rankable],
@@ -587,7 +569,7 @@ class FolderWriteService(using
       feide: FeideUserWrapper,
   ): Try[Unit] = permitTry {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    val feideId                     = feide.userOrAccessDenied.map(_.feideId).?
+    val feideId                     = feide.user.feideId
     canWriteOrAccessDenied(feide).??
     folderSortObject match {
       case ResourceSorting(fid)    => sortResources(fid, sortRequest, feideId)
@@ -724,11 +706,11 @@ class FolderWriteService(using
   def newFolder(newFolder: NewFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      user      <- feide.userOrAccessDenied
+      feideId    = feide.user.feideId
       _         <- canWriteOrAccessDenied(feide)
-      inserted  <- createNewFolder(newFolder, user.feideId, makeUniqueNamePostfix = None, isCloning = false)
+      inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
       crumbs    <- folderReadService.getBreadcrumbs(inserted)(using dbUtility.readOnlySession)
-      feideUser <- userRepository.userWithFeideId(user.feideId)
+      feideUser <- userRepository.userWithFeideId(feideId)
       api       <- folderConverterService.toApiFolder(inserted, crumbs, feideUser, isOwner = true)
     } yield api
   }
@@ -750,22 +732,22 @@ class FolderWriteService(using
       feide: FeideUserWrapper,
   ): Try[ResourceDTO] = dbUtility.rollbackOnFailure { implicit session =>
     for {
-      user <- feide.userOrAccessDenied
-      _    <- canWriteOrAccessDenied(feide)
-      _    <- folderId.traverse(fid =>
+      feideId = feide.user.feideId
+      _      <- canWriteOrAccessDenied(feide)
+      _      <- folderId.traverse(fid =>
         folderRepository
-          .folderWithFeideId(fid, user.feideId)
+          .folderWithFeideId(fid, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
       )
       siblings <- folderId match {
-        case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId)
+        case Some(fid) => getFolderWithDirectChildren(fid.some, feideId)
         case None      => folderRepository
-            .getRootResources(user.feideId)
+            .getRootResources(feideId)
             .map { resources =>
               domain.FolderAndDirectChildren(None, Seq.empty, resources.flatMap(_.connection))
             }
       }
-      resource  <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, user.feideId)
+      resource  <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
       _          = updateSearchApi(resource)
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
 
@@ -812,23 +794,14 @@ class FolderWriteService(using
       case _ => Success(parentId)
     }
 
-  def canWriteOrAccessDenied(feide: FeideUserWrapper): Try[MyNDLAUser] = {
-    for {
-      user <- feide.userOrAccessDenied
-      can  <- canWriteNow(user)
-      _    <-
-        if (can) Success(())
-        else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-    } yield user
+  def canWriteOrAccessDenied(feide: FeideUserWrapper): Try[MyNDLAUser] = canWriteNow(feide.user).flatMap {
+    case true  => Success(feide.user)
+    case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
   }
 
-  def newSaveSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = {
-    dbUtility.writeSession { implicit session =>
-      for {
-        user <- feide.userOrAccessDenied
-        _    <- createSharedFolderUserConnection(folderId, user.feideId)
-      } yield ()
-    }
+  def newSaveSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = dbUtility.writeSession {
+    implicit session =>
+      createSharedFolderUserConnection(folderId, feide.user.feideId).map(_ => ())
   }
 
   private def createSharedFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
@@ -842,25 +815,16 @@ class FolderWriteService(using
     } yield folderUser
   }
 
-  def deleteSavedSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = {
-    dbUtility.writeSession { implicit session =>
-      for {
-        user <- feide.userOrAccessDenied
-        _    <- deleteFolderUserConnection(folderId, user.feideId)
-      } yield ()
-    }
+  def deleteSavedSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = dbUtility.writeSession {
+    implicit session =>
+      deleteFolderUserConnection(folderId, feide.user.feideId).map(_ => ())
   }
 
   private def deleteFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit session: DBSession): Try[Int] = {
     folderRepository.deleteFolderUserConnection(folderId.some, feideId.some)
   }
 
-  private def isTeacherOrAccessDenied(feide: FeideUserWrapper): Try[?] = {
-    feide
-      .userOrAccessDenied
-      .flatMap(myNDLAUser => {
-        if (myNDLAUser.isTeacher) Success(())
-        else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-      })
-  }
+  private def isTeacherOrAccessDenied(feide: FeideUserWrapper): Try[?] =
+    if (feide.user.isTeacher) Success(())
+    else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
 }

@@ -9,17 +9,17 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.aws.NdlaEmailClient
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
-import no.ndla.myndlaapi.TestEnvironment
+import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.model.domain.InactiveUserCleanupResult
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
-import no.ndla.network.model.FeideUserWrapper
+import no.ndla.network.model.{FeideIdToken, FeideUserWrapper}
 import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.tapirtesting.FeideAuthTestData
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 
@@ -40,10 +40,17 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   private def userWithLastSeen(id: Long, feideId: String, lastSeen: NDLADate): MyNDLAUser =
     emptyMyNDLAUser.copy(id = id, feideId = feideId, lastSeen = lastSeen)
 
+  private val feideAccessToken = "foo-bar-baz"
+
+  private def feideWrapper(feideId: String): FeideUserWrapper = {
+    val userWrapper = FeideAuthTestData.FrankForeleser
+    userWrapper.copy(user = userWrapper.user.copy(feideId = feideId), idToken = userWrapper.idToken.copy(sub = feideId))
+  }
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     resetMocks()
-    when(userRepository.updateLastSeen(any, any[NDLADate])(using any)).thenReturn(Success(NDLADate.now()))
+    when(userRepository.updateLastSeen(any, any[NDLADate])(using any)).thenReturn(Success(TestData.today))
   }
 
   test("That updateUserData updates user if user exist") {
@@ -91,7 +98,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
     )
 
-    val feide = FeideUserWrapper("token", Some(userBefore))
+    val feide = FeideUserWrapper(userBefore, mock[FeideIdToken], feideAccessToken)
     when(folderWriteService.canWriteOrAccessDenied(any[FeideUserWrapper])).thenReturn(Success(userBefore))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
@@ -104,26 +111,20 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   test("That updateUserData fails if user does not exist") {
     val feideId         = "feide"
     val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
+    val feide           = feideWrapper(feideId)
 
-    val feide = FeideUserWrapper("token", None)
     when(folderWriteService.canWriteOrAccessDenied(any[FeideUserWrapper])).thenReturn(
       Success(emptyMyNDLAUser.copy(feideId = feideId))
     )
+    val expectedException = RuntimeException()
+    when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Failure(expectedException))
 
-    service.updateMyNDLAUserData(updatedUserData, feide) should be(
-      Failure(
-        AccessDeniedException(
-          "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
-        )
-      )
-    )
-
-    verify(userRepository, times(0)).updateUser(any, any)(using any)
+    service.updateMyNDLAUserData(updatedUserData, feide) should be(Failure(expectedException))
   }
 
-  test("That getMyNDLAUserData creates new UserData if no user exist") {
-    when(clock.now()).thenReturn(NDLADate.now())
-    val now = clock.now()
+  test("That getOrCreateMyNdlaUser creates new UserData if no user exist") {
+    val now = TestData.today
+    when(clock.now()).thenReturn(now)
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
 
     val feideId     = "feide"
@@ -150,18 +151,6 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       lastSeen = now,
     )
-    val apiUserData = MyNDLAUserDTO(
-      id = 42,
-      feideId = "feide",
-      username = "example@email.com",
-      email = "example@email.com",
-      displayName = "Feide",
-      favoriteSubjects = Seq("r", "e"),
-      role = UserRole.STUDENT,
-      organization = "oslo",
-      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-    )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
@@ -170,15 +159,13 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       mail = Some(Seq("example@email.com")),
     )
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
-    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
+    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(feideUserInfo))
+    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
+    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any)).thenReturn(Success(domainUserData))
 
-    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
+    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(feideApiClient, times(1)).getFeideGroups(any)
@@ -188,9 +175,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
-  test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
-    when(clock.now()).thenReturn(NDLADate.now())
-    val now = clock.now()
+  test("That getOrCreateMyNdlaUser returns already created user if it exists and was updated lately") {
+    val now = TestData.today
+    when(clock.now()).thenReturn(now)
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
 
     val feideId        = "feide"
@@ -208,23 +195,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
       lastSeen = now,
     )
-    val apiUserData = MyNDLAUserDTO(
-      id = 42,
-      feideId = "feide",
-      username = "example@email.com",
-      email = "example@email.com",
-      displayName = "Feide",
-      favoriteSubjects = Seq("r", "e"),
-      role = UserRole.STUDENT,
-      organization = "oslo",
-      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-    )
 
-    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
 
-    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
+    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
     verify(feideApiClient, times(0)).getFeideExtendedUser(any)
     verify(feideApiClient, times(0)).getFeideGroups(any)
@@ -233,10 +207,10 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
-  test("That getMyNDLAUserData returns already created user if it exists but needs update") {
-    when(clock.now()).thenReturn(NDLADate.now())
+  test("That getOrCreateMyNdlaUser returns already created user if it exists but needs update") {
+    val now = TestData.today
+    when(clock.now()).thenReturn(now)
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
-    val now = clock.now()
 
     val feideId     = "feide"
     val feideGroups = Seq(
@@ -269,27 +243,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       eduPersonPrincipalName = "example@email.com",
       mail = Some(Seq("example@email.com")),
     )
-    val apiUserData = MyNDLAUserDTO(
-      id = 42,
-      feideId = "feide",
-      username = "example@email.com",
-      email = "example@email.com",
-      displayName = "Feide",
-      favoriteSubjects = Seq("r", "e"),
-      role = UserRole.STUDENT,
-      organization = "oslo",
-      groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-    )
 
-    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
-    when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
-    when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
+    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(updatedFeideUser))
+    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
+    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(using any)).thenReturn(Success(domainUserData))
 
-    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
+    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(feideApiClient, times(1)).getFeideGroups(any)

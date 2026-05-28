@@ -31,7 +31,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.database.DBUtility
 import no.ndla.language.Language
-import no.ndla.network.model.{FeideUserWrapper, userOrAccessDenied}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import org.jsoup.nodes.Element
 import scalikejdbc.DBSession
@@ -72,7 +72,7 @@ class ReadService(using
         case Some(ArticleRow(_, _, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(ArticleRow(_, _, _, _, _, Some(article))) =>
-          val feideUser     = feide.flatMap(_.user)
+          val feideUser     = feide.map(_.user)
           val userIsTeacher = feideUser.exists(_.isTeacher)
           article.availability match {
             case Availability.teacher if !userIsTeacher =>
@@ -223,13 +223,7 @@ class ReadService(using
       shouldScroll: Boolean,
       feide: Option[FeideUserWrapper],
   ): Try[Cachable[SearchResult[ArticleSummaryV2DTO]]] = {
-    val availabilities = feide.map(_.userOrAccessDenied) match {
-      case Some(Success(user)) => user.availabilities
-      case None                => Seq.empty
-      case Some(Failure(_))    =>
-        logger.info("User is not authenticated with Feide, assuming non-user")
-        Seq.empty
-    }
+    val availabilities = feide.fold(Seq.empty)(_.user.availabilities)
 
     val settings = query.emptySomeToNone match {
       case Some(q) => SearchSettings(
@@ -275,11 +269,10 @@ class ReadService(using
     else Cachable.yes(result)
   }
 
-  private def getAvailabilityFilter(feide: Option[FeideUserWrapper]): Option[Availability] =
-    feide.userOrAccessDenied match {
-      case Success(user) if user.isTeacher => None
-      case _                               => Some(Availability.everyone)
-    }
+  private def getAvailabilityFilter(feide: Option[FeideUserWrapper]): Option[Availability] = feide match {
+    case Some(f) if f.user.isTeacher => None
+    case _                           => Some(Availability.everyone)
+  }
 
   private def applyAvailabilityFilter(feide: Option[FeideUserWrapper], articles: Seq[Article]): Seq[Article] = {
     val availabilityFilter = getAvailabilityFilter(feide)

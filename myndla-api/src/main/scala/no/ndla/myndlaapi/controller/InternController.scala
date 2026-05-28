@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.auth.FeideAuth
 import no.ndla.network.tapir.TapirController
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
@@ -21,21 +20,22 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
 import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.service.UserService
+import no.ndla.network.model.{FeideIdToken, FeideUserWrapper}
 
-class InternController(using errorHandling: ControllerErrorHandling, userService: UserService, feideAuth: FeideAuth)
+class InternController(using errorHandling: ControllerErrorHandling, userService: UserService)
     extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
 
-  private def getDomainUser: ServerEndpoint[Any, Eff] = endpoint
-    .summary("Get domain user from feide user. Useful for other api's that requires login")
-    .get
+  private def getFeideUserWrapper: ServerEndpoint[Any, Eff] = endpoint
+    .summary("Get the Feide user wrapper based on the ID token. Used for Feide auth.")
+    .post
     .in("get-user")
-    .out(jsonBody[MyNDLAUser])
+    .in(jsonBody[FeideIdToken])
+    .out(jsonBody[Option[FeideUserWrapper]])
     .errorOut(errorOutputsFor(400))
-    .withFeideUser
-    .serverLogicPure(feide => _ => feide.userOrAccessDenied)
+    .serverLogic(userService.getFeideUserWrapperFromIdToken)
 
   private def cleanupInactiveUsers: ServerEndpoint[Any, Eff] = endpoint
     .summary("Notifies, and removes inactive users")
@@ -54,6 +54,7 @@ class InternController(using errorHandling: ControllerErrorHandling, userService
     .errorOut(errorOutputsFor(400))
     .serverLogicPure(userService.sendInactivityEmailIgnoreEnvironment)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getDomainUser, cleanupInactiveUsers, sendTestEmail)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getFeideUserWrapper, cleanupInactiveUsers, sendTestEmail)
 
 }

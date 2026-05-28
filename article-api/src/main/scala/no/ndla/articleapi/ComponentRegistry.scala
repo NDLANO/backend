@@ -68,8 +68,8 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given feideApiClient: FeideApiClient                      = new FeideApiClient
   given myndlaApiClient: MyNDLAApiClient                    = new MyNDLAApiClient
   implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                  = NdlaAuth()
-  given feideAuth: FeideAuth                                = FeideAuth()
+  implicit lazy val ndlaAuth: NdlaAuth                      = NdlaAuth()
+  implicit lazy val feideAuth: FeideAuth                    = FeideAuth()
   given frontpageApiClient: FrontpageApiClient              = new FrontpageApiClient
   given imageApiClient: ImageApiClient                      = new ImageApiClient
   given taxonomyApiClient: TaxonomyApiClient                = new TaxonomyApiClient(props.TaxonomyUrl)

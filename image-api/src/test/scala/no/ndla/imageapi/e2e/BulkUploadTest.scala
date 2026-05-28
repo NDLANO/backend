@@ -24,10 +24,10 @@ import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.imageapi.service.search.{ImageIndexService, ImageSearchService, TagIndexService, TagSearchService}
 import no.ndla.imageapi.{ComponentRegistry, ImageApiProperties, MainClass, UnitSuite}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.jwt.JwsKeySelectorFactory
+import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import no.ndla.search.NdlaE4sClient
-import no.ndla.tapirtesting.{NdlaAuthTestTokens, TestJwsKeySelectorFactory}
+import no.ndla.tapirtesting.{NdlaAuthTest, NdlaAuthTestTokens}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
@@ -73,7 +73,7 @@ class BulkUploadTest extends DatabaseIntegrationSuite with RedisIntegrationSuite
         mock[NdlaCloudFrontClient](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val myndlaApiClient: MyNDLAApiClient =
         mock[MyNDLAApiClient](withSettings.strictness(Strictness.LENIENT))
-      override implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
+      override implicit lazy val ndlaAuth: NdlaAuth = NdlaAuthTest()
 
       override implicit lazy val imageStorage: ImageStorageService = {
         val m = mock[ImageStorageService](withSettings.strictness(Strictness.LENIENT))

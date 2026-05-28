@@ -114,13 +114,10 @@ class SearchController(using
     .withOptionalFeideUser
     .serverLogicPure { feide =>
       { case (q, includeMissingResourceTypeGroup) =>
-        getAvailability(feide) match {
-          case Failure(ex)           => returnLeftError(ex)
-          case Success(availability) =>
-            val searchParams = asSearchParamsDTO(q)
-            val settings     = asSettings(searchParams.some, availability)
-            groupSearch(settings, includeMissingResourceTypeGroup)
-        }
+        val searchParams = asSearchParamsDTO(q)
+        val availability = getAvailability(feide)
+        val settings     = asSettings(searchParams.some, availability)
+        groupSearch(settings, includeMissingResourceTypeGroup)
       }
     }
 
@@ -272,15 +269,14 @@ class SearchController(using
     .serverLogicPure { feide => queryWrapper =>
       scrollWithOr(queryWrapper.searchParams.scrollId, queryWrapper.searchParams.language, multiSearchService) {
         val searchParams = asSearchParamsDTO(queryWrapper)
-        getAvailability(feide).flatMap { availability =>
-          val settings = asSettings(searchParams.some, availability)
-          multiSearchService.matchingQuery(settings) match {
-            case Success(searchResult) =>
-              val result  = searchConverterService.toApiMultiSearchResult(searchResult)
-              val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-              Success((result, headers))
-            case Failure(ex) => Failure(ex)
-          }
+        val availability = getAvailability(feide)
+        val settings     = asSettings(searchParams.some, availability)
+        multiSearchService.matchingQuery(settings) match {
+          case Success(searchResult) =>
+            val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+            val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+            Success((result, headers))
+          case Failure(ex) => Failure(ex)
         }
       }
 
@@ -296,18 +292,17 @@ class SearchController(using
     .in(jsonBody[Option[SearchParamsDTO]].schema(SearchParamsDTO.schema.asOption))
     .withOptionalFeideUser
     .serverLogicPure { feide => searchParams =>
-      getAvailability(feide).flatMap(availability => {
-        val settings = asSettings(searchParams, availability)
-        scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
-          multiSearchService
-            .matchingQuery(settings)
-            .map { searchResult =>
-              val result  = searchConverterService.toApiMultiSearchResult(searchResult)
-              val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-              (result, headers)
-            }
-        }
-      })
+      val availability = getAvailability(feide)
+      val settings     = asSettings(searchParams, availability)
+      scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
+        multiSearchService
+          .matchingQuery(settings)
+          .map { searchResult =>
+            val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+            val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+            (result, headers)
+          }
+      }
     }
 
   def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
@@ -471,15 +466,8 @@ class SearchController(using
       grepSearchService.getReplacements(input.values)
     }
 
-  private def getAvailability(feide: Option[FeideUserWrapper]): Try[List[Availability]] = feide match {
-    case None               => Success(List.empty)
-    case Some(feideWrapper) => feideWrapper.userOrAccessDenied match {
-        case Success(user) => Success(user.availabilities.toList)
-        case Failure(ex)   =>
-          logger.info(s"Access denied when fetching user from feide ${feideWrapper}: ${ex.getMessage}", ex)
-          Success(List.empty)
-      }
-  }
+  private def getAvailability(maybeFeide: Option[FeideUserWrapper]): List[Availability] =
+    maybeFeide.fold(List.empty)(_.user.availabilities.toList)
 
   private def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {
     p match {

@@ -11,30 +11,29 @@ package no.ndla.network.clients.rediscache
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.clients.rediscache.RedisStoredType
 import redis.clients.jedis.RedisClient as JedisClient
-import redis.clients.jedis.exceptions.JedisConnectionException
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-class ScalaJedis(host: String, port: Int, environment: String) extends StrictLogging {
+case class RedisConnectionFailureException(cause: Throwable)
+    extends RuntimeException("Could not connect to Redis", cause)
+
+class ScalaJedis(host: String, port: Int) extends StrictLogging {
   private val jedis = JedisClient.create(host, port)
 
-  extension [T](t: Try[T]) {
-    private def handleJedisError(fallback: T): Try[T] = t.recoverWith {
-      case jce: JedisConnectionException if environment == "local" =>
-        logger.error("Could not connect to redis instance, but allowing since we are in local environment", jce)
-        Success(fallback)
-      case ex => Failure(ex)
-    }
-  }
-
-  private def _expire(key: String, seconds: Long): Try[Long]         = Try(jedis.expire(key, seconds)).handleJedisError(0L)
-  private def _hget(key: String, field: String): Try[Option[String]] = Try(Option(jedis.hget(key, field)))
-    .handleJedisError(None)
+  private def _expire(key: String, seconds: Long): Try[Long]              = Try(jedis.expire(key, seconds))
+  private def _expireAt(key: String, unixTime: Long): Try[Long]           = Try(jedis.expireAt(key, unixTime))
+  private def _get(key: String): Try[Option[String]]                      = Try(Option(jedis.get(key)))
+  private def _set(key: String, value: String): Try[String]               = Try(jedis.set(key, value))
+  private def _hget(key: String, field: String): Try[Option[String]]      = Try(Option(jedis.hget(key, field)))
   private def _hset(key: String, field: String, value: String): Try[Long] = Try(jedis.hset(key, field, value))
-    .handleJedisError(0L)
-  private def _ttl(key: String): Try[Long] = Try(jedis.ttl(key)).handleJedisError(0L)
+  private def _ttl(key: String): Try[Long]                                = Try(jedis.ttl(key))
 
-  def expire(prefix: RedisStoredType, key: String, seconds: Long): Try[Long]              = _expire(prefix.getKey(key), seconds)
+  def ping(): Try[Unit]                                                         = Try(jedis.ping: Unit)
+  def expire(prefix: RedisStoredType, key: String, seconds: Long): Try[Long]    = _expire(prefix.getKey(key), seconds)
+  def expireAt(prefix: RedisStoredType, key: String, unixTime: Long): Try[Long] =
+    _expireAt(prefix.getKey(key), unixTime)
+  def get(prefix: RedisStoredType, key: String): Try[Option[String]]                      = _get(prefix.getKey(key))
+  def set(prefix: RedisStoredType, key: String, value: String): Try[String]               = _set(prefix.getKey(key), value)
   def hget(prefix: RedisStoredType, key: String, field: String): Try[Option[String]]      = _hget(prefix.getKey(key), field)
   def hset(prefix: RedisStoredType, key: String, field: String, value: String): Try[Long] =
     _hset(prefix.getKey(key), field, value)

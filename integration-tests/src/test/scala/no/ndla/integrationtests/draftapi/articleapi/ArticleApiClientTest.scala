@@ -18,11 +18,10 @@ import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth, TokenUser}
 import no.ndla.network.NdlaClient
-import no.ndla.network.jwt.JwsKeySelectorFactory
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
-import no.ndla.tapirtesting.{TestJwsKeySelectorFactory, TokenUserTestData}
+import no.ndla.tapirtesting.{FeideAuthTest, NdlaAuthTest, TokenUserTestData}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
 import org.mockito.Mockito.when
@@ -64,7 +63,8 @@ class ArticleApiClientTest
 
   lazy val articleApi: articleapi.MainClass = new articleapi.MainClass(articleApiProperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(articleApiProperties) {
-      override implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
+      override implicit lazy val ndlaAuth: NdlaAuth   = NdlaAuthTest()
+      override implicit lazy val feideAuth: FeideAuth = FeideAuthTest()
     }
   }
   val articleApiBaseUrl: String = s"http://localhost:$articleApiPort"

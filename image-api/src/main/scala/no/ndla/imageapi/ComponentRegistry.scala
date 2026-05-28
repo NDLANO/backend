@@ -47,7 +47,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given converterService: ConverterService                  = new ConverterService
   implicit lazy val myndlaApiClient: MyNDLAApiClient        = new MyNDLAApiClient
   implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                  = NdlaAuth()
+  implicit lazy val ndlaAuth: NdlaAuth                      = NdlaAuth()
   given searchConverterService: SearchConverterService      = new SearchConverterService
   given dbUtility: DBUtility                                = new DBUtility
   given dbImageMetaInformation: DBImageMetaInformation      = new DBImageMetaInformation

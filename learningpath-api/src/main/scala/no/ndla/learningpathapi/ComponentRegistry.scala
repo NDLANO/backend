@@ -54,9 +54,9 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   implicit lazy val taxonomyApiClient: TaxonomyApiClient    = new TaxonomyApiClient
   implicit lazy val myndlaApiClient: MyNDLAApiClient        = new MyNDLAApiClient
   implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                  = NdlaAuth()
-  given feideAuth: FeideAuth                                = FeideAuth()
-  given combinedAuth: CombinedAuth                          = CombinedAuth()
+  implicit lazy val ndlaAuth: NdlaAuth                      = NdlaAuth()
+  implicit lazy val feideAuth: FeideAuth                    = FeideAuth()
+  implicit lazy val combinedAuth: CombinedAuth              = CombinedAuth()
   given searchApiClient: SearchApiClient                    = new SearchApiClient
   given oembedProxyClient: OembedProxyClient                = new OembedProxyClient
 

@@ -17,7 +17,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
-import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
+import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FeideSessionDTO}
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
 
 class UserController(using
@@ -38,7 +38,7 @@ class UserController(using
     .out(jsonBody[MyNDLAUserDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
     .withFeideUser
-    .serverLogicPure(feide => _ => userService.getMyNDLAUserData(Some(feide.token)))
+    .serverLogicPure(feide => _ => Right(userService.getApiUserFromFeideWrapper(feide)))
 
   def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint
     .patch
@@ -87,6 +87,19 @@ class UserController(using
       folderWriteService.importUserData(importBody, feide)
     }
 
+  val setFeideSession: ServerEndpoint[Any, Eff] = endpoint
+    .put
+    .summary("Set Feide session data")
+    .description("Set Feide ID and access token for a user session")
+    .in("session")
+    .in(jsonBody[FeideSessionDTO])
+    .out(jsonBody[MyNDLAUserDTO])
+    .errorOut(errorOutputsFor(401, 403))
+    .withFeideIdToken
+    .serverLogicPure(idToken => { case FeideSessionDTO(accessToken) =>
+      userService.setFeideSessionAndGetUser(idToken, accessToken)
+    })
+
   override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(getMyNDLAUser, updateMyNDLAUser, deleteAllUserData, exportUserData, importUserData)
+    List(getMyNDLAUser, updateMyNDLAUser, deleteAllUserData, exportUserData, importUserData, setFeideSession)
 }

@@ -17,7 +17,7 @@ import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO, ResourceStatsDTO, UserS
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.Resource
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
-import no.ndla.network.model.FeideUserWrapper
+import no.ndla.network.model.{FeideIdToken, FeideUserWrapper}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
@@ -42,7 +42,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   private def feideWrapper(feideId: String): FeideUserWrapper =
-    FeideUserWrapper("token", Some(emptyMyNDLAUser.copy(feideId = feideId)))
+    FeideUserWrapper(emptyMyNDLAUser.copy(feideId = feideId), mock[FeideIdToken], "access-token")
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
     val created        = clock.now()
