@@ -54,11 +54,11 @@ public class NodeSearchBody {
 
     @Schema(description = "Include all contexts")
     @JsonProperty
-    public boolean includeContexts = false;
+    public boolean includeContexts = true;
 
     @Schema(description = "Filter out programme contexts")
     @JsonProperty
-    public boolean filterProgrammes = false;
+    public boolean filterProgrammes = true;
 
     @Schema(description = "Id to root id in context.")
     @JsonProperty
