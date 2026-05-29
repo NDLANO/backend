@@ -9,7 +9,7 @@
 package no.ndla.common.model.domain
 
 import io.circe.{Decoder, Encoder}
-import sttp.tapir.Codec
+import sttp.tapir.{Schema, Codec}
 import sttp.tapir.Codec.PlainCodec
 
 enum AiGenerated {
@@ -21,6 +21,7 @@ enum AiGenerated {
 object AiGenerated {
   def withNameOption(name: String): Option[AiGenerated] = values.find(_.toString == name)
 
+  implicit val schema: Schema[AiGenerated]    = Schema.derivedEnumeration[AiGenerated](encode = Some(_.toString))
   implicit val codec: PlainCodec[AiGenerated] =
     Codec.derivedEnumeration[String, AiGenerated](decode = withNameOption, encode = _.toString)
 

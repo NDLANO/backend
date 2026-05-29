@@ -29,7 +29,7 @@ case class SearchableImage(
     lastUpdated: NDLADate,
     defaultTitle: Option[String],
     modelReleased: Option[String],
-    aiGenerated: AiGenerated,
+    aiGenerated: Option[AiGenerated],
     editorNotes: Seq[String],
     imageFiles: Seq[SearchableImageFile],
     podcastFriendly: Boolean,

@@ -59,7 +59,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   val apiElg: ImageMetaInformationV2DTO = api.ImageMetaInformationV2DTO(
@@ -160,7 +160,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = None,
   )
 
   val jerv: ImageMetaInformation = new ImageMetaInformation(
@@ -197,7 +197,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   val mink = new ImageMetaInformation(
@@ -234,7 +234,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = None,
   )
 
   val rein = new ImageMetaInformation(
@@ -271,7 +271,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   val nonexisting: ImageMetaInformation = new ImageMetaInformation(
@@ -308,7 +308,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   val nonexistingWithoutThumb = new ImageMetaInformation(
@@ -345,7 +345,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = None,
   )
 
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
@@ -430,7 +430,7 @@ class TestData(using imageConverter: ImageConverter) {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
   def clownfishS3Object: NdlaS3Object = mockS3ObjectFromDisk("clownfish.jpg", ImageContentType.Jpeg)
 

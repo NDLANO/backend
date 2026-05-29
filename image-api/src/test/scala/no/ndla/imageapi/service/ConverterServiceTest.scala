@@ -42,7 +42,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = None,
   )
 
   val WantingImageMetaInformation = new ImageMetaInformation(
@@ -60,7 +60,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   val MultiLangImage = new ImageMetaInformation(
@@ -78,7 +78,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.No,
+    aiGenerated = Some(AiGenerated.No),
   )
 
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {

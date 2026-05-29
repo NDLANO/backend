@@ -129,7 +129,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       License.CC_BY_SA.toString,
       Seq("nb"),
       Some("yes"),
-      AiGenerated.No,
+      Some(AiGenerated.No),
       None,
       date,
       123,
@@ -257,7 +257,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       modelReleased = ModelReleasedStatus.YES,
       editorNotes = Seq.empty,
       inactive = false,
-      aiGenerated = AiGenerated.No,
+      aiGenerated = Some(AiGenerated.No),
     )
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2DTO], any, any)).thenReturn(Success(sampleImageMeta))

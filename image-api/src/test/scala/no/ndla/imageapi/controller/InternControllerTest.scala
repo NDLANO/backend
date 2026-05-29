@@ -92,7 +92,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-    aiGenerated = AiGenerated.Yes,
+    aiGenerated = Some(AiGenerated.Yes),
   )
 
   override def beforeEach(): Unit = {

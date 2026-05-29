@@ -37,7 +37,7 @@ case class ImageMetaSummaryDTO(
     @description("Describes if the model has released use of the image")
     modelRelease: Option[String],
     @description("Describes if the image is AI generated")
-    aiGenerated: AiGenerated,
+    aiGenerated: Option[AiGenerated],
     @description("Describes the changes made to the image, only visible to editors")
     editorNotes: Option[Seq[String]],
     @description("The time and date of last update")
