@@ -1719,9 +1719,9 @@ export type components = {
         Metadata: {
             customFields: {
                 [key: string]: string;
-            } | null;
-            grepCodes: string[] | null;
-            visible: boolean | null;
+            };
+            grepCodes: string[];
+            visible: boolean;
         };
         MetadataPUT: {
             /** @description Custom fields, Only updated if present */
