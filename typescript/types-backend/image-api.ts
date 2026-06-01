@@ -763,6 +763,11 @@ export type components = {
             file: Blob;
         };
         /**
+         * ModelReleasedStatus
+         * @enum {string}
+         */
+        ModelReleasedStatus: "no" | "not-applicable" | "not-set" | "yes";
+        /**
          * NewImageMetaInformationV2DTO
          * @description Meta information for the image
          */
@@ -778,8 +783,8 @@ export type components = {
             caption: string;
             /** @description ISO 639-1 code that represents the language used in the caption */
             language: string;
-            /** @description Describes if the model has released use of the image, allowed values are 'not-set', 'yes', 'no', and 'not-applicable', defaults to 'no' */
-            modelReleased?: string;
+            /** @description Describes if the model has released use of the image, defaults to 'no' */
+            modelReleased?: components["schemas"]["ModelReleasedStatus"];
             /** @description Describes whether the image is AI generated */
             aiGenerated?: components["schemas"]["AiGenerated"];
         };
@@ -845,7 +850,7 @@ export type components = {
             /** @description Include inactive images */
             inactive?: boolean;
             /** @description Return only images with one of the provided values for modelReleased. */
-            modelReleased?: string[];
+            modelReleased?: components["schemas"]["ModelReleasedStatus"][];
             /** @description Return only images with one of the provided values for aiGenerated. */
             aiGenerated?: components["schemas"]["AiGenerated"][];
             /** @description Filter editors of the image(s). Multiple values can be specified in a comma separated list. */
@@ -971,7 +976,7 @@ export type components = {
             /** @description Caption for the image */
             caption?: string;
             /** @description Describes if the model has released use of the image */
-            modelReleased?: string;
+            modelReleased?: components["schemas"]["ModelReleasedStatus"];
             /** @description Whether the image is inactive */
             inactive?: boolean;
             /** @description Describes whether the image is AI generated */
@@ -1048,6 +1053,7 @@ export type ImageVariantDTO = components['schemas']['ImageVariantDTO'];
 export type ImageVariantSize = components['schemas']['ImageVariantSize'];
 export type LicenseDTO = components['schemas']['LicenseDTO'];
 export type MetaDataAndFileForm = components['schemas']['MetaDataAndFileForm'];
+export type ModelReleasedStatus = components['schemas']['ModelReleasedStatus'];
 export type NewImageMetaInformationV2DTO = components['schemas']['NewImageMetaInformationV2DTO'];
 export type NotFoundWithSupportedLanguages = components['schemas']['NotFoundWithSupportedLanguages'];
 export type SearchParamsDTO = components['schemas']['SearchParamsDTO'];
@@ -1096,7 +1102,7 @@ export interface operations {
                  */
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
-                "model-released"?: string[];
+                "model-released"?: components["schemas"]["ModelReleasedStatus"][];
                 /** @description Filter whether the image(s) is AI generated or not. Multiple values can be specified in a comma separated list. Possible values include: Partial,Yes,No */
                 "ai-generated"?: components["schemas"]["AiGenerated"][];
                 /** @description Include inactive images */
@@ -1678,7 +1684,7 @@ export interface operations {
                  */
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
-                "model-released"?: string[];
+                "model-released"?: components["schemas"]["ModelReleasedStatus"][];
                 /** @description Filter whether the image(s) is AI generated or not. Multiple values can be specified in a comma separated list. Possible values include: Partial,Yes,No */
                 "ai-generated"?: components["schemas"]["AiGenerated"][];
                 /**
