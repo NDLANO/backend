@@ -95,7 +95,7 @@ class ImageControllerV2(using
       podcastFriendly: Option[Boolean],
       shouldScroll: Boolean,
       modelReleasedStatus: Seq[ModelReleasedStatus],
-      aiGeneratedStatus: Seq[AiGenerated],
+      aiGenerated: Seq[AiGenerated],
       user: Option[TokenUser],
       inactive: Option[Boolean],
       widthFrom: Option[Int],
@@ -264,7 +264,7 @@ class ImageControllerV2(using
         val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
         val inactive            = searchParams.inactive
         val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty)
-        val aiGeneratedStatus   = searchParams.aiGenerated.getOrElse(Seq.empty)
+        val aiGenerated         = searchParams.aiGenerated.getOrElse(Seq.empty)
         val widthFrom           = searchParams.widthFrom
         val widthTo             = searchParams.widthTo
         val heightFrom          = searchParams.heightFrom
