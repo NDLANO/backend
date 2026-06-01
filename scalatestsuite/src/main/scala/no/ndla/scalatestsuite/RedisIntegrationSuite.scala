@@ -14,48 +14,19 @@ import org.testcontainers.utility.DockerImageName
 import scala.util.Try
 import sys.env
 
-trait RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
-  private var standaloneRedisContainer: Option[RedisContainer] = None
-
-  private def startRedisContainer(): RedisContainer = {
-    val c = new RedisContainer(DockerImageName.parse("redis:6.2"))
-    c.addExposedPort(6379)
-    c
+trait RedisIntegrationSuite extends UnitTestSuite {
+  protected object redisContainer extends ContainerIntegrationSuiteBase[RedisContainer, Int] {
+    override protected val containerName: String                 = "redis"
+    override protected def createContainer(): RedisContainer     = new RedisContainer(DockerImageName.parse("redis:6.2"))
+    override protected def fromContainer(c: RedisContainer): Int = c.getMappedPort(6379).intValue()
+    override protected def fromEnv(): Int                        = env.getOrElse("REDIS_PORT", "6379").toInt
+    override protected def healthCheck(port: Int): Boolean       = SharedContainer.isReachable("localhost", port)
   }
 
-  val redisPort: Try[Int] =
-    if (skipContainerSpawn) {
-      Try(env.getOrElse("REDIS_PORT", "6379").toInt)
-    } else if (disableSharedContainers) {
-      Try {
-        val c = startRedisContainer()
-        c.start()
-        standaloneRedisContainer = Some(c)
-        c.getMappedPort(6379)
-      }
-    } else {
-      Try {
-        val info = SharedContainer.acquire(
-          name = "redis",
-          healthCheckPort = 6379,
-          startContainer = () => {
-            val c = startRedisContainer()
-            c.withReuse(true): Unit
-            c.start()
-            SharedContainerInfo(
-              containerId = c.getContainerId,
-              data = Map("host" -> c.getHost, "port" -> c.getMappedPort(6379).toString),
-            )
-          },
-        )
-        info.data("port").toInt
-      }
-    }
+  lazy val redisPort: Try[Int] = redisContainer.output
 
   override def afterAll(): Unit = {
     super.afterAll()
-    if (!skipContainerSpawn && disableSharedContainers) {
-      standaloneRedisContainer.foreach(_.stop())
-    }
+    redisContainer.close()
   }
 }

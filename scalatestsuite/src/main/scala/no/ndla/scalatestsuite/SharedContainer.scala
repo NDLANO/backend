@@ -8,6 +8,10 @@
 
 package no.ndla.scalatestsuite
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.parser.decode
+import io.circe.syntax.*
+import io.circe.{Decoder, Encoder}
 import org.testcontainers.utility.TestcontainersConfiguration
 
 import java.io.RandomAccessFile
@@ -17,14 +21,20 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.Try
 
-case class SharedContainerInfo(containerId: String, data: Map[String, String])
+/** Coordination payload persisted across JVMs. [[data]] is the typed container info produced by the owning suite */
+case class SharedContainerInfo[O](containerId: String, data: O)
+
+object SharedContainerInfo {
+  given encoder[O](using Encoder[O]): Encoder[SharedContainerInfo[O]] = deriveEncoder
+  given decoder[O](using Decoder[O]): Decoder[SharedContainerInfo[O]] = deriveDecoder
+}
 
 object SharedContainer {
   TestcontainersConfiguration.getInstance().getUserProperties.setProperty("testcontainers.reuse.enable", "true"): Unit
 
   private val coordDir: Path = Paths.get(System.getProperty("java.io.tmpdir"), "ndla-test-containers")
 
-  private case class LocalCache(refCount: AtomicInteger, info: SharedContainerInfo)
+  private case class LocalCache(refCount: AtomicInteger, info: SharedContainerInfo[?])
   private val localCaches: ConcurrentHashMap[String, LocalCache]                    = new ConcurrentHashMap()
   private val nameLocks: ConcurrentHashMap[String, AnyRef]                          = new ConcurrentHashMap()
   private val shutdownHooksRegistered: ConcurrentHashMap[String, java.lang.Boolean] = new ConcurrentHashMap()
@@ -35,38 +45,39 @@ object SharedContainer {
 
   private def getNameLock(name: String): AnyRef = nameLocks.computeIfAbsent(name, _ => new AnyRef)
 
-  def acquire(
+  def acquire[O: {Encoder, Decoder}](
       name: String,
-      healthCheckPort: Int,
-      startContainer: () => SharedContainerInfo,
-      healthCheck: SharedContainerInfo => Boolean = null,
-  ): SharedContainerInfo = {
-    val check: SharedContainerInfo => Boolean =
-      if (healthCheck != null) healthCheck
-      else { info =>
-        val host = info.data.getOrElse("host", "localhost")
-        val port = info.data.get("port").flatMap(p => Try(p.toInt).toOption).getOrElse(healthCheckPort)
-        isReachable(host, port)
-      }
+      startContainer: => SharedContainerInfo[O],
+      healthCheck: O => Boolean,
+  ): SharedContainerInfo[O] = {
     getNameLock(name).synchronized {
       val existing = localCaches.get(name)
       if (existing != null) {
         existing.refCount.incrementAndGet()
-        return existing.info
+        // Safe: a given container name is always acquired with the same O.
+        return existing.info.asInstanceOf[SharedContainerInfo[O]]
       }
 
-      val info = acquireAcrossJvms(name, startContainer, check)
+      val info = acquireAcrossJvms(name, startContainer, healthCheck)
       localCaches.put(name, LocalCache(new AtomicInteger(1), info))
       registerShutdownHook(name)
       info
     }
   }
 
-  private def acquireAcrossJvms(
+  def isReachable(host: String, port: Int): Boolean = {
+    Try {
+      val socket = new Socket()
+      socket.connect(new java.net.InetSocketAddress(host, port), 2000)
+      socket.close()
+    }.isSuccess
+  }
+
+  private def acquireAcrossJvms[O: {Encoder, Decoder}](
       name: String,
-      startContainer: () => SharedContainerInfo,
-      healthCheck: SharedContainerInfo => Boolean,
-  ): SharedContainerInfo = {
+      startContainer: => SharedContainerInfo[O],
+      healthCheck: O => Boolean,
+  ): SharedContainerInfo[O] = {
     Files.createDirectories(coordDir)
     val raf  = new RandomAccessFile(lockFile(name).toFile, "rw")
     val lock = raf.getChannel.lock()
@@ -74,23 +85,19 @@ object SharedContainer {
       val infoPath     = infoFile(name)
       val refCountPath = refCountFile(name)
 
-      // Try to reuse existing container
-      val existingInfo = readInfoFile(infoPath)
-      val reusable     = existingInfo.exists(healthCheck)
-
-      val info =
-        if (reusable) {
-          existingInfo.get
-        } else {
-          if (existingInfo.isDefined) {
-            stopContainer(existingInfo.get.containerId)
+      val existingInfo = readInfoFile[O](infoPath)
+      val info         = existingInfo match {
+        case Some(exInfo) if healthCheck(exInfo.data) => exInfo
+        case _                                        =>
+          existingInfo.foreach { stale =>
+            stopContainer(stale.containerId)
             Files.deleteIfExists(infoPath): Unit
             Files.deleteIfExists(refCountPath): Unit
           }
-          val newInfo = startContainer()
+          val newInfo = startContainer
           writeInfoFile(infoPath, newInfo)
           newInfo
-        }
+      }
 
       incrementGlobalRefCount(refCountPath)
       info
@@ -138,14 +145,6 @@ object SharedContainer {
     }
   }
 
-  private def isReachable(host: String, port: Int): Boolean = {
-    Try {
-      val socket = new Socket()
-      socket.connect(new java.net.InetSocketAddress(host, port), 2000)
-      socket.close()
-    }.isSuccess
-  }
-
   private def stopContainer(containerId: String): Unit = {
     Try {
       val process = new ProcessBuilder("docker", "rm", "-f", containerId).redirectErrorStream(true).start()
@@ -153,29 +152,13 @@ object SharedContainer {
     }: Unit
   }
 
-  private def writeInfoFile(path: Path, info: SharedContainerInfo): Unit = {
-    val lines = s"containerId=${info.containerId}" +: info
-      .data
-      .map { case (k, v) =>
-        s"$k=$v"
-      }
-      .toSeq
-    Files.writeString(path, lines.mkString("\n"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING): Unit
+  private def writeInfoFile[O: Encoder](path: Path, info: SharedContainerInfo[O]): Unit = {
+    Files.writeString(path, info.asJson.noSpaces, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING): Unit
   }
 
-  private def readInfoFile(path: Path): Option[SharedContainerInfo] = {
-    if (!Files.exists(path)) return None
-    Try {
-      val lines = Files.readString(path).split("\n").toSeq
-      val pairs = lines
-        .map { line =>
-          val idx = line.indexOf('=')
-          (line.substring(0, idx), line.substring(idx + 1))
-        }
-        .toMap
-      val containerId = pairs("containerId")
-      SharedContainerInfo(containerId, pairs - "containerId")
-    }.toOption
+  private def readInfoFile[O: Decoder](path: Path): Option[SharedContainerInfo[O]] = {
+    if (!Files.exists(path)) None
+    else Try(Files.readString(path)).toOption.flatMap(content => decode[SharedContainerInfo[O]](content).toOption)
   }
 
   private def readRefCount(path: Path): Int = {

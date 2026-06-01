@@ -9,6 +9,8 @@
 package no.ndla.scalatestsuite
 
 import com.zaxxer.hikari.HikariConfig
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.{DataSource, DatabaseProps}
 
@@ -16,7 +18,9 @@ import java.sql.DriverManager
 import scala.util.Try
 import sys.env
 
-trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait DatabaseIntegrationSuite extends UnitTestSuite {
+  case class PgConnectionInfo(host: String, port: Int, username: String, password: String, databaseName: String)
+
   lazy val props: BaseProps & DatabaseProps
 
   val PostgresqlVersion: String = "17.5"
@@ -26,74 +30,38 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   private val defaultDatabaseName: String = "postgres"
   private val defaultPassword: String     = "hemmelig"
 
-  private var standalonePgContainer: Option[PgContainer] = None
+  private given Codec[PgConnectionInfo] = deriveCodec
 
-  case class PgConnectionInfo(host: String, port: Int, username: String, password: String, databaseName: String)
+  protected object postgresContainer extends ContainerIntegrationSuiteBase[PgContainer, PgConnectionInfo] {
+    override protected val containerName: String = "postgres"
 
-  private def startPgContainer(): PgContainer =
-    PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
+    override protected def createContainer(): PgContainer =
+      PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
 
-  val pgConnectionInfo: Try[PgConnectionInfo] =
-    if (skipContainerSpawn) {
-      Try {
-        PgConnectionInfo(
-          host = env.getOrElse("META_SERVER", "localhost"),
-          port = env.getOrElse("META_PORT", "5432").toInt,
-          username = env.getOrElse("META_USERNAME", defaultUsername),
-          password = env.getOrElse("META_PASSWORD", defaultPassword),
-          databaseName = env.getOrElse("META_RESOURCE", defaultDatabaseName),
-        )
-      }
-    } else if (disableSharedContainers) {
-      Try {
-        val c = startPgContainer()
-        c.start()
-        standalonePgContainer = Some(c)
-        PgConnectionInfo(
-          host = c.getHost,
-          port = c.getMappedPort(5432),
-          username = c.getUsername,
-          password = c.getPassword,
-          databaseName = c.getDatabaseName,
-        )
-      }
-    } else {
-      Try {
-        val info = SharedContainer.acquire(
-          name = "postgres",
-          healthCheckPort = 5432,
-          healthCheck = info => {
-            Try {
-              val url  = s"jdbc:postgresql://${info.data("host")}:${info.data("port")}/${info.data("databaseName")}"
-              val conn = DriverManager.getConnection(url, info.data("username"), info.data("password"))
-              conn.close()
-            }.isSuccess
-          },
-          startContainer = () => {
-            val c = startPgContainer()
-            c.withReuse(true): Unit
-            c.start()
-            SharedContainerInfo(
-              containerId = c.getContainerId,
-              data = Map(
-                "host"         -> c.getHost,
-                "port"         -> c.getMappedPort(5432).toString,
-                "username"     -> c.getUsername,
-                "password"     -> c.getPassword,
-                "databaseName" -> c.getDatabaseName,
-              ),
-            )
-          },
-        )
-        PgConnectionInfo(
-          host = info.data("host"),
-          port = info.data("port").toInt,
-          username = info.data("username"),
-          password = info.data("password"),
-          databaseName = info.data("databaseName"),
-        )
-      }
-    }
+    override protected def fromContainer(c: PgContainer): PgConnectionInfo = PgConnectionInfo(
+      host = c.getHost,
+      port = c.getMappedPort(5432).intValue(),
+      username = c.getUsername,
+      password = c.getPassword,
+      databaseName = c.getDatabaseName,
+    )
+
+    override protected def fromEnv(): PgConnectionInfo = PgConnectionInfo(
+      host = env.getOrElse("META_SERVER", "localhost"),
+      port = env.getOrElse("META_PORT", "5432").toInt,
+      username = env.getOrElse("META_USERNAME", defaultUsername),
+      password = env.getOrElse("META_PASSWORD", defaultPassword),
+      databaseName = env.getOrElse("META_RESOURCE", defaultDatabaseName),
+    )
+
+    override protected def healthCheck(info: PgConnectionInfo): Boolean = Try {
+      val url  = s"jdbc:postgresql://${info.host}:${info.port}/${info.databaseName}"
+      val conn = DriverManager.getConnection(url, info.username, info.password)
+      conn.close()
+    }.isSuccess
+  }
+
+  lazy val pgConnectionInfo: Try[PgConnectionInfo] = postgresContainer.output
 
   def testDataSource: Try[DataSource] = pgConnectionInfo.flatMap(pgc =>
     Try {
@@ -143,8 +111,6 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   override def afterAll(): Unit = {
     super.afterAll()
     restoreDatabaseEnv()
-    if (!skipContainerSpawn && disableSharedContainers) {
-      standalonePgContainer.foreach(_.stop())
-    }
+    postgresContainer.close()
   }
 }
