@@ -62,19 +62,6 @@ object SharedContainer {
     }
   }
 
-  def release(name: String): Unit = {
-    getNameLock(name).synchronized {
-      val cached = localCaches.get(name)
-      if (cached == null) return
-
-      val remaining = cached.refCount.decrementAndGet()
-      if (remaining <= 0) {
-        localCaches.remove(name)
-        decrementGlobalRefCount(name, cached.info.containerId)
-      }
-    }
-  }
-
   private def acquireAcrossJvms(
       name: String,
       startContainer: () => SharedContainerInfo,

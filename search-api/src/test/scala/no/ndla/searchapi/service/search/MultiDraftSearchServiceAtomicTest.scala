@@ -55,21 +55,17 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   override def beforeEach(): Unit = {
-    {
-      draftConceptIndexService.createIndexAndAlias().get
-      articleIndexService.createIndexAndAlias().get
-      draftIndexService.createIndexAndAlias().get
-      learningPathIndexService.createIndexAndAlias().get
-    }
+    draftConceptIndexService.createIndexAndAlias().get
+    articleIndexService.createIndexAndAlias().get
+    draftIndexService.createIndexAndAlias().get
+    learningPathIndexService.createIndexAndAlias().get
   }
 
   override def afterEach(): Unit = {
-    {
-      articleIndexService.deleteIndexAndAlias()
-      draftIndexService.deleteIndexAndAlias()
-      learningPathIndexService.deleteIndexAndAlias()
-      draftConceptIndexService.deleteIndexAndAlias()
-    }
+    articleIndexService.deleteIndexAndAlias()
+    draftIndexService.deleteIndexAndAlias()
+    learningPathIndexService.deleteIndexAndAlias()
+    draftConceptIndexService.deleteIndexAndAlias()
   }
 
   val indexingBundle: IndexingBundle = IndexingBundle(
