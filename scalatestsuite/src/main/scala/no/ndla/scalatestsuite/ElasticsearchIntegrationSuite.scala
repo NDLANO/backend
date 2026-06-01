@@ -99,8 +99,6 @@ trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
       addr
     }
 
-  val ElasticSearchEnabled: Boolean = true
-
   override def afterAll(): Unit = {
     super.afterAll()
     if (!skipContainerSpawn && disableSharedContainers) {

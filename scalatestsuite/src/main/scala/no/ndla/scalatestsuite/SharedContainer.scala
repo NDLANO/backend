@@ -1,6 +1,6 @@
 /*
  * Part of NDLA scalatestsuite
- * Copyright (C) 2025 NDLA
+ * Copyright (C) 2026 NDLA
  *
  * See LICENSE
  *

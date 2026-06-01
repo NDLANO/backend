@@ -250,7 +250,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
       availability = Availability.everyone,
     )
 
-  override def beforeAll(): Unit = if (ElasticSearchEnabled) {
+  override def beforeAll(): Unit = {
     super.beforeAll()
     articleIndexService.createIndexAndAlias().get
 

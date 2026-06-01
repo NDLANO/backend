@@ -56,22 +56,20 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Uni
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (ElasticSearchEnabled) {
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
-      draftConceptIndexService.createIndexAndAlias()
+    draftIndexService.createIndexAndAlias()
+    learningPathIndexService.createIndexAndAlias()
+    draftConceptIndexService.createIndexAndAlias()
 
-      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
+    draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
 
-      learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
+    learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
 
-      blockUntil(() => {
-        draftIndexService.countDocuments == draftsToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
-          lp.verificationStatus == CREATED_BY_NDLA
-        )
-      })
-    }
+    blockUntil(() => {
+      draftIndexService.countDocuments == draftsToIndex.size &&
+      learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
+        lp.verificationStatus == CREATED_BY_NDLA
+      )
+    })
   }
 
   private def expectedAllPublicDrafts(language: String) = {

@@ -33,13 +33,13 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
   }
 
   override def beforeEach(): Unit = {
-    if (ElasticSearchEnabled) {
+    {
       grepIndexService.createIndexAndAlias().get
     }
   }
 
   override def afterEach(): Unit = {
-    if (ElasticSearchEnabled) {
+    {
       grepIndexService.deleteIndexAndAlias()
     }
   }
