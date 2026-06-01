@@ -8,66 +8,54 @@
 
 package no.ndla.scalatestsuite
 
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import com.redis.testcontainers.RedisContainer
 import org.testcontainers.utility.DockerImageName
 
-import java.time.Duration
-import scala.util.{Failure, Try}
+import scala.util.Try
 import sys.env
 
 trait RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
+  private var standaloneRedisContainer: Option[RedisContainer] = None
 
-  val EnableRedisContainer: Boolean = true
-
-  private var standaloneRedisContainer: Option[GenericContainer[Nothing]] = None
-
-  private def startRedisContainer(): GenericContainer[Nothing] = {
-    val c = new GenericContainer(DockerImageName.parse("redis:6.2"))
+  private def startRedisContainer(): RedisContainer = {
+    val c = new RedisContainer(DockerImageName.parse("redis:6.2"))
     c.addExposedPort(6379)
-    c.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
     c
   }
 
   val redisPort: Try[Int] =
-    if (EnableRedisContainer) {
-      if (skipContainerSpawn) {
-        Try(env.getOrElse("REDIS_PORT", "6379").toInt)
-      } else if (disableSharedContainers) {
-        Try {
-          val c = startRedisContainer()
-          c.start()
-          standaloneRedisContainer = Some(c)
-          c.getMappedPort(6379)
-        }
-      } else {
-        Try {
-          val info = SharedContainer.acquire(
-            name = "redis",
-            healthCheckPort = 6379,
-            startContainer = () => {
-              val c = startRedisContainer()
-              c.withReuse(true): Unit
-              c.start()
-              SharedContainerInfo(
-                containerId = c.getContainerId,
-                data = Map("host" -> c.getHost, "port" -> c.getMappedPort(6379).toString),
-              )
-            },
-          )
-          info.data("port").toInt
-        }
+    if (skipContainerSpawn) {
+      Try(env.getOrElse("REDIS_PORT", "6379").toInt)
+    } else if (disableSharedContainers) {
+      Try {
+        val c = startRedisContainer()
+        c.start()
+        standaloneRedisContainer = Some(c)
+        c.getMappedPort(6379)
       }
     } else {
-      Failure(new RuntimeException("Redis disabled for this IntegrationSuite"))
+      Try {
+        val info = SharedContainer.acquire(
+          name = "redis",
+          healthCheckPort = 6379,
+          startContainer = () => {
+            val c = startRedisContainer()
+            c.withReuse(true): Unit
+            c.start()
+            SharedContainerInfo(
+              containerId = c.getContainerId,
+              data = Map("host" -> c.getHost, "port" -> c.getMappedPort(6379).toString),
+            )
+          },
+        )
+        info.data("port").toInt
+      }
     }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    if (!skipContainerSpawn && EnableRedisContainer && disableSharedContainers) {
+    if (!skipContainerSpawn && disableSharedContainers) {
       standaloneRedisContainer.foreach(_.stop())
     }
-    // Shared container lifecycle is handled by SharedContainer's JVM shutdown hook;
-    // releasing per test-class here would tear it down between classes in the same JVM.
   }
 }
