@@ -41,14 +41,12 @@ class GrepCodesSearchServiceTest extends UnitSuite with ElasticsearchIntegration
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (ElasticSearchEnabled) {
-      grepCodesIndexService.createIndexAndAlias().get
-      articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a).get)
+    grepCodesIndexService.createIndexAndAlias().get
+    articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a).get)
 
-      val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
+    val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
 
-      blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
-    }
+    blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
   }
 
   test("That searching for grepcodes returns sensible results") {

@@ -265,27 +265,25 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (ElasticSearchEnabled) {
-      draftConceptIndexService.createIndexAndAlias().get
+    draftConceptIndexService.createIndexAndAlias().get
 
-      draftConceptIndexService.indexDocument(concept1).get
-      draftConceptIndexService.indexDocument(concept2).get
-      draftConceptIndexService.indexDocument(concept3).get
-      draftConceptIndexService.indexDocument(concept4).get
-      draftConceptIndexService.indexDocument(concept5).get
-      draftConceptIndexService.indexDocument(concept6).get
-      draftConceptIndexService.indexDocument(concept7).get
-      draftConceptIndexService.indexDocument(concept8).get
-      draftConceptIndexService.indexDocument(concept9).get
-      draftConceptIndexService.indexDocument(concept10).get
-      draftConceptIndexService.indexDocument(concept11).get
-      draftConceptIndexService.indexDocument(concept12).get
-      draftConceptIndexService.indexDocument(concept13).get
+    draftConceptIndexService.indexDocument(concept1).get
+    draftConceptIndexService.indexDocument(concept2).get
+    draftConceptIndexService.indexDocument(concept3).get
+    draftConceptIndexService.indexDocument(concept4).get
+    draftConceptIndexService.indexDocument(concept5).get
+    draftConceptIndexService.indexDocument(concept6).get
+    draftConceptIndexService.indexDocument(concept7).get
+    draftConceptIndexService.indexDocument(concept8).get
+    draftConceptIndexService.indexDocument(concept9).get
+    draftConceptIndexService.indexDocument(concept10).get
+    draftConceptIndexService.indexDocument(concept11).get
+    draftConceptIndexService.indexDocument(concept12).get
+    draftConceptIndexService.indexDocument(concept13).get
 
-      blockUntil(() => {
-        draftConceptSearchService.countDocuments == 13
-      })
-    }
+    blockUntil(() => {
+      draftConceptSearchService.countDocuments == 13
+    })
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

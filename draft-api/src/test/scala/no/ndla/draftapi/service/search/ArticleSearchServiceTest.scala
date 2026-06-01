@@ -238,23 +238,21 @@ class ArticleSearchServiceTest extends UnitSuite with ElasticsearchIntegrationSu
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (ElasticSearchEnabled) {
-      articleIndexService.createIndexAndAlias().get
+    articleIndexService.createIndexAndAlias().get
 
-      articleIndexService.indexDocument(article1).get
-      articleIndexService.indexDocument(article2).get
-      articleIndexService.indexDocument(article3).get
-      articleIndexService.indexDocument(article4).get
-      articleIndexService.indexDocument(article5).get
-      articleIndexService.indexDocument(article6).get
-      articleIndexService.indexDocument(article7).get
-      articleIndexService.indexDocument(article8).get
-      articleIndexService.indexDocument(article9).get
-      articleIndexService.indexDocument(article10).get
-      articleIndexService.indexDocument(article11).get
+    articleIndexService.indexDocument(article1).get
+    articleIndexService.indexDocument(article2).get
+    articleIndexService.indexDocument(article3).get
+    articleIndexService.indexDocument(article4).get
+    articleIndexService.indexDocument(article5).get
+    articleIndexService.indexDocument(article6).get
+    articleIndexService.indexDocument(article7).get
+    articleIndexService.indexDocument(article8).get
+    articleIndexService.indexDocument(article9).get
+    articleIndexService.indexDocument(article10).get
+    articleIndexService.indexDocument(article11).get
 
-      blockUntil(() => articleSearchService.countDocuments == 11)
-    }
+    blockUntil(() => articleSearchService.countDocuments == 11)
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

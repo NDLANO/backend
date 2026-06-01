@@ -53,19 +53,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Un
   }
 
   override def beforeEach(): Unit = {
-    if (ElasticSearchEnabled) {
-      articleIndexService.createIndexAndAlias()
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
-    }
+    articleIndexService.createIndexAndAlias().get
+    draftIndexService.createIndexAndAlias().get
+    learningPathIndexService.createIndexAndAlias().get
   }
 
   override def afterEach(): Unit = {
-    if (ElasticSearchEnabled) {
-      articleIndexService.deleteIndexAndAlias()
-      draftIndexService.deleteIndexAndAlias()
-      learningPathIndexService.deleteIndexAndAlias()
-    }
+    articleIndexService.deleteIndexAndAlias().get
+    draftIndexService.deleteIndexAndAlias().get
+    learningPathIndexService.deleteIndexAndAlias().get
   }
 
   val indexingBundle: IndexingBundle =

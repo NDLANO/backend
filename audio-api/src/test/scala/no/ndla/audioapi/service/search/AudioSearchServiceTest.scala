@@ -237,19 +237,16 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
+    audioIndexService.createIndexAndAlias().get
+    audioIndexService.indexDocument(audio1).get
+    audioIndexService.indexDocument(audio2).get
+    audioIndexService.indexDocument(audio3).get
+    audioIndexService.indexDocument(audio4).get
+    audioIndexService.indexDocument(audio5).get
+    audioIndexService.indexDocument(audio6).get
+    audioIndexService.indexDocument(audio7).get
 
-    if (ElasticSearchEnabled) {
-      audioIndexService.createIndexAndAlias().get
-      audioIndexService.indexDocument(audio1).get
-      audioIndexService.indexDocument(audio2).get
-      audioIndexService.indexDocument(audio3).get
-      audioIndexService.indexDocument(audio4).get
-      audioIndexService.indexDocument(audio5).get
-      audioIndexService.indexDocument(audio6).get
-      audioIndexService.indexDocument(audio7).get
-
-      blockUntil(() => audioSearchService.countDocuments == 7)
-    }
+    blockUntil(() => audioSearchService.countDocuments == 7)
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {

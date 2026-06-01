@@ -55,7 +55,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   override def beforeEach(): Unit = {
-    if (ElasticSearchEnabled) {
+    {
       draftConceptIndexService.createIndexAndAlias().get
       articleIndexService.createIndexAndAlias().get
       draftIndexService.createIndexAndAlias().get
@@ -64,7 +64,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   override def afterEach(): Unit = {
-    if (ElasticSearchEnabled) {
+    {
       articleIndexService.deleteIndexAndAlias()
       draftIndexService.deleteIndexAndAlias()
       learningPathIndexService.deleteIndexAndAlias()

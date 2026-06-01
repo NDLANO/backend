@@ -55,31 +55,28 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   override def beforeAll(): Unit = {
-    super.beforeAll()
-    if (ElasticSearchEnabled) {
-      articleIndexService.createIndexAndAlias()
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
+    articleIndexService.createIndexAndAlias()
+    draftIndexService.createIndexAndAlias()
+    learningPathIndexService.createIndexAndAlias()
 
-      articlesToIndex.map(article =>
-        articleIndexService.indexDocument(
-          article,
-          IndexingBundle(Some(grepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
-        )
+    articlesToIndex.map(article =>
+      articleIndexService.indexDocument(
+        article,
+        IndexingBundle(Some(grepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
       )
+    )
 
-      learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(
-          lp,
-          IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
-        )
+    learningPathsToIndex.map(lp =>
+      learningPathIndexService.indexDocument(
+        lp,
+        IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
       )
+    )
 
-      blockUntil(() => {
-        articleIndexService.countDocuments == articlesToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.count(_.verificationStatus == CREATED_BY_NDLA)
-      })
-    }
+    blockUntil(() => {
+      articleIndexService.countDocuments == articlesToIndex.size &&
+      learningPathIndexService.countDocuments == learningPathsToIndex.count(_.verificationStatus == CREATED_BY_NDLA)
+    })
   }
 
   def hasTaxonomy(lp: LearningPath): Boolean = taxonomyTestBundle
