@@ -630,7 +630,7 @@ export type components = {
             /** @description Describes who created the image */
             createdBy: string;
             /** @description Describes if the model has released use of the image */
-            modelRelease: string;
+            modelRelease: components["schemas"]["ModelReleasedStatus"];
             /** @description Describes the changes made to the image, only visible to editors */
             editorNotes?: components["schemas"]["EditorNoteDTO"][];
             imageDimensions?: components["schemas"]["ImageDimensionsDTO"];
@@ -659,7 +659,7 @@ export type components = {
             /** @description Describes who created the image */
             createdBy: string;
             /** @description Describes if the model has released use of the image */
-            modelRelease: string;
+            modelRelease: components["schemas"]["ModelReleasedStatus"];
             /** @description Describes the changes made to the image, only visible to editors */
             editorNotes?: components["schemas"]["EditorNoteDTO"][];
             image: components["schemas"]["ImageFileDTO"];
@@ -692,7 +692,7 @@ export type components = {
             /** @description List of supported languages in priority */
             supportedLanguages: string[];
             /** @description Describes if the model has released use of the image */
-            modelRelease?: string;
+            modelRelease: components["schemas"]["ModelReleasedStatus"];
             /** @description Describes if the image is AI generated */
             aiGenerated?: components["schemas"]["AiGenerated"];
             /** @description Describes the changes made to the image, only visible to editors */
