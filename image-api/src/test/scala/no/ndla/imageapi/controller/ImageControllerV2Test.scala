@@ -12,7 +12,12 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{AiGenerated, Tag}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.imageapi.model.api.{ImageMetaSummaryDTO, NewImageMetaInformationV2DTO, SearchResultDTO, UpdateImageMetaInformationDTO}
+import no.ndla.imageapi.model.api.{
+  ImageMetaSummaryDTO,
+  NewImageMetaInformationV2DTO,
+  SearchResultDTO,
+  UpdateImageMetaInformationDTO,
+}
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.service.ConverterService
