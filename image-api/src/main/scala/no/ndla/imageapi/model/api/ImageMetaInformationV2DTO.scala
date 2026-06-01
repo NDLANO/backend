@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
-import no.ndla.imageapi.model.domain.ImageContentType
+import no.ndla.imageapi.model.domain.{ImageContentType, ModelReleasedStatus}
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
@@ -44,7 +44,7 @@ case class ImageMetaInformationV2DTO(
     @description("Describes who created the image")
     createdBy: String,
     @description("Describes if the model has released use of the image")
-    modelRelease: String,
+    modelRelease: ModelReleasedStatus,
     @description("Describes the changes made to the image, only visible to editors")
     editorNotes: Option[Seq[EditorNoteDTO]],
     @description("Dimensions of the image")

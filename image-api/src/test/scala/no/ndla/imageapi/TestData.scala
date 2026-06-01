@@ -89,7 +89,7 @@ class TestData(using imageConverter: ImageConverter) {
     List("nb"),
     updated(),
     "ndla123",
-    ModelReleasedStatus.YES.toString,
+    ModelReleasedStatus.YES,
     None,
     None,
   )
@@ -121,7 +121,7 @@ class TestData(using imageConverter: ImageConverter) {
     supportedLanguages = Seq("nb"),
     created = updated(),
     createdBy = "ndla124",
-    modelRelease = ModelReleasedStatus.YES.toString,
+    modelRelease = ModelReleasedStatus.YES,
     editorNotes = None,
     imageDimensions = None,
   )

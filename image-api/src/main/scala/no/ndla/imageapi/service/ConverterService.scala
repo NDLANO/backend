@@ -118,7 +118,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           supportedLanguages = supportedLanguages,
           created = imageMeta.created,
           createdBy = imageMeta.createdBy,
-          modelRelease = imageMeta.modelReleased.toString,
+          modelRelease = imageMeta.modelReleased,
           editorNotes = editorNotes,
           image = apiImageFile,
           inactive = imageMeta.inactive,
@@ -207,7 +207,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           supportedLanguages = supportedLanguages,
           created = imageMeta.created,
           createdBy = imageMeta.createdBy,
-          modelRelease = imageMeta.modelReleased.toString,
+          modelRelease = imageMeta.modelReleased,
           editorNotes = editorNotes,
           imageDimensions = imageDimensions,
         )

@@ -13,7 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.AiGenerated
-import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation}
+import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.language.model.WithLanguage
 
 case class SearchableImage(
@@ -28,7 +28,7 @@ case class SearchableImage(
     license: String,
     lastUpdated: NDLADate,
     defaultTitle: Option[String],
-    modelReleased: Option[String],
+    modelReleased: ModelReleasedStatus,
     aiGenerated: Option[AiGenerated],
     editorNotes: Seq[String],
     imageFiles: Seq[SearchableImageFile],

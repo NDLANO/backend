@@ -12,12 +12,7 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{AiGenerated, Tag}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.imageapi.model.api.{
-  ImageMetaSummaryDTO,
-  NewImageMetaInformationV2DTO,
-  SearchResultDTO,
-  UpdateImageMetaInformationDTO,
-}
+import no.ndla.imageapi.model.api.{ImageMetaSummaryDTO, NewImageMetaInformationV2DTO, SearchResultDTO, UpdateImageMetaInformationDTO}
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.service.ConverterService
@@ -128,7 +123,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       "http://image-api.ndla-local/image-api/v2/images/4",
       License.CC_BY_SA.toString,
       Seq("nb"),
-      Some("yes"),
+      ModelReleasedStatus.YES,
       Some(AiGenerated.No),
       None,
       date,

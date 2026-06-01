@@ -62,7 +62,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Seq("und"),
     updated,
     "ndla124",
-    ModelReleasedStatus.YES.toString,
+    ModelReleasedStatus.YES,
     None,
     None,
   )
