@@ -241,8 +241,8 @@ class WriteService(using
       newImage: NewImageMetaInformationV2DTO,
       file: UploadedFile,
       user: TokenUser,
-  ): Try[ImageMetaInformation] = permitTry {
-    val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
+  ): Try[ImageMetaInformation] = {
+    val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user)
     insertAndStoreImage(toInsert, file, None, newImage.language)
   }
 
@@ -471,7 +471,7 @@ class WriteService(using
       ),
       updated = now,
       updatedBy = userId,
-      modelReleased = toMerge.modelReleased.flatMap(ModelReleasedStatus.valueOf).getOrElse(existing.modelReleased),
+      modelReleased = toMerge.modelReleased.getOrElse(existing.modelReleased),
       inactive = toMerge.inactive.getOrElse(existing.inactive),
       aiGenerated = toMerge.aiGenerated.orElse(existing.aiGenerated),
     )

@@ -49,7 +49,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     "",
     "en",
-    Some(ModelReleasedStatus.YES.toString),
+    Some(ModelReleasedStatus.YES),
     Some(AiGenerated.No),
   )
   val userId                        = "ndla124"
@@ -57,9 +57,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val domainImageMeta: ImageMetaInformation = converterService
-    .asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
-    .get
+  val domainImageMeta: ImageMetaInformation =
+    converterService.asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
 
   val multiLangImage = new ImageMetaInformation(
     id = Some(2),
@@ -256,7 +255,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("converter to domain should set updatedBy from authUser and updated date") {
     val tokenUser = TokenUser("ndla54321", Set(IMAGE_API_WRITE), None)
     when(clock.now()).thenReturn(updated())
-    val domain = converterService.asDomainImageMetaInformationV2(newImageMeta, tokenUser).get
+    val domain = converterService.asDomainImageMetaInformationV2(newImageMeta, tokenUser)
     domain.updatedBy should equal("ndla54321")
     domain.updated should equal(updated())
   }
@@ -322,7 +321,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
       Some(List("a", "b", "c")),
       Some("Caption"),
-      Some(ModelReleasedStatus.NO.toString),
+      Some(ModelReleasedStatus.NO),
       Some(true),
       None,
     )

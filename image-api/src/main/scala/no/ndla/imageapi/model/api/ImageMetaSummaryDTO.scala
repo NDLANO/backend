@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.AiGenerated
+import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import sttp.tapir.Schema.annotations.description
 
 @description("Summary of meta information for an image")
@@ -35,7 +36,7 @@ case class ImageMetaSummaryDTO(
     @description("List of supported languages in priority")
     supportedLanguages: Seq[String],
     @description("Describes if the model has released use of the image")
-    modelRelease: Option[String],
+    modelRelease: ModelReleasedStatus,
     @description("Describes if the image is AI generated")
     aiGenerated: Option[AiGenerated],
     @description("Describes the changes made to the image, only visible to editors")

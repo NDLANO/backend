@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
 import no.ndla.common.model.domain.AiGenerated
+import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
@@ -38,7 +39,7 @@ case class ImageMetaInformationV3DTO(
     @description("Describes who created the image")
     createdBy: String,
     @description("Describes if the model has released use of the image")
-    modelRelease: String,
+    modelRelease: ModelReleasedStatus,
     @description("Describes the changes made to the image, only visible to editors")
     editorNotes: Option[Seq[EditorNoteDTO]],
     @description("Describes the image file")

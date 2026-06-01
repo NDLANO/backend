@@ -81,7 +81,7 @@ class ImageControllerV3(using
       page: Option[Int],
       podcastFriendly: Option[Boolean],
       shouldScroll: Boolean,
-      modelReleasedStatus: Seq[ModelReleasedStatus.Value],
+      modelReleasedStatus: Seq[ModelReleasedStatus],
       aiGenerated: Seq[AiGenerated],
       user: Option[TokenUser],
       userFilter: List[String],
@@ -199,10 +199,9 @@ class ImageControllerV3(using
               heightTo,
               contentType,
             ) => scrollSearchOr(scrollId, language.code, user) {
-            val sort                = Sort.valueOf(sortStr)
-            val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
-            val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
-            val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
+            val sort         = Sort.valueOf(sortStr)
+            val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
+            val licenseOpt   = license.orElse(Option.when(includeCopyrighted)("all"))
 
             searchV3(
               minimumSize,
@@ -216,7 +215,7 @@ class ImageControllerV3(using
               pageNo,
               podcastFriendly,
               shouldScroll,
-              modelReleasedStatus,
+              modelReleased.values,
               aiGenerated.values,
               user,
               userFilter.values,
@@ -260,7 +259,7 @@ class ImageControllerV3(using
           val podcastFriendly     = searchParams.podcastFriendly
           val sort                = searchParams.sort
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
-          val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+          val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty)
           val aiGenerated         = searchParams.aiGenerated.getOrElse(Seq.empty)
           val userFilter          = searchParams.users.getOrElse(List.empty)
           val inactive            = searchParams.inactive

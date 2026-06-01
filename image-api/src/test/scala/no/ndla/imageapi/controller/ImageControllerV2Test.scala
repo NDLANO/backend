@@ -128,7 +128,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       "http://image-api.ndla-local/image-api/v2/images/4",
       License.CC_BY_SA.toString,
       Seq("nb"),
-      Some("yes"),
+      ModelReleasedStatus.YES,
       Some(AiGenerated.No),
       None,
       date,

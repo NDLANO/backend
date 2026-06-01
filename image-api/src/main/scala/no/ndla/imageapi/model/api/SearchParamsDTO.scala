@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.AiGenerated
-import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageSearchField, ModelReleasedStatus, Sort}
 import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("The search parameters")
@@ -47,7 +47,7 @@ case class SearchParamsDTO(
     @description("Include inactive images")
     inactive: Option[Boolean],
     @description("Return only images with one of the provided values for modelReleased.")
-    modelReleased: Option[Seq[String]],
+    modelReleased: Option[Seq[ModelReleasedStatus]],
     @description("Return only images with one of the provided values for aiGenerated.")
     aiGenerated: Option[Seq[AiGenerated]],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")

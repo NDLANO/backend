@@ -118,7 +118,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           supportedLanguages = supportedLanguages,
           created = imageMeta.created,
           createdBy = imageMeta.createdBy,
-          modelRelease = imageMeta.modelReleased.toString,
+          modelRelease = imageMeta.modelReleased,
           editorNotes = editorNotes,
           image = apiImageFile,
           inactive = imageMeta.inactive,
@@ -207,7 +207,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           supportedLanguages = supportedLanguages,
           created = imageMeta.created,
           createdBy = imageMeta.createdBy,
-          modelRelease = imageMeta.modelReleased.toString,
+          modelRelease = imageMeta.modelReleased,
           editorNotes = editorNotes,
           imageDimensions = imageDimensions,
         )
@@ -254,35 +254,27 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def asDomainImageMetaInformationV2(
       imageMeta: api.NewImageMetaInformationV2DTO,
       user: TokenUser,
-  ): Try[ImageMetaInformation] = {
-    val modelReleasedStatus = imageMeta.modelReleased match {
-      case Some(mrs) => ModelReleasedStatus.valueOfOrError(mrs)
-      case None      => Success(ModelReleasedStatus.NOT_SET)
-    }
-
-    modelReleasedStatus.map(modelStatus => {
-      val now = clock.now()
-
-      new ImageMetaInformation(
-        id = None,
-        titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
-        alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
-        images = Seq.empty,
-        copyright = toDomainCopyright(imageMeta.copyright),
-        tags =
-          if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language))
-          else Seq.empty,
-        captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
-        updatedBy = user.id,
-        createdBy = user.id,
-        created = now,
-        updated = now,
-        modelReleased = modelStatus,
-        editorNotes = Seq(domain.EditorNote(now, user.id, "Image created.")),
-        inactive = false,
-        aiGenerated = imageMeta.aiGenerated,
-      )
-    })
+  ): ImageMetaInformation = {
+    val now = clock.now()
+    new ImageMetaInformation(
+      id = None,
+      titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
+      alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
+      images = Seq.empty,
+      copyright = toDomainCopyright(imageMeta.copyright),
+      tags =
+        if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language))
+        else Seq.empty,
+      captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
+      updatedBy = user.id,
+      createdBy = user.id,
+      created = now,
+      updated = now,
+      modelReleased = imageMeta.modelReleased.getOrElse(ModelReleasedStatus.NOT_SET),
+      editorNotes = Seq(domain.EditorNote(now, user.id, "Image created.")),
+      inactive = false,
+      aiGenerated = imageMeta.aiGenerated,
+    )
   }
 
   def asDomainTitle(title: String, language: String): domain.ImageTitle = {

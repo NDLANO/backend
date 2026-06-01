@@ -71,7 +71,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       license = image.copyright.license,
       lastUpdated = image.updated,
       defaultTitle = defaultTitle.map(t => t.title),
-      modelReleased = Some(image.modelReleased.toString),
+      modelReleased = image.modelReleased,
       aiGenerated = image.aiGenerated,
       editorNotes = image.editorNotes.map(_.note),
       imageFiles = asSearchableImageFiles(image.images),

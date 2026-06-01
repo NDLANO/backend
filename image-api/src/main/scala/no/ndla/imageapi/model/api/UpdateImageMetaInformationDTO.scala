@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.{CopyrightDTO, UpdateOrDelete}
 import no.ndla.common.model.domain.AiGenerated
+import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
@@ -29,7 +30,7 @@ case class UpdateImageMetaInformationDTO(
     @description("Caption for the image")
     caption: Option[String],
     @description("Describes if the model has released use of the image")
-    modelReleased: Option[String],
+    modelReleased: Option[ModelReleasedStatus],
     @description("Whether the image is inactive")
     inactive: Option[Boolean],
     @description("Describes whether the image is AI generated")
