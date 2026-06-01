@@ -12,13 +12,12 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import java.net.URI
 import java.util.Optional
-import no.ndla.taxonomy.domain.Version
 import no.ndla.taxonomy.domain.VersionType
 import no.ndla.taxonomy.repositories.VersionRepository
 import no.ndla.taxonomy.rest.NotFoundHttpResponseException
-import no.ndla.taxonomy.rest.v1.commands.VersionPostPut
+import no.ndla.taxonomy.rest.v1.commands.VersionPost
+import no.ndla.taxonomy.rest.v1.commands.VersionPut
 import no.ndla.taxonomy.rest.v1.responses.Created201ApiResponse
-import no.ndla.taxonomy.service.UpdatableDto
 import no.ndla.taxonomy.service.VersionService
 import no.ndla.taxonomy.service.dtos.VersionDTO
 import no.ndla.taxonomy.service.exceptions.InvalidArgumentServiceException
@@ -61,10 +60,8 @@ class Versions(
     return hash
         .map { s ->
           listOf(
-              versionRepository
-                  .findFirstByHash(s)
-                  .map { VersionDTO(it) }
-                  .orElseThrow { NotFoundHttpResponseException("Version not found") },
+              versionRepository.findFirstByHash(s)?.let { VersionDTO(it) }
+                  ?: throw NotFoundHttpResponseException("Version not found"),
           )
         }
         .orElseGet { versionService.getVersions() }
@@ -74,10 +71,8 @@ class Versions(
   @Operation(summary = "Gets a single version")
   @Transactional(readOnly = true)
   fun getVersion(@PathVariable("id") id: URI): VersionDTO =
-      versionRepository
-          .findFirstByPublicId(id)
-          .map { VersionDTO(it) }
-          .orElseThrow { NotFoundHttpResponseException("Version not found") }
+      versionRepository.findFirstByPublicId(id)?.let { VersionDTO(it) }
+          ?: throw NotFoundHttpResponseException("Version not found")
 
   @PostMapping
   @Operation(
@@ -90,10 +85,10 @@ class Versions(
   fun createVersion(
       @Parameter(description = "Base new version on version with this id")
       @RequestParam(value = "sourceId")
-      sourceId: Optional<URI>,
+      sourceId: URI?,
       @Parameter(name = "version", description = "The new version")
       @RequestBody
-      command: VersionPostPut,
+      command: VersionPost,
   ): ResponseEntity<Unit> {
     val version = versionService.createNewVersion(sourceId, command)
     val locationUri = URI.create("$location/${version.publicId}")
@@ -112,9 +107,11 @@ class Versions(
       @PathVariable("id") id: URI,
       @Parameter(name = "version", description = "The updated version.")
       @RequestBody
-      command: VersionPostPut,
+      command: VersionPut,
   ) {
-    updateEntity(id, command)
+    val entity = versionRepository.getByPublicId(id)
+    validateUrn(id, entity)
+    command.apply(entity)
   }
 
   @DeleteMapping("/{id}")
@@ -126,10 +123,8 @@ class Versions(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Transactional
   fun deleteEntity(@PathVariable("id") id: URI) {
-    val version = versionRepository.findFirstByPublicId(id)
-    if (version.isEmpty || version.get().isLocked) {
-      throw InvalidArgumentServiceException("Cannot delete locked version")
-    }
+    versionRepository.findFirstByPublicId(id)?.takeIf { !it.isLocked }
+        ?: throw InvalidArgumentServiceException("Cannot delete locked version")
     versionService.delete(id)
   }
 
@@ -142,17 +137,8 @@ class Versions(
   @PreAuthorize("hasAuthority('TAXONOMY_ADMIN')")
   @Transactional
   fun publishVersion(@PathVariable("id") id: URI) {
-    val version = versionRepository.findFirstByPublicId(id)
-    if (version.isEmpty || version.get().versionType != VersionType.BETA) {
-      throw InvalidArgumentServiceException("Version has wrong type")
-    }
+    versionRepository.findFirstByPublicId(id)?.takeIf { it.versionType == VersionType.BETA }
+        ?: throw InvalidArgumentServiceException("Version has wrong type")
     versionService.publishBetaAndArchiveCurrent(id)
-  }
-
-  private fun updateEntity(id: URI, command: UpdatableDto<Version>): Version {
-    val entity = versionRepository.getByPublicId(id)
-    validateUrn(id, entity)
-    command.apply(entity)
-    return entity
   }
 }

@@ -10,7 +10,6 @@ package no.ndla.taxonomy.rest.v1.dtos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URI;
-import java.util.Optional;
 import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.service.UpdatableDto;
 
@@ -39,8 +38,8 @@ public class ResourceTypePUT implements UpdatableDto<ResourceType> {
     public int order = -1;
 
     @Override
-    public Optional<URI> getId() {
-        return Optional.ofNullable(id);
+    public URI getId() {
+        return id;
     }
 
     @Override

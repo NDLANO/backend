@@ -62,7 +62,7 @@ public class NodesTest extends RestTest {
         assertEquals(List.of("maths", "trigonometry"), node.getBreadcrumbs());
 
         assertNotNull(node.getMetadata());
-        assertTrue(node.getMetadata().isVisible());
+        assertTrue(node.getMetadata().getVisible());
     }
 
     @Test
@@ -340,7 +340,7 @@ public class NodesTest extends RestTest {
         assertAllTrue(nodes, t -> t.getPath().get().contains("subject"));
 
         assertAllTrue(nodes, t -> t.getMetadata() != null);
-        assertAllTrue(nodes, t -> t.getMetadata().isVisible());
+        assertAllTrue(nodes, t -> t.getMetadata().getVisible());
         assertAllTrue(nodes, t -> t.getMetadata().getGrepCodes().isEmpty());
     }
 
@@ -434,7 +434,7 @@ public class NodesTest extends RestTest {
             assertAllTrue(nodes, t -> isValidId(t.getId()));
 
             assertAllTrue(nodes, t -> t.getMetadata() != null);
-            assertAllTrue(nodes, t -> t.getMetadata().isVisible());
+            assertAllTrue(nodes, t -> t.getMetadata().getVisible());
             assertAllTrue(nodes, t -> t.getMetadata().getGrepCodes().isEmpty());
         }
     }
@@ -466,7 +466,7 @@ public class NodesTest extends RestTest {
             assertAllTrue(nodes, t -> isValidId(t.getId()));
 
             assertAllTrue(nodes, t -> t.getMetadata() != null);
-            assertAllTrue(nodes, t -> t.getMetadata().isVisible());
+            assertAllTrue(nodes, t -> t.getMetadata().getVisible());
             assertAllTrue(nodes, t -> t.getMetadata().getGrepCodes().isEmpty());
         }
         {
@@ -484,7 +484,7 @@ public class NodesTest extends RestTest {
             assertAllTrue(nodes, t -> isValidId(t.getId()));
 
             assertAllTrue(nodes, t -> t.getMetadata() != null);
-            assertAllTrue(nodes, t -> t.getMetadata().isVisible());
+            assertAllTrue(nodes, t -> t.getMetadata().getVisible());
             assertAllTrue(nodes, t -> t.getMetadata().getGrepCodes().isEmpty());
         }
         {
@@ -500,7 +500,7 @@ public class NodesTest extends RestTest {
             assertAllTrue(nodes, t -> isValidId(t.getId()));
 
             assertAllTrue(nodes, t -> t.getMetadata() != null);
-            assertAllTrue(nodes, t -> t.getMetadata().isVisible());
+            assertAllTrue(nodes, t -> t.getMetadata().getVisible());
             assertAllTrue(nodes, t -> t.getMetadata().getGrepCodes().isEmpty());
         }
     }
@@ -667,7 +667,7 @@ public class NodesTest extends RestTest {
         assertEquals("/subject:1/subject:2", node.getPath().get());
 
         assertNotNull(node.getMetadata());
-        assertTrue(node.getMetadata().isVisible());
+        assertTrue(node.getMetadata().getVisible());
         assertEquals(0, node.getMetadata().getGrepCodes().size());
     }
 
@@ -776,7 +776,7 @@ public class NodesTest extends RestTest {
         assertEquals(7, subtopics.length, "Unfiltered subtopics");
 
         assertAllTrue(subtopics, subtopic -> subtopic.getMetadata() != null);
-        assertAllTrue(subtopics, subtopic -> subtopic.getMetadata().isVisible());
+        assertAllTrue(subtopics, subtopic -> subtopic.getMetadata().getVisible());
         assertAllTrue(
                 subtopics, subtopic -> subtopic.getMetadata().getGrepCodes().isEmpty());
     }
