@@ -50,7 +50,7 @@ class LearningPathAndStepCreationTests
     override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
     override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
     override def disableWarmup: Boolean     = true
-    override def SearchServer: String       = elasticSearchHost.get
+    override def SearchServer: String       = elasticSearchHost
   }
 
   val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)

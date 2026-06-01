@@ -30,8 +30,7 @@ import scala.util.Success
 class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import TestData.searchSettings
 
-  override implicit lazy val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val converterService: ConverterService             = new ConverterService
   implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage

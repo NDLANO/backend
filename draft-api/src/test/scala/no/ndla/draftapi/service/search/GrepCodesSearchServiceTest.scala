@@ -20,8 +20,7 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val traitUtil: TraitUtil           = new TraitUtil
-  override implicit lazy val e4sClient: NdlaE4sClient       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
   override implicit lazy val grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService {

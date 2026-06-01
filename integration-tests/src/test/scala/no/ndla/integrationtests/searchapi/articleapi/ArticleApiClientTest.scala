@@ -41,7 +41,7 @@ class ArticleApiClientTest
 
   val articleApiPort: Int                        = findFreePort
   val pgc: PostgreSQLContainer                   = postgresContainer.get
-  val esHost: String                             = elasticSearchHost.get
+  val esHost: String                             = elasticSearchHost
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort
     override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)

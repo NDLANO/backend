@@ -21,8 +21,7 @@ import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.service.ConverterService
 
 class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  override implicit lazy val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val grepSearchService: GrepSearchService           = new GrepSearchService

@@ -31,8 +31,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
-  override implicit lazy val e4sClient: NdlaE4sClient                       =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(elasticSearchHost)
 
   override implicit lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
