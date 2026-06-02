@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.net.URI;
+import java.util.Optional;
 import no.ndla.taxonomy.domain.Builder;
 import no.ndla.taxonomy.domain.NodeType;
 import no.ndla.taxonomy.domain.UrlMapping;
@@ -45,7 +46,7 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
     @Autowired
     private OldUrlCanonifier oldUrlCanonifier;
 
-    private UrlResolverServiceImpl urlResolverService;
+    private UrlResolverService urlResolverService;
 
     @BeforeEach
     void clearAllRepos() {
@@ -54,7 +55,7 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
     @BeforeEach
     public void restTestSetUp() {
-        urlResolverService = new UrlResolverServiceImpl(urlMappingRepository, nodeRepository, oldUrlCanonifier);
+        urlResolverService = new UrlResolverService(urlMappingRepository, nodeRepository, oldUrlCanonifier);
     }
 
     @Test
@@ -71,7 +72,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
 
         assertEquals("/subject:11/topic:1:183926", path);
     }
@@ -94,7 +96,7 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
                 c -> c.oldUrl(otherTopicUrl).public_id(otherTopicId).subject_id(otherSubjectId)));
         entityManager.flush();
 
-        assertFalse(urlResolverService.resolveOldUrl(oldUrl).isPresent());
+        assertNull(urlResolverService.resolveOldUrl(oldUrl));
     }
 
     @Test
@@ -111,8 +113,7 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService
-                .resolveOldUrl("ndla.no/nb/node/183926?fag=127013")
+        String path = Optional.ofNullable(urlResolverService.resolveOldUrl("ndla.no/nb/node/183926?fag=127013"))
                 .orElseThrow();
 
         assertEquals("/subject:11/topic:1:183926", path);
@@ -130,7 +131,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
 
         assertEquals("/subject:2/topic:1:183926", path);
     }
@@ -147,7 +149,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
 
         assertEquals("/subject:2/topic:1:183926", path);
     }
@@ -166,7 +169,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl("ndla.no/node/183926").orElseThrow();
+        String path = Optional.ofNullable(urlResolverService.resolveOldUrl("ndla.no/node/183926"))
+                .orElseThrow();
 
         assertEquals("/subject:11/topic:1:183926", path);
     }
@@ -185,7 +189,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         entityManager.persist(urlMapping);
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
 
         assertEquals("/subject:2/topic:1:183926", path);
     }
@@ -213,7 +218,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         urlResolverService.putUrlMapping(oldUrl, URI.create(nodeId), URI.create(subjectId));
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
         assertEquals("/subject:12/topic:1:183926", path);
     }
 
@@ -232,7 +238,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         urlResolverService.putUrlMapping(oldUrl, URI.create(nodeId), URI.create(subjectId));
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl(oldUrl).orElseThrow();
+        String path =
+                Optional.ofNullable(urlResolverService.resolveOldUrl(oldUrl)).orElseThrow();
         assertEquals("/subject:12/topic:1:183926", path);
     }
 
@@ -249,8 +256,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         final String oldUrl = "ndla.no/nb/node/183926?fag=127013";
         try {
             urlResolverService.putUrlMapping(oldUrl, URI.create("urn:topic:1:283926"), URI.create(subjectId));
-            fail("Expected NodeIdNotFoundExeption");
-        } catch (UrlResolverService.NodeIdNotFoundExeption ignored) {
+            fail("Expected NodeIdNotFoundException");
+        } catch (UrlResolverService.NodeIdNotFoundException ignored) {
 
         }
     }
@@ -270,7 +277,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
         entityManager.flush();
 
-        String path = urlResolverService.resolveOldUrl("ndla.no/nb/node/183926").orElseThrow();
+        String path = Optional.ofNullable(urlResolverService.resolveOldUrl("ndla.no/nb/node/183926"))
+                .orElseThrow();
         assertEquals("/subject:12/topic:1:183926", path);
     }
 
@@ -323,8 +331,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         // /topic:3/resource:2
 
         {
-            final var resolvedUrl = urlResolverService
-                    .resolveUrl("/subject:1/topic:1/resource:1", "nb")
+            final var resolvedUrl = Optional.ofNullable(
+                            urlResolverService.resolveUrl("/subject:1/topic:1/resource:1", "nb"))
                     .orElseThrow();
             assertEquals(2, resolvedUrl.getParents().size());
 
@@ -343,8 +351,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         }
 
         {
-            final var resolvedUrl = urlResolverService
-                    .resolveUrl("/subject:2/topic:2/resource:1", "nb")
+            final var resolvedUrl = Optional.ofNullable(
+                            urlResolverService.resolveUrl("/subject:2/topic:2/resource:1", "nb"))
                     .orElseThrow();
             assertEquals(2, resolvedUrl.getParents().size());
 
@@ -363,8 +371,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         }
 
         {
-            final var resolvedUrl =
-                    urlResolverService.resolveUrl("/subject:2/topic:2", "nb").orElseThrow();
+            final var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/subject:2/topic:2", "nb"))
+                    .orElseThrow();
             assertEquals(1, resolvedUrl.getParents().size());
 
             final var parentIdList = resolvedUrl.getParents().stream()
@@ -378,8 +386,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
             assertEquals("subject:2", parentIdList.getFirst());
         }
         {
-            final var resolvedUrl =
-                    urlResolverService.resolveUrl("/subject:2", "nb").orElseThrow();
+            final var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/subject:2", "nb"))
+                    .orElseThrow();
             assertEquals(0, resolvedUrl.getParents().size());
             assertEquals("subject:2", resolvedUrl.getId().getSchemeSpecificPart());
             assertEquals("/subject:2", resolvedUrl.getPath());
@@ -387,16 +395,16 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         }
 
         {
-            final var resolvedUrl =
-                    urlResolverService.resolveUrl("/subject:2/", "nb").orElseThrow();
+            final var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/subject:2/", "nb"))
+                    .orElseThrow();
             assertEquals(0, resolvedUrl.getParents().size());
             assertEquals("subject:2", resolvedUrl.getId().getSchemeSpecificPart());
             assertEquals("/subject:2", resolvedUrl.getPath());
             assertTrue(resolvedUrl.getUrl().startsWith("/f/biology/"));
         }
         {
-            final var resolvedUrl =
-                    urlResolverService.resolveUrl("subject:2", "nb").orElseThrow();
+            final var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("subject:2", "nb"))
+                    .orElseThrow();
             assertEquals(0, resolvedUrl.getParents().size());
             assertEquals("subject:2", resolvedUrl.getId().getSchemeSpecificPart());
             assertEquals("/subject:2", resolvedUrl.getPath());
@@ -405,30 +413,28 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
         // Test with a non-valid path to valid resource
         {
-            var resolvedUrl = urlResolverService.resolveUrl("/subject:2/resource:1", "nb");
+            var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/subject:2/resource:1", "nb"));
             assertTrue(resolvedUrl.isPresent());
-            assertFalse(resolvedUrl.get().isExactMatch());
+            assertFalse(resolvedUrl.get().getExactMatch());
         }
 
         // Test with a non-valid path to valid resource
         {
-            var resolvedUrl = urlResolverService.resolveUrl("/subject:2/topic:4/resource:1", "nb");
+            var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/subject:2/topic:4/resource:1", "nb"));
             assertTrue(resolvedUrl.isPresent());
-            assertFalse(resolvedUrl.get().isExactMatch());
+            assertFalse(resolvedUrl.get().getExactMatch());
         }
 
         // Test with non-context node
         {
-            assertFalse(
-                    urlResolverService.resolveUrl("/topic:1/resource:2", "nb").isPresent());
-            assertFalse(
-                    urlResolverService.resolveUrl("/topic:2/resource:2", "nb").isPresent());
+            assertNull(urlResolverService.resolveUrl("/topic:1/resource:2", "nb"));
+            assertNull(urlResolverService.resolveUrl("/topic:2/resource:2", "nb"));
         }
 
         // Since topic3 is a context in itself, it would be valid to use it as root
         {
-            final var resolvedUrl =
-                    urlResolverService.resolveUrl("/topic:3/resource:1", "nb").orElseThrow();
+            final var resolvedUrl = Optional.ofNullable(urlResolverService.resolveUrl("/topic:3/resource:1", "nb"))
+                    .orElseThrow();
             assertEquals(1, resolvedUrl.getParents().size());
 
             final var parentIdList = resolvedUrl.getParents().stream()
@@ -446,8 +452,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
         // Going via subject:3 is also valid
         {
-            final var resolvedUrl = urlResolverService
-                    .resolveUrl("/subject:3/topic:3/resource:1", "nb")
+            final var resolvedUrl = Optional.ofNullable(
+                            urlResolverService.resolveUrl("/subject:3/topic:3/resource:1", "nb"))
                     .orElseThrow();
             assertEquals(2, resolvedUrl.getParents().size());
 
@@ -467,8 +473,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
         // Additional slashes should make no difference
         {
-            final var resolvedUrl = urlResolverService
-                    .resolveUrl("////subject:3///topic:3//////resource:1///", "nb")
+            final var resolvedUrl = Optional.ofNullable(
+                            urlResolverService.resolveUrl("////subject:3///topic:3//////resource:1///", "nb"))
                     .orElseThrow();
             assertEquals(2, resolvedUrl.getParents().size());
 
@@ -488,8 +494,8 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
         // No leading slash should make no difference
         {
-            final var resolvedUrl = urlResolverService
-                    .resolveUrl("subject:3///topic:3//////resource:1///", "nb")
+            final var resolvedUrl = Optional.ofNullable(
+                            urlResolverService.resolveUrl("subject:3///topic:3//////resource:1///", "nb"))
                     .orElseThrow();
             assertEquals(2, resolvedUrl.getParents().size());
 

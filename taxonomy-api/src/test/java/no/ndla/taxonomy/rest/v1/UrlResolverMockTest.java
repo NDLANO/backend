@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
-import java.util.Optional;
 import no.ndla.taxonomy.TestUtils;
 import no.ndla.taxonomy.rest.v1.dtos.ResolvedOldUrl;
 import no.ndla.taxonomy.rest.v1.dtos.UrlMapping;
@@ -64,7 +63,7 @@ public class UrlResolverMockTest extends AbstractIntegrationTest {
     public void resolveOldUrl404WhenNotImported() throws Exception {
         String oldUrl = "no/such/path";
 
-        given(this.urlResolverService.resolveOldUrl(oldUrl)).willReturn(Optional.empty());
+        given(this.urlResolverService.resolveOldUrl(oldUrl)).willReturn(null);
         ResultActions result = mvc.perform(get("/v1/url/mapping?url=" + oldUrl).accept(APPLICATION_JSON));
 
         result.andExpect(status().isNotFound());
@@ -75,13 +74,13 @@ public class UrlResolverMockTest extends AbstractIntegrationTest {
         String oldUrl = "ndla.no/nb/node/183926?fag=127013";
         String newPath = "subject:11/topic:1:183926";
 
-        given(this.urlResolverService.resolveOldUrl(oldUrl)).willReturn(Optional.of(newPath));
+        given(this.urlResolverService.resolveOldUrl(oldUrl)).willReturn(newPath);
         ResultActions result = mvc.perform(get("/v1/url/mapping?url=" + oldUrl).accept(APPLICATION_JSON));
 
         result.andExpect(status().isOk());
         ResolvedOldUrl resolvedOldUrl =
                 testUtils.getObject(ResolvedOldUrl.class, result.andReturn().getResponse());
-        assertEquals(newPath, resolvedOldUrl.path);
+        assertEquals(newPath, resolvedOldUrl.getPath());
     }
 
     @Test
@@ -100,10 +99,7 @@ public class UrlResolverMockTest extends AbstractIntegrationTest {
 
     @Test
     public void putOldUrlBadParameters() throws Exception {
-        UrlMapping urlMapping = new UrlMapping();
-        urlMapping.url = "ndla.no/nb/node/183926?fag=127013";
-        urlMapping.nodeId = "b a d";
-        urlMapping.subjectId = "b a d";
+        UrlMapping urlMapping = new UrlMapping("ndla.no/nb/node/183926?fag=127013", "b a d", "b a d");
 
         ResultActions result = mvc.perform(put("/v1/url/mapping")
                 .content(new ObjectMapper().writeValueAsString(urlMapping))
@@ -118,7 +114,7 @@ public class UrlResolverMockTest extends AbstractIntegrationTest {
         URI nodeId = new URI("urn:topic:1:183926");
         URI subjectId = new URI("urn:subject:11");
 
-        doThrow(new UrlResolverService.NodeIdNotFoundExeption(""))
+        doThrow(new UrlResolverService.NodeIdNotFoundException(""))
                 .when(this.urlResolverService)
                 .putUrlMapping(any(), any(), any());
 
