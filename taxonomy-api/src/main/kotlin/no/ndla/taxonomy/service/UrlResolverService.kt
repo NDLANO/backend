@@ -53,10 +53,10 @@ class UrlResolverService(
     }
   }
 
-  private fun findShortestPathStartingWith(subjectId: URI, allPaths: List<String>): String? {
-    val subject = subjectId.toString().split("urn:")[1]
-    return allPaths.filter { it.startsWith("/$subject") }.minByOrNull { it.length }
-  }
+  private fun findShortestPathStartingWith(subjectId: URI, allPaths: List<String>): String? =
+      allPaths
+          .filter { it.startsWith("/${subjectId.schemeSpecificPart}") }
+          .minByOrNull { it.length }
 
   private fun getAllPaths(publicId: URI): List<String> =
       try {
@@ -76,7 +76,6 @@ class UrlResolverService(
     val canonicalUrl = canonifier.canonify(oldUrl)
     val nodeId = getNodeId(canonicalUrl)
     return urlMappingRepository.findAllByOldUrlLike("$canonicalUrl%").filter { mapping ->
-      // TODO: Look at this later
       // the LIKE query may match node IDs that __start with__ the same node ID as in old
       // url
       // e.g. oldUrl /node/54 should not match /node/54321 - therefore we add only if IDs
@@ -177,8 +176,7 @@ class UrlResolverService(
           }
 
   private fun getEntityFromPublicId(publicId: URI): Node? {
-    // TODO: schemeSpecificPart apparently never returns null
-    if (publicId.scheme != "urn" || publicId.schemeSpecificPart == null) {
+    if (publicId.scheme != "urn") {
       throw InvalidArgumentServiceException("No valid URN provided")
     }
     return nodeRepository.findFirstByPublicId(publicId).orElse(null)
