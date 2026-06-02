@@ -23,7 +23,7 @@ trait RedisIntegrationSuite extends UnitTestSuite {
     override protected def healthCheck(port: Int): Boolean       = SharedContainer.isReachable("localhost", port)
   }
 
-  lazy val redisPort: Try[Int] = redisContainer.output
+  val redisPort: Try[Int] = redisContainer.output
 
   override def afterAll(): Unit = {
     super.afterAll()

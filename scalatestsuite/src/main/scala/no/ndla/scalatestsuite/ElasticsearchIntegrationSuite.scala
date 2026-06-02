@@ -71,7 +71,7 @@ trait ElasticsearchIntegrationSuite extends UnitTestSuite {
     }.getOrElse(false)
   }
 
-  lazy val elasticSearchHost: String = elasticsearchContainer.output.get
+  val elasticSearchHost: String = elasticsearchContainer.output.get
 
   override def afterAll(): Unit = {
     super.afterAll()
