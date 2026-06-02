@@ -2358,7 +2358,7 @@ export type components = {
              * @description If specified, set the id to this value. Must start with urn:resourcetype: and be a valid URI. If omitted, an id will be assigned automatically.
              * @example urn:resourcetype:1
              */
-            id: string;
+            id: string | null;
             /**
              * @description The name of the resource type
              * @example Lecture
@@ -2564,7 +2564,7 @@ export type components = {
              * Format: date-time
              * @description Timestamp for when version was archived
              */
-            archived?: string;
+            archived?: string | null;
             /**
              * Format: date-time
              * @description Timestamp for when version was created
@@ -2585,25 +2585,41 @@ export type components = {
              * Format: date-time
              * @description Timestamp for when version was published
              */
-            published?: string;
+            published?: string | null;
             /** @example BETA */
             versionType: components["schemas"]["VersionType"];
         };
         /** @description The new version */
-        VersionPostPut: {
+        VersionPost: {
             /**
              * Format: uri
-             * @description If specified, set the id to this value. Must start with urn:version: and be a valid URI. If ommitted, an id will be assigned automatically.
+             * @description If specified, set the id to this value. Must start with urn:version: and be a valid URI. If omitted, an id will be assigned automatically.
              * @example urn:version:1
              */
-            id?: string;
-            /** @description If specified, set the locked property to this value. */
-            locked?: boolean;
+            id?: string | null;
+            /** @description If specified, set the locked property to this value */
+            locked?: boolean | null;
+            /**
+             * @description The name of the version
+             * @example Beta 2022
+             */
+            name: string;
+        };
+        /** @description The updated version. */
+        VersionPut: {
+            /**
+             * Format: uri
+             * @description If specified, set the id to this value. Must start with urn:version: and be a valid URI. If omitted, an id will be assigned automatically.
+             * @example urn:version:1
+             */
+            id?: string | null;
+            /** @description If specified, set the locked property to this value */
+            locked?: boolean | null;
             /**
              * @description If specified, set the name to this value.
              * @example Beta 2022
              */
-            name: string;
+            name?: string | null;
         };
         /** @enum {string} */
         VersionType: "BETA" | "PUBLISHED" | "ARCHIVED";
@@ -2655,7 +2671,8 @@ export type Translation = components['schemas']['Translation'];
 export type TranslationPUT = components['schemas']['TranslationPUT'];
 export type UrlMapping = components['schemas']['UrlMapping'];
 export type Version = components['schemas']['Version'];
-export type VersionPostPut = components['schemas']['VersionPostPut'];
+export type VersionPost = components['schemas']['VersionPost'];
+export type VersionPut = components['schemas']['VersionPut'];
 export type VersionType = components['schemas']['VersionType'];
 export type ParameterVersionHash = components['parameters']['versionHash'];
 export type HeaderVersionHash = components['headers']['versionHash'];
@@ -8132,7 +8149,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VersionPostPut"];
+                "application/json": components["schemas"]["VersionPost"];
             };
         };
         responses: {
@@ -8193,7 +8210,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VersionPostPut"];
+                "application/json": components["schemas"]["VersionPost"];
             };
         };
         responses: {
@@ -8244,7 +8261,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VersionPostPut"];
+                "application/json": components["schemas"]["VersionPut"];
             };
         };
         responses: {
