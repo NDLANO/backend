@@ -17,7 +17,7 @@ import org.testcontainers.utility.TestcontainersConfiguration
 import java.io.RandomAccessFile
 import java.net.Socket
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.Try
 
@@ -148,7 +148,9 @@ object SharedContainer {
   private def stopContainer(containerId: String): Unit = {
     Try {
       val process = new ProcessBuilder("docker", "rm", "-f", containerId).redirectErrorStream(true).start()
-      process.waitFor()
+      if (!process.waitFor(1, TimeUnit.MINUTES)) {
+        process.destroyForcibly(): Unit
+      }
     }: Unit
   }
 
