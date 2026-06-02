@@ -9,6 +9,7 @@ package no.ndla.taxonomy.rest.v1.redirects
 
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -17,8 +18,11 @@ import org.springframework.web.bind.annotation.RestController
 @Deprecated("Use /v1/nodes/{id}/translations")
 class SubjectTranslations {
   @RequestMapping(value = ["", "/**"])
-  fun redirect(request: HttpServletRequest): ResponseEntity<Unit> {
-    val id = request.requestURI.substringAfter("/v1/subjects/").substringBefore("/translations")
-    return permanentRedirect("/v1/nodes/$id/translations", request.queryString)
+  fun redirect(
+      request: HttpServletRequest,
+      @PathVariable(name = "id") id: String
+  ): ResponseEntity<Unit> {
+    val rest = request.requestURI.substringAfter("/translations")
+    return permanentRedirect("/v1/nodes/$id/translations$rest", request.queryString)
   }
 }
