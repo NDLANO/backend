@@ -91,10 +91,7 @@ public class NodePostPut implements UpdatableDto<Node> {
     public UpdateOrDelete<TechnicalEvaluationDTO> technicalEvaluation = UpdateOrDelete.Default();
 
     @JsonProperty
-    @Schema(
-            implementation = TranslationDTO.class,
-            description = "The translations for the node. Contains an array of translations in different languages",
-            types = {"object", "null"})
+    @Schema(description = "The translations for the node. Contains an array of translations in different languages")
     public Optional<List<TranslationDTO>> translations = Optional.empty();
 
     public Optional<String> getNodeId() {
