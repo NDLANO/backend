@@ -170,8 +170,6 @@ class UrlResolverService(
           .mapNotNull {
             try {
               getEntityFromPublicId(URI.create("urn:$it"))
-                  // TODO: Do we need this if we just throw away the exception?
-                  ?: throw NotFoundServiceException("Element with ID $it could not be found")
             } catch (_: Exception) {
               // Do nothing, just skip the part of the path that could not be resolved
               null
