@@ -138,6 +138,7 @@ object SharedDependencies {
     mvn"io.hypersistence:hypersistence-utils-hibernate-63:$HypersistenceV",
     mvn"com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations",
     mvn"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
+    mvn"com.fasterxml.jackson.module:jackson-module-kotlin:2.21.1",
     mvn"com.auth0:java-jwt:$JavaJwtV",
     mvn"com.auth0:jwks-rsa:$JwksRsaV",
     mvn"org.apache.commons:commons-lang3:$CommonsLang3V",

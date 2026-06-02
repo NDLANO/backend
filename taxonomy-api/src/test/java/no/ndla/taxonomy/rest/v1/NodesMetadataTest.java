@@ -41,7 +41,7 @@ public class NodesMetadataTest extends RestTest {
         final var metadata = testUtils.getObject(MetadataDTO.class, response);
 
         assertNotNull(metadata);
-        assertTrue(metadata.isVisible());
+        assertTrue(metadata.getVisible());
     }
 
     @Test

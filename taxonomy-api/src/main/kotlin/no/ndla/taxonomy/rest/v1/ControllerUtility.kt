@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 private val urnValidator = URNValidator()
 
 fun <T : DomainEntity> validateAndAssignId(entity: T, command: UpdatableDto<T>) {
-  command.id.ifPresent { id ->
-    urnValidator.validate(id, entity)
-    entity.publicId = id
+  command.id?.let {
+    urnValidator.validate(it, entity)
+    entity.publicId = it
   }
 }
 
@@ -28,7 +28,7 @@ fun validateUrn(id: URI, entity: DomainEntity) {
 }
 
 fun handleDuplicateId(command: UpdatableDto<*>): Nothing {
-  command.id.ifPresent { throw DuplicateIdException(it.toString()) }
+  command.id?.let { throw DuplicateIdException(it.toString()) }
   throw DuplicateIdException()
 }
 
