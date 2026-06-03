@@ -312,6 +312,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/image-api/v3/images/users/editors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get list of users that have edited images
+         * @description Get list of user IDs from updatedBy and editor notes in images
+         */
+        get: operations["getImage-apiV3ImagesUsersEditors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/image-api/raw/id/{image_id}": {
         parameters: {
             query?: never;
@@ -572,6 +592,14 @@ export type components = {
              * @description The height of the image in pixels
              */
             height: number;
+        };
+        /**
+         * ImageEditorsDTO
+         * @description A list of image editors
+         */
+        ImageEditorsDTO: {
+            /** @description The user ids of the editors */
+            ids?: string[];
         };
         /**
          * ImageFileDTO
@@ -1042,6 +1070,7 @@ export type ImageAltTextDTO = components['schemas']['ImageAltTextDTO'];
 export type ImageCaptionDTO = components['schemas']['ImageCaptionDTO'];
 export type ImageContentType = components['schemas']['ImageContentType'];
 export type ImageDimensionsDTO = components['schemas']['ImageDimensionsDTO'];
+export type ImageEditorsDTO = components['schemas']['ImageEditorsDTO'];
 export type ImageFileDTO = components['schemas']['ImageFileDTO'];
 export type ImageMetaInformationV2DTO = components['schemas']['ImageMetaInformationV2DTO'];
 export type ImageMetaInformationV3DTO = components['schemas']['ImageMetaInformationV3DTO'];
@@ -2297,6 +2326,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImageMetaInformationV3DTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "getImage-apiV3ImagesUsersEditors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageEditorsDTO"];
                 };
             };
             400: {

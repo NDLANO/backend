@@ -47,9 +47,11 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(imageMeta))
 
-    tsql"insert into imagemetadata(metadata) values ($dataObject)"
-      .updateAndReturnGeneratedKey()
-      .map(id => imageMeta.copy(id = Some(id)))
+    for {
+      id      <- tsql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
+      inserted = imageMeta.copy(id = Some(id))
+      tracked <- trackEditor(inserted)
+    } yield tracked
 
   def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
       session: DBSession = dbUtility.autoSession
@@ -58,17 +60,43 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(json)
-    tsql"update imagemetadata set metadata = $dataObject where id = $id"
-      .update()
-      .map(_ => imageMetaInformation.copy(id = Some(id)))
+    for {
+      updated <- tsql"update imagemetadata set metadata = $dataObject where id = $id"
+        .update()
+        .map(_ => imageMetaInformation.copy(id = Some(id)))
+      tracked <- trackEditor(updated)
+    } yield tracked
   }
 
-  def delete(imageId: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = Try {
-    tsql"delete from imagemetadata where id = $imageId".update().get
-  }.flatMap {
-    case n if n < 1 =>
-      Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-    case n => Success(n)
+  def getAllEditors: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
+    tsql"select distinct user_id from image_editors".map(rs => rs.string("user_id")).runList()
+  }
+
+  private def trackEditor(image: ImageMetaInformation)(implicit session: DBSession): Try[ImageMetaInformation] = {
+    image
+      .id
+      .map { id =>
+        tsql"""
+              insert into image_editors (image_id, user_id)
+              values ($id, ${image.updatedBy})
+              on conflict do nothing
+            """.update()
+      }
+      .getOrElse(Success(()))
+      .map(_ => image)
+  }
+
+  def delete(imageId: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
+    for {
+      result <- tsql"delete from imagemetadata where id = $imageId"
+        .update()
+        .flatMap {
+          case n if n < 1 =>
+            Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
+          case n => Success(n)
+        }
+      _ <- tsql"delete from image_editors where image_id = $imageId".update()
+    } yield result
   }
 
   def minMaxId: Try[(Long, Long)] = dbUtility.readOnly { implicit session =>

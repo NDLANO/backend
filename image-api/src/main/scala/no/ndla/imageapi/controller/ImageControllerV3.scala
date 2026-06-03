@@ -468,6 +468,21 @@ class ImageControllerV3(using
       }
     }
 
+  def getUserIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .in("users" / "editors")
+    .summary("Get list of users that have edited images")
+    .description("Get list of user IDs from updatedBy and editor notes in images")
+    .out(jsonBody[ImageEditorsDTO])
+    .errorOut(errorOutputsFor(400))
+    .requirePermission(IMAGE_API_WRITE)
+    .serverLogicPure { _ => _ =>
+      readService.getAllEditors match {
+        case Success(editors) => Right(editors)
+        case Failure(ex)      => errorHandling.returnLeftError(ex)
+      }
+    }
+
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     getImagesV3,
     getImagesByIds,
@@ -480,5 +495,6 @@ class ImageControllerV3(using
     deleteLanguageV3,
     editImageV3,
     copyImageMeta,
+    getUserIds,
   )
 }

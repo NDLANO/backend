@@ -14,7 +14,12 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.implicits.toTry
 import no.ndla.imageapi.model.api.bulk.{BulkUploadStateDTO, BulkUploadStatus}
-import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO, ImageMetaInformationV3DTO}
+import no.ndla.imageapi.model.api.{
+  ImageEditorsDTO,
+  ImageMetaDomainDumpDTO,
+  ImageMetaInformationV2DTO,
+  ImageMetaInformationV3DTO,
+}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
@@ -187,4 +192,6 @@ class ReadService(using
     case BulkUploadStatus.Complete | BulkUploadStatus.Failed => true
     case BulkUploadStatus.Pending | BulkUploadStatus.Running => false
   }
+
+  def getAllEditors: Try[ImageEditorsDTO] = imageRepository.getAllEditors.map(editors => ImageEditorsDTO(editors.some))
 }

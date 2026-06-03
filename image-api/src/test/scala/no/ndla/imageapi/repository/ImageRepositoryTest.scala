@@ -9,10 +9,11 @@
 package no.ndla.imageapi.repository
 
 import java.net.Socket
-import no.ndla.imageapi.model.domain.ImageTitle
+import no.ndla.imageapi.model.domain.{EditorNote, ImageTitle}
 import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import no.ndla.database.{DataSource, DBMigrator, DBUtility}
+import no.ndla.common.model.NDLADate
 
 import scala.util.{Success, Try}
 import scalikejdbc.*
@@ -36,7 +37,8 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   }
 
   def emptyTestDatabase: Boolean = dbUtility.writeSession(implicit session => {
-    sql"delete from imagemetadata;".execute()(using session)
+    sql"delete from image_editors".execute()(using session)
+    sql"delete from imagemetadata".execute()(using session)
   })
 
   override def beforeAll(): Unit = {
@@ -142,6 +144,26 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
     repository.getImageFromFilePath(path1).get should be(Some(expected1))
     repository.getImageFromFilePath(path2).get should be(Some(expected2))
+  }
+
+  test("That inserting and updating images updates the image_editors table") {
+    repository.getAllEditors.get should be(Nil)
+
+    val image    = TestData.bjorn.copy(id = None, createdBy = "creator-1", updatedBy = "editor-1", editorNotes = Seq.empty)
+    val inserted = repository.insert(image).failIfFailure
+    val id       = inserted.id.get
+
+    repository.getAllEditors.get.toSet should be(Set("editor-1"))
+
+    val note    = EditorNote(NDLADate.now(), "note-editor-1", "Some note")
+    val updated = inserted.copy(updatedBy = "note-editor-1", editorNotes = Seq(note))
+    repository.update(updated, id).failIfFailure
+
+    repository.getAllEditors.get.toSet should be(Set("editor-1", "note-editor-1"))
+
+    repository.delete(id).failIfFailure
+
+    repository.getAllEditors.get should be(Nil)
   }
 
 }
