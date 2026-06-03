@@ -17,6 +17,7 @@ import no.ndla.taxonomy.config.Constants;
 import no.ndla.taxonomy.domain.exceptions.ChildNotFoundException;
 import no.ndla.taxonomy.domain.exceptions.DuplicateIdException;
 import no.ndla.taxonomy.util.PrettyUrlUtil;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
 
 @Entity
@@ -24,9 +25,11 @@ public class Node extends DomainObject implements EntityWithMetadata {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Node.class);
 
     @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     private final Set<NodeConnection> parentConnections = new TreeSet<>();
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     private final Set<NodeConnection> childConnections = new TreeSet<>();
 
     @Column
@@ -49,6 +52,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
     private boolean context;
 
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     private Set<ResourceResourceType> resourceResourceTypes = new TreeSet<>();
 
     @Column
