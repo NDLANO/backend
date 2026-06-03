@@ -17,7 +17,7 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 import scala.util.Success
 
-class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class TagSearchServiceTest extends UnitSuite with ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
 
@@ -42,17 +42,15 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
-      tagIndexService.createIndexAndAlias().get
+    tagIndexService.createIndexAndAlias().get
 
-      articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
+    articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 
-      val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
-      val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
-      val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
+    val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
+    val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
+    val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
 
-      blockUntil(() => tagSearchService.countDocuments == tagsDistinctByLanguage.size)
-    }
+    blockUntil(() => tagSearchService.countDocuments == tagsDistinctByLanguage.size)
   }
 
   test("That searching for tags returns sensible results") {

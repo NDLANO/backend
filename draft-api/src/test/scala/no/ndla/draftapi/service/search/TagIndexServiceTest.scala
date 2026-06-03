@@ -13,7 +13,7 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
-class TagIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class TagIndexServiceTest extends UnitSuite with ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
 

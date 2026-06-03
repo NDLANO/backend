@@ -24,13 +24,13 @@ import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial, today}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 
 import scala.util.Success
 
-class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(elasticSearchHost)
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
@@ -53,19 +53,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
   }
 
   override def beforeEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
-      articleIndexService.createIndexAndAlias()
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
-    }
+    articleIndexService.createIndexAndAlias().get
+    draftIndexService.createIndexAndAlias().get
+    learningPathIndexService.createIndexAndAlias().get
   }
 
   override def afterEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
-      articleIndexService.deleteIndexAndAlias()
-      draftIndexService.deleteIndexAndAlias()
-      learningPathIndexService.deleteIndexAndAlias()
-    }
+    articleIndexService.deleteIndexAndAlias().get
+    draftIndexService.deleteIndexAndAlias().get
+    learningPathIndexService.deleteIndexAndAlias().get
   }
 
   val indexingBundle: IndexingBundle =

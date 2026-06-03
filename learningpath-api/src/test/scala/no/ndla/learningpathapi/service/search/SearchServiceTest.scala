@@ -105,116 +105,114 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
-      searchIndexService.createIndexAndAlias().get
+    searchIndexService.createIndexAndAlias().get
 
-      doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
-        .when(converterService)
-        .asAuthor(any[NdlaUserName])
+    doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
+      .when(converterService)
+      .asAuthor(any[NdlaUserName])
 
-      val copyright: CopyrightDTO = CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
-      doReturn(copyright).when(converterService).asApiCopyright(any)
+    val copyright: CopyrightDTO = CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
+    doReturn(copyright).when(converterService).asApiCopyright(any)
 
-      val yesterday  = NDLADate.now().minusDays(1)
-      val tomorrow   = NDLADate.now().plusDays(1)
-      val tomorrowp1 = NDLADate.now().plusDays(2)
-      val tomorrowp2 = NDLADate.now().plusDays(3)
+    val yesterday  = NDLADate.now().minusDays(1)
+    val tomorrow   = NDLADate.now().plusDays(1)
+    val tomorrowp1 = NDLADate.now().plusDays(2)
+    val tomorrowp2 = NDLADate.now().plusDays(3)
 
-      val activeStep = DefaultLearningStep.copy(
-        id = Some(1),
-        revision = Some(1),
-        title = List(Title("Active step", "nb")),
-        embedUrl = List(EmbedUrl("https://ndla.no/article/1", "nb", EmbedType.OEmbed)),
-      )
+    val activeStep = DefaultLearningStep.copy(
+      id = Some(1),
+      revision = Some(1),
+      title = List(Title("Active step", "nb")),
+      embedUrl = List(EmbedUrl("https://ndla.no/article/1", "nb", EmbedType.OEmbed)),
+    )
 
-      val deletedStep = DefaultLearningStep.copy(
-        id = Some(2),
-        revision = Some(1),
-        title = List(Title("Deleted step", "nb")),
-        embedUrl = List(EmbedUrl("https://ndla.no/article/2", "nb", EmbedType.OEmbed)),
-        status = StepStatus.DELETED,
-      )
+    val deletedStep = DefaultLearningStep.copy(
+      id = Some(2),
+      revision = Some(1),
+      title = List(Title("Deleted step", "nb")),
+      embedUrl = List(EmbedUrl("https://ndla.no/article/2", "nb", EmbedType.OEmbed)),
+      status = StepStatus.DELETED,
+    )
 
-      val thePenguin = DefaultLearningPath.copy(
-        id = Some(PenguinId),
-        title = List(Title("Pingvinen er en kjeltring", "nb")),
-        description = List(Description("Dette handler om fugler", "nb")),
-        duration = Some(1),
-        created = yesterday,
-        lastUpdated = yesterday,
-        tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
-        learningsteps = List(activeStep),
-        grepCodes = Seq("KM123", "KM456"),
-      )
+    val thePenguin = DefaultLearningPath.copy(
+      id = Some(PenguinId),
+      title = List(Title("Pingvinen er en kjeltring", "nb")),
+      description = List(Description("Dette handler om fugler", "nb")),
+      duration = Some(1),
+      created = yesterday,
+      lastUpdated = yesterday,
+      tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
+      learningsteps = List(activeStep),
+      grepCodes = Seq("KM123", "KM456"),
+    )
 
-      val batman = DefaultLearningPath.copy(
-        id = Some(BatmanId),
-        title = List(Title("Batman er en tøff og morsom helt", "nb"), Title("Batman is a tough guy", "en")),
-        description = List(Description("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
-        duration = Some(2),
-        created = yesterday,
-        lastUpdated = today,
-        tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
-        learningsteps = List(activeStep, deletedStep),
-        grepCodes = Seq("KM456", "KM789"),
-      )
+    val batman = DefaultLearningPath.copy(
+      id = Some(BatmanId),
+      title = List(Title("Batman er en tøff og morsom helt", "nb"), Title("Batman is a tough guy", "en")),
+      description = List(Description("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
+      duration = Some(2),
+      created = yesterday,
+      lastUpdated = today,
+      tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
+      learningsteps = List(activeStep, deletedStep),
+      grepCodes = Seq("KM456", "KM789"),
+    )
 
-      val theDuck = DefaultLearningPath.copy(
-        id = Some(DonaldId),
-        title = List(Title("Donald er en tøff, rar og morsom and", "nb"), Title("Donald is a weird duck", "en")),
-        description = List(Description("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
-        duration = Some(3),
-        created = yesterday,
-        lastUpdated = tomorrow,
-        tags = List(Tag(Seq("disney", "kanfly"), "nb")),
-        learningsteps = List(deletedStep),
-        verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
-        grepCodes = Seq("KM123", "KM456", "KM789"),
-      )
+    val theDuck = DefaultLearningPath.copy(
+      id = Some(DonaldId),
+      title = List(Title("Donald er en tøff, rar og morsom and", "nb"), Title("Donald is a weird duck", "en")),
+      description = List(Description("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
+      duration = Some(3),
+      created = yesterday,
+      lastUpdated = tomorrow,
+      tags = List(Tag(Seq("disney", "kanfly"), "nb")),
+      learningsteps = List(deletedStep),
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+      grepCodes = Seq("KM123", "KM456", "KM789"),
+    )
 
-      val unrelated = DefaultLearningPath.copy(
-        id = Some(UnrelatedId),
-        title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
-        description = List(Description("This is unrelated", "en"), Description("Dette er en urelatert", "nb")),
-        duration = Some(4),
-        created = yesterday,
-        lastUpdated = tomorrowp1,
-        tags = List(),
-        grepCodes = Seq("KM111", "KM222"),
-      )
+    val unrelated = DefaultLearningPath.copy(
+      id = Some(UnrelatedId),
+      title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
+      description = List(Description("This is unrelated", "en"), Description("Dette er en urelatert", "nb")),
+      duration = Some(4),
+      created = yesterday,
+      lastUpdated = tomorrowp1,
+      tags = List(),
+      grepCodes = Seq("KM111", "KM222"),
+    )
 
-      val englando = DefaultLearningPath.copy(
-        id = Some(EnglandoId),
-        title = List(Title("Englando", "en"), Title("Djinba", "djb")),
-        description = List(Description("This is a englando learningpath", "en"), Description("This is djinba", "djb")),
-        duration = Some(5),
-        created = yesterday,
-        lastUpdated = tomorrowp2,
-        tags = List(),
-        grepCodes = Seq("KM333", "KM444"),
-      )
+    val englando = DefaultLearningPath.copy(
+      id = Some(EnglandoId),
+      title = List(Title("Englando", "en"), Title("Djinba", "djb")),
+      description = List(Description("This is a englando learningpath", "en"), Description("This is djinba", "djb")),
+      duration = Some(5),
+      created = yesterday,
+      lastUpdated = tomorrowp2,
+      tags = List(),
+      grepCodes = Seq("KM333", "KM444"),
+    )
 
-      val brumle = DefaultLearningPath.copy(
-        id = Some(BrumleId),
-        title = List(Title("Brumle", "nb")),
-        description = List(Description("Dette er brumle", "nb")),
-        duration = Some(5),
-        created = yesterday,
-        lastUpdated = tomorrowp2,
-        tags = List(),
-        status = LearningPathStatus.UNLISTED,
-        grepCodes = Seq("KM123", "KM456"),
-      )
+    val brumle = DefaultLearningPath.copy(
+      id = Some(BrumleId),
+      title = List(Title("Brumle", "nb")),
+      description = List(Description("Dette er brumle", "nb")),
+      duration = Some(5),
+      created = yesterday,
+      lastUpdated = tomorrowp2,
+      tags = List(),
+      status = LearningPathStatus.UNLISTED,
+      grepCodes = Seq("KM123", "KM456"),
+    )
 
-      searchIndexService.indexDocument(thePenguin).get
-      searchIndexService.indexDocument(batman).get
-      searchIndexService.indexDocument(theDuck).get
-      searchIndexService.indexDocument(unrelated).get
-      searchIndexService.indexDocument(englando).get
-      searchIndexService.indexDocument(brumle).get
+    searchIndexService.indexDocument(thePenguin).get
+    searchIndexService.indexDocument(batman).get
+    searchIndexService.indexDocument(theDuck).get
+    searchIndexService.indexDocument(unrelated).get
+    searchIndexService.indexDocument(englando).get
+    searchIndexService.indexDocument(brumle).get
 
-      blockUntil(() => searchService.countDocuments() == 6)
-    }
+    blockUntil(() => searchService.countDocuments() == 6)
   }
 
   test("all learningpaths should be returned if fallback is enabled in all-search") {

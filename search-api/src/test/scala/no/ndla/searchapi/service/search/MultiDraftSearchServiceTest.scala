@@ -24,11 +24,11 @@ import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{DraftSearchField, IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
-class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(elasticSearchHost)
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val converterService: ConverterService             = new ConverterService
@@ -56,22 +56,20 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
-      draftIndexService.createIndexAndAlias()
-      learningPathIndexService.createIndexAndAlias()
-      draftConceptIndexService.createIndexAndAlias()
+    draftIndexService.createIndexAndAlias()
+    learningPathIndexService.createIndexAndAlias()
+    draftConceptIndexService.createIndexAndAlias()
 
-      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
+    draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
 
-      learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
+    learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
 
-      blockUntil(() => {
-        draftIndexService.countDocuments == draftsToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
-          lp.verificationStatus == CREATED_BY_NDLA
-        )
-      })
-    }
+    blockUntil(() => {
+      draftIndexService.countDocuments == draftsToIndex.size &&
+      learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
+        lp.verificationStatus == CREATED_BY_NDLA
+      )
+    })
   }
 
   private def expectedAllPublicDrafts(language: String) = {

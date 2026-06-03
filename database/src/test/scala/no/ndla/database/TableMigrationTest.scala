@@ -15,13 +15,14 @@ import scalikejdbc.*
 import java.util.UUID
 
 class TableMigrationTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironment {
-  val dataSource: DataSource      = testDataSource.get
-  val schema: String              = "testschema"
-  val schemaSql: SQLSyntax        = SQLSyntax.createUnsafely(schema)
-  val intTableName: String        = "test"
-  val intTableNameSql: SQLSyntax  = SQLSyntax.createUnsafely(intTableName)
-  val uuidTableName: String       = "test2"
-  val uuidTableNameSql: SQLSyntax = SQLSyntax.createUnsafely(uuidTableName)
+  override lazy val schemaName: String = s"tablemigrationtest_${ProcessHandle.current().pid()}"
+  val dataSource: DataSource           = testDataSource.get
+  val schema: String                   = schemaName
+  val schemaSql: SQLSyntax             = SQLSyntax.createUnsafely(schema)
+  val intTableName: String             = "test"
+  val intTableNameSql: SQLSyntax       = SQLSyntax.createUnsafely(intTableName)
+  val uuidTableName: String            = "test2"
+  val uuidTableNameSql: SQLSyntax      = SQLSyntax.createUnsafely(uuidTableName)
 
   override def beforeAll(): Unit = {
     super.beforeAll()

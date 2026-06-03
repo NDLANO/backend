@@ -8,40 +8,25 @@
 
 package no.ndla.scalatestsuite
 
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import com.redis.testcontainers.RedisContainer
 import org.testcontainers.utility.DockerImageName
 
-import java.time.Duration
-import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 import sys.env
 
-trait RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait RedisIntegrationSuite extends UnitTestSuite {
+  protected object redisContainer extends ContainerIntegrationSuiteBase[RedisContainer, Int] {
+    override protected val containerName: String                 = "redis"
+    override protected def createContainer(): RedisContainer     = new RedisContainer(DockerImageName.parse("redis:6.2"))
+    override protected def fromContainer(c: RedisContainer): Int = c.getMappedPort(6379).intValue()
+    override protected def fromEnv(): Int                        = env.getOrElse("REDIS_PORT", "6379").toInt
+    override protected def healthCheck(port: Int): Boolean       = SharedContainer.isReachable("localhost", port)
+  }
 
-  val EnableRedisContainer: Boolean = true
-
-  case class RedisContainer(genericContainer: GenericContainer[Nothing], port: Int)
-  val redisContainer: Try[RedisContainer] =
-    if (EnableRedisContainer) {
-      if (skipContainerSpawn) {
-        val redisMock = mock[GenericContainer[Nothing]]
-        val redisPort = env.getOrElse("REDIS_PORT", "6379").toInt
-        Success(RedisContainer(redisMock, redisPort))
-      } else {
-        val redisPort      = findFreePort
-        val redisContainer = new GenericContainer(DockerImageName.parse("redis:6.2"))
-        redisContainer.setPortBindings(List(s"$redisPort:6379").asJava)
-        redisContainer.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
-        redisContainer.start()
-        Success(RedisContainer(redisContainer, redisPort))
-      }
-    } else {
-      Failure(new RuntimeException("Redis disabled for this IntegrationSuite"))
-    }
+  val redisPort: Try[Int] = redisContainer.output
 
   override def afterAll(): Unit = {
     super.afterAll()
-    redisContainer.foreach(c => c.genericContainer.stop())
+    redisContainer.close()
   }
 }

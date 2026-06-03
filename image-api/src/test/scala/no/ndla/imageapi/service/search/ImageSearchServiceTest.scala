@@ -328,29 +328,27 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
-      val indexName = imageIndexService.createIndexWithGeneratedName
-      imageIndexService.updateAliasTarget(None, indexName.get)
+    val indexName = imageIndexService.createIndexWithGeneratedName
+    imageIndexService.updateAliasTarget(None, indexName.get)
 
-      imageIndexService.indexDocument(image1).get
-      imageIndexService.indexDocument(image2).get
-      imageIndexService.indexDocument(image3).get
-      imageIndexService.indexDocument(image4).get
-      imageIndexService.indexDocument(image5).get
-      imageIndexService.indexDocument(image6).get
-      imageIndexService.indexDocument(image7).get
-      imageIndexService.indexDocument(image8).get
-      imageIndexService.indexDocument(image9).get
-      imageIndexService.indexDocument(image10).get
+    imageIndexService.indexDocument(image1).get
+    imageIndexService.indexDocument(image2).get
+    imageIndexService.indexDocument(image3).get
+    imageIndexService.indexDocument(image4).get
+    imageIndexService.indexDocument(image5).get
+    imageIndexService.indexDocument(image6).get
+    imageIndexService.indexDocument(image7).get
+    imageIndexService.indexDocument(image8).get
+    imageIndexService.indexDocument(image9).get
+    imageIndexService.indexDocument(image10).get
 
-      val servletRequest = mock[NdlaHttpRequest]
-      when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
-      when(servletRequest.serverName).thenReturn("localhost")
-      when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
-      ApplicationUrl.set(servletRequest)
+    val servletRequest = mock[NdlaHttpRequest]
+    when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
+    when(servletRequest.serverName).thenReturn("localhost")
+    when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
+    ApplicationUrl.set(servletRequest)
 
-      blockUntil(() => imageSearchService.countDocuments() == 10)
-    }
+    blockUntil(() => imageSearchService.countDocuments() == 10)
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {

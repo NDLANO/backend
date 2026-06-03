@@ -298,9 +298,10 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
     *   Name of aliasTarget.
     */
   def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
+    val childPrefix = s"${indexName}_"
     e4sClient.execute(getAliases()) match {
       case Success(s) =>
-        val indexes                             = s.result.mappings.filter(_._1.name.startsWith(indexName))
+        val indexes                             = s.result.mappings.filter(_._1.name.startsWith(childPrefix))
         val unreferencedIndexes                 = indexes.filter(_._2.isEmpty).map(_._1.name).toList
         val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
           case head :: tail => (head, tail)

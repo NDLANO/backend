@@ -31,7 +31,6 @@ import no.ndla.tapirtesting.{NdlaAuthTestTokens, TestJwsKeySelectorFactory}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
-import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.{DBSession, scalikejdbcSQLInterpolationImplicitDef}
 import sttp.client4.{multipart, multipartFile}
 import sttp.client4.quick.*
@@ -46,21 +45,21 @@ import scala.util.{Success, Try}
 class BulkUploadTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite {
 
   val imageApiPort: Int                       = findFreePort
-  val pgc: PostgreSQLContainer                = postgresContainer.get
-  val redisPort: Int                          = redisContainer.get.port
+  val pgc: PgConnectionInfo                   = pgConnectionInfo.get
+  val testRedisPort: Int                      = redisPort.get
   override lazy val props: ImageApiProperties = new ImageApiProperties
 
   lazy val imageApiProperties: ImageApiProperties = new ImageApiProperties {
     override val ApplicationPort: Int       = imageApiPort
-    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.port)
     override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", schemaName)
 
     override def RedisHost: String      = "localhost"
-    override def RedisPort: Int         = redisPort
+    override def RedisPort: Int         = testRedisPort
     override def disableWarmup: Boolean = true
   }
 

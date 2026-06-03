@@ -43,11 +43,11 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  val SearchIndex: String                  = propOrElse("SEARCH_INDEX_NAME", "audios")
+  lazy val SearchIndex: String             = propOrElse("SEARCH_INDEX_NAME", "audios")
   val SearchDocument                       = "audio"
-  val SeriesSearchIndex: String            = propOrElse("SERIES_SEARCH_INDEX_NAME", "series")
+  lazy val SeriesSearchIndex: String       = propOrElse("SERIES_SEARCH_INDEX_NAME", "series")
   val SeriesSearchDocument                 = "series"
-  val AudioTagSearchIndex: String          = propOrElse("AUDIO_TAG_SEARCH_INDEX_NAME", "tags-audios")
+  lazy val AudioTagSearchIndex: String     = propOrElse("AUDIO_TAG_SEARCH_INDEX_NAME", "tags-audios")
   val AudioTagSearchDocument               = "audio-tag"
   val DefaultPageSize                      = 10
   val MaxPageSize                          = 10000

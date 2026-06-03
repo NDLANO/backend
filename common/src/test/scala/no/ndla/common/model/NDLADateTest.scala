@@ -26,11 +26,12 @@ class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironm
   override def beforeAll(): Unit = {
     super.beforeAll()
     dataSource.connectToDatabase()
+    val schemaSql = SQLSyntax.createUnsafely(schemaName)
     DB.autoCommit { implicit session =>
       sql"""
-            create schema if not exists testschema;
-            create table test_tz (id int primary key, data timestamptz);
-            create table test_without_tz (id int primary key, data timestamp);""".execute()
+            create schema if not exists $schemaSql;
+            create table if not exists test_tz (id int primary key, data timestamptz);
+            create table if not exists test_without_tz (id int primary key, data timestamp);""".execute()
     }
   }
 

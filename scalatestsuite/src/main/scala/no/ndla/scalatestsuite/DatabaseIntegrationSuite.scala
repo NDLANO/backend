@@ -9,53 +9,69 @@
 package no.ndla.scalatestsuite
 
 import com.zaxxer.hikari.HikariConfig
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.{DataSource, DatabaseProps}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.testcontainers.postgresql.PostgreSQLContainer
 
-import scala.util.{Failure, Success, Try}
+import java.sql.DriverManager
+import scala.util.Try
 import sys.env
 
-trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait DatabaseIntegrationSuite extends UnitTestSuite {
+  case class PgConnectionInfo(host: String, port: Int, username: String, password: String, databaseName: String)
+
   lazy val props: BaseProps & DatabaseProps
 
-  val EnablePostgresContainer: Boolean = true
-  val PostgresqlVersion: String        = "17.5"
-  lazy val schemaName: String          = "testschema"
+  val PostgresqlVersion: String = "17.5"
+  lazy val schemaName: String   = s"testschema_${ProcessHandle.current().pid()}"
 
-  val postgresContainer: Try[PostgreSQLContainer] =
-    if (EnablePostgresContainer) {
-      val defaultUsername: String     = "postgres"
-      val defaultDatabaseName: String = "postgres"
-      val defaultPassword: String     = "hemmelig"
+  private val defaultUsername: String     = "postgres"
+  private val defaultDatabaseName: String = "postgres"
+  private val defaultPassword: String     = "hemmelig"
 
-      if (skipContainerSpawn) {
-        val x = mock[PostgreSQLContainer]
-        when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
-        when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
-        when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
-        when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
-        Success(x)
-      } else {
-        val c: PgContainer = PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
-        c.start()
-        Success(c)
-      }
-    } else {
-      Failure(new RuntimeException("Postgres disabled for this IntegrationSuite"))
-    }
+  private given Codec[PgConnectionInfo] = deriveCodec
 
-  def testDataSource: Try[DataSource] = postgresContainer.flatMap(pgc =>
+  protected object postgresContainer extends ContainerIntegrationSuiteBase[PgContainer, PgConnectionInfo] {
+    override protected val containerName: String = "postgres"
+
+    override protected def createContainer(): PgContainer =
+      PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
+
+    override protected def fromContainer(c: PgContainer): PgConnectionInfo = PgConnectionInfo(
+      host = c.getHost,
+      port = c.getMappedPort(5432).intValue(),
+      username = c.getUsername,
+      password = c.getPassword,
+      databaseName = c.getDatabaseName,
+    )
+
+    override protected def fromEnv(): PgConnectionInfo = PgConnectionInfo(
+      host = env.getOrElse("META_SERVER", "localhost"),
+      port = env.getOrElse("META_PORT", "5432").toInt,
+      username = env.getOrElse("META_USERNAME", defaultUsername),
+      password = env.getOrElse("META_PASSWORD", defaultPassword),
+      databaseName = env.getOrElse("META_RESOURCE", defaultDatabaseName),
+    )
+
+    override protected def healthCheck(info: PgConnectionInfo): Boolean = Try {
+      val url  = s"jdbc:postgresql://${info.host}:${info.port}/${info.databaseName}"
+      val conn = DriverManager.getConnection(url, info.username, info.password)
+      conn.close()
+    }.isSuccess
+  }
+
+  lazy val pgConnectionInfo: Try[PgConnectionInfo] = postgresContainer.output
+
+  def testDataSource: Try[DataSource] = pgConnectionInfo.flatMap(pgc =>
     Try {
       val dataSourceConfig = new HikariConfig()
-      dataSourceConfig.setUsername(pgc.getUsername)
-      dataSourceConfig.setPassword(pgc.getPassword)
+      dataSourceConfig.setUsername(pgc.username)
+      dataSourceConfig.setPassword(pgc.password)
       dataSourceConfig.setDriverClassName("org.postgresql.Driver")
-      dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}")
+      dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${pgc.host}:${pgc.port}/${pgc.databaseName}")
       dataSourceConfig.setSchema(schemaName)
-      dataSourceConfig.setMaximumPoolSize(10)
+      dataSourceConfig.setMaximumPoolSize(2)
       new DataSource(dataSourceConfig)(using props)
     }
   )
@@ -77,12 +93,12 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   }
 
   protected def setDatabaseEnvironment(): Unit = {
-    postgresContainer.foreach(container => {
-      props.MetaUserName.setValue(container.getUsername)
-      props.MetaPassword.setValue(container.getPassword)
-      props.MetaResource.setValue(container.getDatabaseName)
-      props.MetaServer.setValue(container.getHost)
-      props.MetaPort.setValue(container.getMappedPort(5432))
+    pgConnectionInfo.foreach(pgc => {
+      props.MetaUserName.setValue(pgc.username)
+      props.MetaPassword.setValue(pgc.password)
+      props.MetaResource.setValue(pgc.databaseName)
+      props.MetaServer.setValue(pgc.host)
+      props.MetaPort.setValue(pgc.port)
       props.MetaSchema.setValue(schemaName)
     })
   }
@@ -95,6 +111,6 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   override def afterAll(): Unit = {
     super.afterAll()
     restoreDatabaseEnv()
-    postgresContainer.foreach(c => c.stop())
+    postgresContainer.close()
   }
 }

@@ -52,15 +52,11 @@ class SeriesSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSui
   )
 
   override def beforeEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
-      seriesIndexService.createIndexAndAlias()
-    }
+    seriesIndexService.createIndexAndAlias()
   }
 
   override def afterEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
-      seriesIndexService.deleteIndexAndAlias()
-    }
+    seriesIndexService.deleteIndexAndAlias()
   }
 
   def indexAndWait(series: Seq[domain.Series]): Unit = {

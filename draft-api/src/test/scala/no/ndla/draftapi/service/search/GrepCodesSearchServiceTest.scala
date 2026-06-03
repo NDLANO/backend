@@ -17,7 +17,7 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
-class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class GrepCodesSearchServiceTest extends UnitSuite with ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val traitUtil: TraitUtil           = new TraitUtil
   override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
@@ -41,15 +41,12 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
-      tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
+    grepCodesIndexService.createIndexAndAlias().get
+    articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a).get)
 
-      articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a))
+    val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
 
-      val allGrepCodesToIndex = articlesToIndex.flatMap(_.grepCodes)
-
-      blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
-    }
+    blockUntil(() => grepCodesSearchService.countDocuments == allGrepCodesToIndex.size)
   }
 
   test("That searching for grepcodes returns sensible results") {
