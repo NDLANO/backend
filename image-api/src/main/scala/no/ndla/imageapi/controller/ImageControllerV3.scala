@@ -470,10 +470,10 @@ class ImageControllerV3(using
 
   def getUserIds: ServerEndpoint[Any, Eff] = endpoint
     .get
-    .in("editors" / "ids")
-    .summary("Get list of user IDs that have edited images")
+    .in("users" / "editors")
+    .summary("Get list of users that have edited images")
     .description("Get list of user IDs from updatedBy and editor notes in images")
-    .out(jsonBody[Seq[String]])
+    .out(jsonBody[ImageEditorsDTO])
     .errorOut(errorOutputsFor(400))
     .requirePermission(IMAGE_API_WRITE)
     .serverLogicPure { _ => _ =>

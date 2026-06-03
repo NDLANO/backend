@@ -312,7 +312,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/image-api/v3/images/editors/ids": {
+    "/image-api/v3/images/users/editors": {
         parameters: {
             query?: never;
             header?: never;
@@ -320,10 +320,10 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Get list of user IDs that have edited images
+         * Get list of users that have edited images
          * @description Get list of user IDs from updatedBy and editor notes in images
          */
-        get: operations["getImage-apiV3ImagesEditorsIds"];
+        get: operations["getImage-apiV3ImagesUsersEditors"];
         put?: never;
         post?: never;
         delete?: never;
@@ -592,6 +592,14 @@ export type components = {
              * @description The height of the image in pixels
              */
             height: number;
+        };
+        /**
+         * ImageEditorsDTO
+         * @description A list of image editors
+         */
+        ImageEditorsDTO: {
+            /** @description The user ids of the editors */
+            ids?: string[];
         };
         /**
          * ImageFileDTO
@@ -1062,6 +1070,7 @@ export type ImageAltTextDTO = components['schemas']['ImageAltTextDTO'];
 export type ImageCaptionDTO = components['schemas']['ImageCaptionDTO'];
 export type ImageContentType = components['schemas']['ImageContentType'];
 export type ImageDimensionsDTO = components['schemas']['ImageDimensionsDTO'];
+export type ImageEditorsDTO = components['schemas']['ImageEditorsDTO'];
 export type ImageFileDTO = components['schemas']['ImageFileDTO'];
 export type ImageMetaInformationV2DTO = components['schemas']['ImageMetaInformationV2DTO'];
 export type ImageMetaInformationV3DTO = components['schemas']['ImageMetaInformationV3DTO'];
@@ -2361,7 +2370,7 @@ export interface operations {
             };
         };
     };
-    "getImage-apiV3ImagesEditorsIds": {
+    "getImage-apiV3ImagesUsersEditors": {
         parameters: {
             query?: never;
             header?: never;
@@ -2375,7 +2384,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": string[];
+                    "application/json": components["schemas"]["ImageEditorsDTO"];
                 };
             };
             400: {
