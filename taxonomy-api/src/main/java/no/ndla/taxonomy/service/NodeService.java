@@ -118,6 +118,9 @@ public class NodeService {
                 .values()
                 .forEach(idChunk -> {
                     final var nodes = nodeRepository.findByIds(idChunk);
+                    var parentContexts = includeParents
+                            ? Optional.of(prefetchParentContexts(nodes))
+                            : Optional.<Set<TaxonomyContext>>empty();
                     var dtos = nodes.stream()
                             .map(node -> new NodeDTO(
                                     root,
@@ -129,12 +132,27 @@ public class NodeService {
                                     includeContexts,
                                     filterProgrammes,
                                     metadataFilters.getVisible().orElse(false),
-                                    includeParents))
+                                    includeParents,
+                                    parentContexts))
                             .toList();
                     listToReturn.addAll(dtos);
                 });
 
         return listToReturn;
+    }
+
+    private Set<TaxonomyContext> prefetchParentContexts(Collection<Node> nodes) {
+        var ancestorIds = nodes.stream()
+                .flatMap(node -> node.getContexts().stream())
+                .flatMap(ctx -> ctx.parentIds().stream())
+                .map(URI::create)
+                .collect(Collectors.toSet());
+        if (ancestorIds.isEmpty()) {
+            return Set.of();
+        }
+        return nodeRepository.findByPublicIds(ancestorIds).stream()
+                .flatMap(ancestor -> ancestor.getContexts().stream())
+                .collect(Collectors.toSet());
     }
 
     public List<ConnectionDTO> getAllConnections(URI nodePublicId) {
@@ -169,7 +187,8 @@ public class NodeService {
                 includeContexts,
                 filterProgrammes,
                 isVisible,
-                true);
+                true,
+                Optional.of(prefetchParentContexts(List.of(node))));
     }
 
     public Optional<Node> getMaybeNode(URI publicId) {
@@ -332,6 +351,7 @@ public class NodeService {
     }
 
     public List<TaxonomyContextDTO> nodesToContexts(List<Node> nodes, boolean filterVisibles, String language) {
+        var allParentContexts = prefetchParentContexts(nodes);
         return nodes.stream()
                 .flatMap(node -> {
                     var contexts = filterVisibles
@@ -349,7 +369,7 @@ public class NodeService {
                                 .map(SearchableTaxonomyResourceType::new)
                                 .toList();
                         var breadcrumbs = context.breadcrumbs();
-                        var parentContexts = node.getAllParentContexts();
+                        var parentContexts = allParentContexts;
                         var parents = context.parentContextIds().stream()
                                 .map(parentCtxId -> {
                                     var parent = parentContexts.stream()

@@ -32,10 +32,12 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
             SELECT DISTINCT n FROM Node n
             LEFT JOIN FETCH n.resourceResourceTypes rrt
             LEFT JOIN FETCH rrt.resourceType rt
-            LEFT JOIN FETCH n.parentConnections pc
             WHERE n.id in :ids
             """)
     List<Node> findByIds(Collection<Integer> ids);
+
+    @Query("SELECT n FROM Node n WHERE n.publicId IN :ids")
+    List<Node> findByPublicIds(Collection<URI> ids);
 
     @Query("""
             SELECT n
