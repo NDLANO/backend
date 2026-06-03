@@ -23,7 +23,8 @@ import org.springframework.stereotype.Component
 class VersionResolver(
     private val versionRepository: VersionRepository,
     @Value("\${taxonomy.version-schema-cache-ttl-seconds:30}") ttlSeconds: Long,
-    @Value("\${spring.datasource.hikari.schema:taxonomy_api}") private val defaultSchema: String,
+    @param:Value("\${spring.datasource.hikari.schema:taxonomy_api}")
+    private val defaultSchema: String,
 ) {
 
   private val ttlNanos = Duration.ofSeconds(ttlSeconds).toNanos()
