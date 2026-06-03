@@ -446,9 +446,9 @@ class Nodes(
               .filter { nodeTypes.contains(it.nodeType) }
               .map { it.publicId }
         }
-    val children =
-        nodeConnectionRepository.findAllByChildIdIncludeTranslationsAndCachedUrlsAndFilters(
-            childrenIds)
+
+    val parentIds = if (recursive) childrenIds + node.publicId else listOf(node.publicId)
+    val children = nodeConnectionRepository.findChildConnections(childrenIds, parentIds)
 
     val returnList =
         children.map { nodeConnection ->
@@ -462,10 +462,7 @@ class Nodes(
           )
         }
 
-    val filtered =
-        returnList.filter { childrenIds.contains(it.parentId) || node.publicId == it.parentId }
-
-    return treeSorter.sortList(filtered).distinct()
+    return treeSorter.sortList(returnList).distinct()
   }
 
   @GetMapping("/{id}/connections")
