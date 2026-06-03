@@ -16,7 +16,7 @@ import java.net.URI
 @Entity
 @Table(name = "url_map")
 class UrlMapping(
-    @Id @Column var oldUrl: String,
+    @Id @Column val oldUrl: String,
     @Column(name = "public_id") var publicId: URI,
     @Column(name = "subject_id") var subjectId: URI?,
 )

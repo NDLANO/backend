@@ -95,7 +95,7 @@ class UrlResolverService(
    */
   @Transactional
   @Throws(NodeIdNotFoundException::class)
-  fun putUrlMapping(oldUrl: String, nodeId: URI, subjectId: URI?) {
+  fun putUrlMapping(oldUrl: String, nodeId: URI, subjectId: URI? = null) {
     val canonified = canonifier.canonify(oldUrl)
     if (getAllPaths(nodeId).isEmpty()) {
       throw NodeIdNotFoundException("Node id not found in taxonomy for $canonified")
