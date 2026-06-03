@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: coursier/cache-action@v8
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
       - name: Run ghGenerate
         run: ./mill -i _.ghGenerate
       - name: Verify generated files are up to date
