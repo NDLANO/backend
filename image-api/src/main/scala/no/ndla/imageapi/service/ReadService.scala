@@ -187,4 +187,6 @@ class ReadService(using
     case BulkUploadStatus.Complete | BulkUploadStatus.Failed => true
     case BulkUploadStatus.Pending | BulkUploadStatus.Running => false
   }
+
+  def getAllEditors: Try[Seq[String]] = imageRepository.getAllEditors
 }

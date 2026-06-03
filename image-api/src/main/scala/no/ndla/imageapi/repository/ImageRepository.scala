@@ -68,8 +68,9 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
     } yield tracked
   }
 
-  def getAllEditors(implicit session: DBSession = dbUtility.readOnlySession): Try[Seq[String]] =
+  def getAllEditors: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
     tsql"select distinct user_id from image_editors".map(rs => rs.string("user_id")).runList()
+  }
 
   private def trackEditor(image: ImageMetaInformation)(implicit session: DBSession): Try[ImageMetaInformation] = {
     image
