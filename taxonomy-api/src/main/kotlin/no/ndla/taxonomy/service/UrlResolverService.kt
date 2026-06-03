@@ -100,7 +100,7 @@ class UrlResolverService(
    * @param oldUrl url to put
    * @param nodeId nodeID to be associated with this URL
    * @param subjectId subjectID to be associated with this URL (optional)
-   * @throws NodeIdNotFoundException if node ide not found in taxonomy
+   * @throws NodeIdNotFoundException if node id not found in taxonomy
    */
   @Throws(NodeIdNotFoundException::class)
   fun putUrlMapping(oldUrl: String, nodeId: URI, subjectId: URI?) {
@@ -108,14 +108,14 @@ class UrlResolverService(
     if (getAllPaths(nodeId).isEmpty()) {
       throw NodeIdNotFoundException("Node id not found in taxonomy for $canonified")
     }
-    if (getCachedUrlOldRig(canonified).isEmpty()) {
+    val existing = urlMappingRepository.findAllByOldUrl(canonified)
+    if (existing.isEmpty()) {
       val urlMapping = UrlMapping(oldUrl = canonified, publicId = nodeId, subjectId = subjectId)
       urlMappingRepository.save(urlMapping)
     } else {
-      urlMappingRepository.findAllByOldUrl(canonified).forEach { mapping ->
+      existing.forEach { mapping ->
         mapping.publicId = nodeId
         mapping.subjectId = subjectId
-        urlMappingRepository.save(mapping)
       }
     }
   }

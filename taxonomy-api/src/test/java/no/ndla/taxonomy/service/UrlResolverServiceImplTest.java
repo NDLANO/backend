@@ -284,6 +284,27 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
+    public void putOldUrlInsertsNewRowWhenRelatedRowWithDifferentQueryParamExists() throws Exception {
+        final String subjectId = "urn:subject:12";
+        final String nodeId = "urn:topic:1:183926";
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).publicId(subjectId).child(NodeType.TOPIC, t -> t.publicId(nodeId)));
+        entityManager.flush();
+
+        urlResolverService.putUrlMapping(
+                "ndla.no/nb/node/183926?fag=127013", URI.create(nodeId), URI.create(subjectId));
+        urlResolverService.putUrlMapping("ndla.no/nb/node/183926", URI.create(nodeId), null);
+        entityManager.flush();
+
+        assertFalse(urlMappingRepository.findAllByOldUrl("ndla.no/node/183926").isEmpty());
+        assertFalse(urlMappingRepository
+                .findAllByOldUrl("ndla.no/node/183926?fag=127013")
+                .isEmpty());
+    }
+
+    @Test
+    @Transactional
     public void resolveEntitiesFromPath() {
         builder.node(
                 NodeType.SUBJECT,
