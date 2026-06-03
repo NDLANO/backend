@@ -20,7 +20,6 @@ import no.ndla.taxonomy.service.UrlResolverService
 import no.ndla.taxonomy.service.dtos.ResolvedUrl
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -34,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController
 class UrlResolver(private val urlResolverService: UrlResolverService) {
 
   @GetMapping("/resolve")
-  @Transactional(readOnly = true)
   fun resolve(
       @RequestParam path: String,
       @RequestParam(value = "language", defaultValue = Constants.DefaultLanguage, required = false)
@@ -44,8 +42,7 @@ class UrlResolver(private val urlResolverService: UrlResolverService) {
           ?: throw NotFoundHttpResponseException("Element with path was not found")
 
   @GetMapping("/mapping")
-  @Operation(summary = "Returns paths for an url or HTTP 404")
-  @Transactional(readOnly = true)
+  @Operation(summary = "Returns path for an url or HTTP 404")
   fun getTaxonomyPathForUrl(
       @Parameter(
           description = "url in old rig except 'https://'",
@@ -64,15 +61,15 @@ class UrlResolver(private val urlResolverService: UrlResolverService) {
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasAuthority('TAXONOMY_WRITE')")
-  @Transactional
-  fun putTaxonomyNodeAndSubjectForOldUrl(@RequestBody urlMapping: UrlMapping): Unit =
-      try {
-        urlResolverService.putUrlMapping(
-            urlMapping.url,
-            URI.create(urlMapping.nodeId),
-            if (urlMapping.subjectId != null) URI.create(urlMapping.subjectId) else null,
-        )
-      } catch (e: UrlResolverService.NodeIdNotFoundException) {
-        throw NotFoundHttpResponseException(e.message)
-      }
+  fun putTaxonomyNodeAndSubjectForOldUrl(@RequestBody urlMapping: UrlMapping) {
+    try {
+      urlResolverService.putUrlMapping(
+          urlMapping.url,
+          URI.create(urlMapping.nodeId),
+          urlMapping.subjectId?.let { URI.create(it) },
+      )
+    } catch (e: UrlResolverService.NodeIdNotFoundException) {
+      throw NotFoundHttpResponseException(e.message)
+    }
+  }
 }

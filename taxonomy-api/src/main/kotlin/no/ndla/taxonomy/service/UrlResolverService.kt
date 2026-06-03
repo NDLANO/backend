@@ -36,21 +36,13 @@ class UrlResolverService(
    * @return return a resolved URL or null
    */
   fun resolveOldUrl(oldUrl: String): String? {
-    val results = getCachedUrlOldRig(oldUrl)
-    if (!results.isEmpty()) {
-      val result = results.first()
-      val subjectId = result.subjectId
-      if (subjectId != null) {
-        val allPaths = getAllPaths(result.publicId)
-        val shortestPath = findShortestPathStartingWith(subjectId, allPaths)
-        if (shortestPath != null) {
-          return shortestPath
-        }
+    val result = getCachedUrlOldRig(oldUrl).firstOrNull() ?: return null
+    result.subjectId?.let { subjectId ->
+      findShortestPathStartingWith(subjectId, getAllPaths(result.publicId))?.let {
+        return it
       }
-      return getPrimaryPath(result.publicId)
-    } else {
-      return null
     }
+    return getPrimaryPath(result.publicId)
   }
 
   private fun findShortestPathStartingWith(subjectId: URI, allPaths: List<String>): String? =
@@ -80,8 +72,7 @@ class UrlResolverService(
       // url
       // e.g. oldUrl /node/54 should not match /node/54321 - therefore we add only if IDs
       // match
-      val mappingOldUrl = mapping.oldUrl
-      getNodeId(mappingOldUrl) == nodeId
+      getNodeId(mapping.oldUrl) == nodeId
     }
   }
 
@@ -102,6 +93,7 @@ class UrlResolverService(
    * @param subjectId subjectID to be associated with this URL (optional)
    * @throws NodeIdNotFoundException if node id not found in taxonomy
    */
+  @Transactional
   @Throws(NodeIdNotFoundException::class)
   fun putUrlMapping(oldUrl: String, nodeId: URI, subjectId: URI?) {
     val canonified = canonifier.canonify(oldUrl)
@@ -149,7 +141,7 @@ class UrlResolverService(
                 ctx.nodeType,
             )
 
-        return ResolvedUrl(
+        ResolvedUrl(
             exactMatch = context != null,
             contentUri = leafNode.contentUri,
             id = URI.create(ctx.publicId),
