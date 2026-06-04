@@ -67,10 +67,14 @@ class UrlCheckerService(using
         val code = response.code.code
         if (code == 200) {
           UrlOk
-        } else if (Seq(301, 307, 308).contains(code)) {
+        } else if (code >= 300 && code < 400) {
           response.header("Location") match {
-            case Some(location) => UrlRedirected(location)
-            case None           =>
+            case Some(location) =>
+              val resolved =
+                if (location.startsWith("http://") || location.startsWith("https://")) location
+                else java.net.URI.create(url).resolve(location).toString
+              UrlRedirected(resolved)
+            case None =>
               logger.warn(s"Redirect response $code for URL '$url' had no Location header")
               UrlOk
           }
