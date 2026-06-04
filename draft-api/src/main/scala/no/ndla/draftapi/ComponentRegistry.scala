@@ -64,6 +64,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   implicit lazy val converterService: ConverterService             = new ConverterService
   implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  implicit lazy val urlCheckerService: UrlCheckerService           = new UrlCheckerService
   implicit lazy val readService: ReadService                       = new ReadService
   implicit lazy val writeService: WriteService                     = new WriteService
   implicit lazy val fileStorage: FileStorageService                = new FileStorageService

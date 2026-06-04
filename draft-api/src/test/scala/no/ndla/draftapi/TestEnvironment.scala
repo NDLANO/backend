@@ -69,10 +69,11 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val commonConverter: CommonConverter           = mock[CommonConverter]
   implicit lazy val stateTransitionRules: StateTransitionRules = mock[StateTransitionRules]
 
-  implicit lazy val readService: ReadService           = mock[ReadService]
-  implicit lazy val writeService: WriteService         = mock[WriteService]
-  implicit lazy val contentValidator: ContentValidator = mock[ContentValidator]
-  implicit lazy val reindexClient: ReindexClient       = mock[ReindexClient]
+  implicit lazy val readService: ReadService             = mock[ReadService]
+  implicit lazy val writeService: WriteService           = mock[WriteService]
+  implicit lazy val urlCheckerService: UrlCheckerService = mock[UrlCheckerService]
+  implicit lazy val contentValidator: ContentValidator   = mock[ContentValidator]
+  implicit lazy val reindexClient: ReindexClient         = mock[ReindexClient]
 
   implicit lazy val fileStorage: FileStorageService = mock[FileStorageService]
   implicit lazy val s3Client: NdlaS3Client          = mock[NdlaS3Client]
