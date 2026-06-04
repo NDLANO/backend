@@ -292,12 +292,11 @@ class InternController(using
   def checkUrls: ServerEndpoint[Any, Eff] = endpoint
     .post
     .in("check-urls")
-    .in(query[Option[Int]]("modulus"))
+    .in(query[Int]("modulus").default(props.UrlCheckDaysInYear).validate(Validator.positive))
     .in(query[Option[Int]]("remainder"))
     .out(stringBody)
     .errorOut(stringInternalServerError)
-    .serverLogicPure { (modulusOpt, remainderOpt) =>
-      val modulus   = modulusOpt.getOrElse(props.UrlCheckDaysInYear)
+    .serverLogicPure { (modulus, remainderOpt) =>
       val remainder = remainderOpt.getOrElse(LocalDate.now().getDayOfYear)
       urlCheckerService.checkUrlsForArticleSlice(modulus, remainder) match {
         case Failure(ex)      => ex.getMessage.asLeft
