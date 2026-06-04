@@ -2268,7 +2268,7 @@ export type components = {
              * @description The ID of this element in the system where the content is stored. This ID should be of the form 'urn:<system>:<id>', where <system> is a short identifier for the system, and <id> is the id of this content in that system.
              * @example urn:article:1
              */
-            contentUri: string;
+            contentUri?: string | null;
             /** @description Is this an exact match for the provided path? False if this is another path to the same resource. */
             exactMatch: boolean;
             /**
@@ -2555,7 +2555,7 @@ export type components = {
              * @description Subject URN for resource in new system (optional)
              * @example urn:subject:5
              */
-            subjectId: string;
+            subjectId?: string | null;
             /**
              * @description URL for resource in old system
              * @example ndla.no/nb/node/183926?fag=127013
