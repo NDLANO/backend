@@ -180,25 +180,31 @@ public class Builder {
 
     @Transactional
     public static class UrlMappingBuilder {
-        private final UrlMapping urlMapping;
+        private String oldUrl;
+        private String publicId;
+        private String subjectId;
 
-        public UrlMappingBuilder() {
-            urlMapping = new UrlMapping();
-        }
+        public UrlMappingBuilder() {}
 
         public UrlMappingBuilder oldUrl(String p) {
-            urlMapping.setOldUrl(p);
+            this.oldUrl = p;
             return this;
         }
 
         public UrlMappingBuilder public_id(String p) {
-            urlMapping.setPublic_id(p);
+            this.publicId = p;
             return this;
         }
 
         public UrlMappingBuilder subject_id(String s) {
-            urlMapping.setSubject_id(s);
+            this.subjectId = s;
             return this;
+        }
+
+        public UrlMapping build() {
+            if (oldUrl == null) throw new IllegalStateException("oldUrl must be set before build()");
+            if (publicId == null) throw new IllegalStateException("publicId must be set before build()");
+            return new UrlMapping(oldUrl, URI.create(publicId), subjectId != null ? URI.create(subjectId) : null);
         }
     }
 
@@ -264,7 +270,7 @@ public class Builder {
     public UrlMapping urlMapping(String key, Consumer<UrlMappingBuilder> consumer) {
         UrlMappingBuilder urlMapping = getUrlMappingBuilder(key);
         if (null != consumer) consumer.accept(urlMapping);
-        return urlMapping.urlMapping;
+        return urlMapping.build();
     }
 
     @Transactional
