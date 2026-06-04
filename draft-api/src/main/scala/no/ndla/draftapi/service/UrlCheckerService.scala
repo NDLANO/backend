@@ -13,6 +13,8 @@ import no.ndla.common.Clock
 import no.ndla.common.model.domain.{EditorNote, Responsible, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.Status
+import no.ndla.database.DBUtility
+import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.network.NdlaClient
 import org.jsoup.Jsoup
 import sttp.client4.quick.*
@@ -27,7 +29,12 @@ case class UrlRedirected(newUrl: String)        extends UrlCheckResult
 case class UrlBroken(statusCode: Int)           extends UrlCheckResult
 case class UrlCheckFailed(exception: Throwable) extends UrlCheckResult
 
-class UrlCheckerService(using ndlaClient: NdlaClient, clock: Clock) extends StrictLogging {
+class UrlCheckerService(using
+    ndlaClient: NdlaClient,
+    clock: Clock,
+    draftRepository: DraftRepository,
+    dbUtility: DBUtility,
+) extends StrictLogging {
 
   private[service] def extractUrls(html: String): List[String] = {
     val doc        = Jsoup.parseBodyFragment(html)
@@ -155,4 +162,50 @@ class UrlCheckerService(using ndlaClient: NdlaClient, clock: Clock) extends Stri
       draft.copy(status = inProgressStatus, responsible = Some(newResponsible))
     } else draft
   }
+
+  /** Fetch articles using a modulus filter, run URL checks on each, and persist any changes.
+    *
+    * @param modulus
+    *   Divisor used for partitioning (e.g. 365 for yearly rotation).
+    * @param remainder
+    *   Only articles where {@code article_id % modulus == remainder % modulus} are processed.
+    * @return
+    *   A summary string describing how many articles were checked and updated.
+    */
+  def checkUrlsForArticleSlice(modulus: Int, remainder: Int): Try[UrlCheckSummary] = {
+    dbUtility
+      .readOnly { implicit session =>
+        draftRepository.getArticlesByModulus(modulus, remainder)
+      }
+      .flatMap { articles =>
+        logger.info(s"URL check: fetched ${articles.size} article(s) (modulus=$modulus, remainder=$remainder)")
+        val systemUser = "url-checker"
+        val results    = articles.map { draft =>
+          val updated = checkAndUpdateUrls(draft, systemUser)
+          val changed = updated != draft
+          if (changed) {
+            dbUtility
+              .rollbackOnFailure { implicit session =>
+                draftRepository.updateArticle(updated)
+              }
+              .map(_ => true)
+          } else {
+            Success(false)
+          }
+        }
+        val failures = results.collect { case Failure(ex) =>
+          ex
+        }
+        val updated = results.count(_.getOrElse(false))
+        if (failures.nonEmpty) {
+          failures.foreach(ex => logger.error("URL check: failed to persist article update", ex))
+        }
+        Success(UrlCheckSummary(checked = articles.size, updated = updated, errors = failures.size))
+      }
+  }
+}
+
+case class UrlCheckSummary(checked: Int, updated: Int, errors: Int) {
+  override def toString: String =
+    s"URL check complete: $checked article(s) checked, $updated updated, $errors error(s)."
 }

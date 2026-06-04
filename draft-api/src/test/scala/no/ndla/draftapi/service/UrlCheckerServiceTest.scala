@@ -13,12 +13,14 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.NdlaRequest
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
+import scalikejdbc.DBSession
 import sttp.client4.{Response, WebSocketSyncBackend}
 import sttp.model.{Method, RequestMetadata, StatusCode, Uri}
 
 import java.util.UUID
+import scala.util.{Failure, Success}
 
 class UrlCheckerServiceTest extends UnitSuite with TestEnvironment {
 
@@ -55,6 +57,7 @@ class UrlCheckerServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     reset(httpClientMock)
+    reset(draftRepository)
     when(clock.now()).thenReturn(TestData.today)
   }
 
@@ -433,5 +436,84 @@ class UrlCheckerServiceTest extends UnitSuite with TestEnvironment {
     result.status.current shouldBe DraftStatus.IN_PROGRESS
     // responsible was not set by url-checker
     result.responsible shouldBe None
+  }
+
+  test("checkUrlsForArticleSlice returns summary with correct counts when articles are unchanged") {
+    when(httpClientMock.send(any[NdlaRequest])).thenReturn(mockResponse(200))
+    val drafts = List(draftWithContent(s"""<a href="$testUrl">link</a>"""), draftWithContent("<p>no links</p>"))
+    when(draftRepository.getArticlesByModulus(eqTo(7), eqTo(3))(using any[DBSession])).thenReturn(Success(drafts))
+
+    val result = service.checkUrlsForArticleSlice(7, 3)
+    result.isSuccess shouldBe true
+    val summary = result.get
+    summary.checked shouldBe 2
+    summary.updated shouldBe 0
+    summary.errors shouldBe 0
+  }
+
+  test("checkUrlsForArticleSlice persists and counts updated articles") {
+    val redirectDraft = draftWithContent(s"""<a href="$testUrl">link</a>""")
+    val cleanDraft    = draftWithContent("<p>no links</p>")
+
+    when(httpClientMock.send(any[NdlaRequest])).thenReturn(mockResponse(301, Some(redirectTarget)))
+    when(draftRepository.getArticlesByModulus(eqTo(365), eqTo(42))(using any[DBSession])).thenReturn(
+      Success(List(redirectDraft, cleanDraft))
+    )
+    when(draftRepository.updateArticle(any[Draft])(using any[DBSession])).thenAnswer(invocation =>
+      Success(invocation.getArgument[Draft](0))
+    )
+
+    val result = service.checkUrlsForArticleSlice(365, 42)
+    result.isSuccess shouldBe true
+    val summary = result.get
+    summary.checked shouldBe 2
+    summary.updated shouldBe 1 // Only the redirected draft was changed
+    summary.errors shouldBe 0
+
+    verify(draftRepository, times(1)).updateArticle(any[Draft])(using any[DBSession])
+  }
+
+  test("checkUrlsForArticleSlice counts errors when repository update fails") {
+    val brokenDraft = draftWithContent(s"""<a href="$testUrl">link</a>""")
+
+    when(httpClientMock.send(any[NdlaRequest])).thenReturn(mockResponse(404))
+    when(draftRepository.getArticlesByModulus(eqTo(365), eqTo(1))(using any[DBSession])).thenReturn(
+      Success(List(brokenDraft))
+    )
+    when(draftRepository.updateArticle(any[Draft])(using any[DBSession])).thenReturn(
+      Failure(new RuntimeException("DB error"))
+    )
+
+    val result = service.checkUrlsForArticleSlice(365, 1)
+    result.isSuccess shouldBe true
+    val summary = result.get
+    summary.checked shouldBe 1
+    summary.updated shouldBe 0
+    summary.errors shouldBe 1
+  }
+
+  test("checkUrlsForArticleSlice returns empty summary when no articles match the slice") {
+    when(draftRepository.getArticlesByModulus(eqTo(365), eqTo(0))(using any[DBSession])).thenReturn(Success(List.empty))
+
+    val result = service.checkUrlsForArticleSlice(365, 0)
+    result.isSuccess shouldBe true
+    val summary = result.get
+    summary.checked shouldBe 0
+    summary.updated shouldBe 0
+    summary.errors shouldBe 0
+  }
+
+  test("checkUrlsForArticleSlice propagates failure when repository query fails") {
+    when(draftRepository.getArticlesByModulus(any[Int], any[Int])(using any[DBSession])).thenReturn(
+      Failure(new RuntimeException("DB connection lost"))
+    )
+
+    val result = service.checkUrlsForArticleSlice(365, 1)
+    result.isFailure shouldBe true
+  }
+
+  test("UrlCheckSummary toString produces a readable message") {
+    UrlCheckSummary(100, 5, 2).toString shouldBe
+      "URL check complete: 100 article(s) checked, 5 updated, 2 error(s)."
   }
 }

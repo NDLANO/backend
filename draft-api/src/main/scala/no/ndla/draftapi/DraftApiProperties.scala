@@ -122,7 +122,13 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     ".step",
   )
 
-  def multipartFileSizeThresholdBytes: Int      = 1024 * 1024 * 30 // 30MB
+  def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
+
+  /** Number of "buckets" articles are spread across for yearly URL checking. article_id % UrlCheckDaysInYear ==
+    * dayOfYear selects today's slice. Set to 1 via the URL_CHECK_DAYS_IN_YEAR env-var to check every article on every
+    * run.
+    */
+  def UrlCheckDaysInYear: Int                   = propOrElse("URL_CHECK_DAYS_IN_YEAR", "365").toInt
   val auth0ManagementClientId: Prop[String]     = prop("AUTH0_MANAGEMENT_CLIENT_ID")
   val auth0ManagementClientSecret: Prop[String] = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
 

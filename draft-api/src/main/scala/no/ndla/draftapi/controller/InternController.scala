@@ -31,6 +31,7 @@ import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
+import java.time.LocalDate
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.{tailrec, unused}
 import scala.concurrent.*
@@ -44,6 +45,7 @@ class InternController(using
     articleIndexService: ArticleIndexService,
     tagIndexService: TagIndexService,
     articleApiClient: ArticleApiClient,
+    urlCheckerService: UrlCheckerService,
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     dbUtility: DBUtility,
@@ -86,6 +88,7 @@ class InternController(using
     dumpArticles,
     dumpSingleArticle,
     postDump,
+    checkUrls,
   )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
@@ -271,5 +274,34 @@ class InternController(using
     .out(jsonBody[Draft])
     .serverLogicPure { article =>
       writeService.insertDump(article)
+    }
+
+  /** POST /intern/check-urls
+    *
+    * Runs the URL checker for a slice of articles selected by modulus arithmetic on article_id.
+    *
+    * Query parameters:
+    *   - modulus (optional) – number of buckets; defaults to [[DraftApiProperties.UrlCheckDaysInYear]]. Set to 1 to
+    *     process every article in a single run.
+    *   - remainder (optional) – which bucket to process; defaults to the current day-of-year (1-based).
+    *
+    * Example – run today's scheduled slice: POST /intern/check-urls
+    *
+    * Example – force-check all articles right now: POST /intern/check-urls?modulus=1&remainder=0
+    */
+  def checkUrls: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("check-urls")
+    .in(query[Option[Int]]("modulus"))
+    .in(query[Option[Int]]("remainder"))
+    .out(stringBody)
+    .errorOut(stringInternalServerError)
+    .serverLogicPure { (modulusOpt, remainderOpt) =>
+      val modulus   = modulusOpt.getOrElse(props.UrlCheckDaysInYear)
+      val remainder = remainderOpt.getOrElse(LocalDate.now().getDayOfYear)
+      urlCheckerService.checkUrlsForArticleSlice(modulus, remainder) match {
+        case Failure(ex)      => ex.getMessage.asLeft
+        case Success(summary) => summary.toString.asRight
+      }
     }
 }
