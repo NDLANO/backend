@@ -50,7 +50,16 @@ class UrlCheckerService(using
   }
 
   private[service] def checkUrl(url: String): UrlCheckResult = {
-    Try(ndlaClient.client.send(quickRequest.head(uri"$url").followRedirects(false))) match {
+    Try(
+      ndlaClient
+        .client
+        .send(
+          quickRequest
+            .head(uri"$url")
+            .followRedirects(false)
+            .readTimeout(scala.concurrent.duration.Duration(10, "seconds"))
+        )
+    ) match {
       case Failure(ex) =>
         logger.warn(s"Failed to check URL '$url': ${ex.getMessage}")
         UrlCheckFailed(ex)
