@@ -32,8 +32,9 @@ class UrlCheckerServiceTest extends UnitSuite with TestEnvironment {
 
   val service: UrlCheckerService = new UrlCheckerService
 
-  val testUrl        = "https://example.com/page"
-  val redirectTarget = "https://example.com/new-page"
+  val testUrl                = "https://example.com/page"
+  val redirectTarget         = "https://example.com/new-page"
+  val relativeRedirectTarget = "/new-page"
 
   private def mockResponse(
       statusCode: Int,
@@ -103,6 +104,11 @@ class UrlCheckerServiceTest extends UnitSuite with TestEnvironment {
 
   test("checkUrl returns UrlRedirected with new url for 301 response with Location header") {
     when(httpClientMock.send(any[NdlaRequest])).thenReturn(mockResponse(301, Some(redirectTarget)))
+    service.checkUrl(testUrl) shouldBe UrlRedirected(redirectTarget)
+  }
+
+  test("checkUrl returns UrlRedirected with new url for 302 response with Location header") {
+    when(httpClientMock.send(any[NdlaRequest])).thenReturn(mockResponse(302, Some(relativeRedirectTarget)))
     service.checkUrl(testUrl) shouldBe UrlRedirected(redirectTarget)
   }
 
