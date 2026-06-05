@@ -149,6 +149,32 @@ public class NodeDTO {
             boolean filterProgrammes,
             boolean isVisible,
             boolean includeParents) {
+        this(
+                root,
+                parent,
+                entity,
+                connectionType,
+                languageCode,
+                contextId,
+                includeContexts,
+                filterProgrammes,
+                isVisible,
+                includeParents,
+                Optional.empty());
+    }
+
+    public NodeDTO(
+            Optional<Node> root,
+            Optional<Node> parent,
+            Node entity,
+            NodeConnectionType connectionType,
+            String languageCode,
+            Optional<String> contextId,
+            boolean includeContexts,
+            boolean filterProgrammes,
+            boolean isVisible,
+            boolean includeParents,
+            Optional<Set<TaxonomyContext>> prefetchedParentContexts) {
 
         var contexts = entity.getContexts();
         var visibleContexts =
@@ -194,7 +220,8 @@ public class NodeDTO {
         this.contextids = entity.getContextIds();
         this.updatedAt = entity.getUpdatedAt();
 
-        Set<TaxonomyContext> parentContexts = includeParents ? entity.getAllParentContexts() : Set.of();
+        Set<TaxonomyContext> parentContexts =
+                includeParents ? prefetchedParentContexts.orElseGet(entity::getAllParentContexts) : Set.of();
         Optional<TaxonomyContext> selected =
                 entity.pickContext(contextId, parent, root, connectionType, filteredContexts);
         selected.ifPresent(ctx -> {

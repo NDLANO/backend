@@ -31,6 +31,7 @@ class VersionService(
     private val entityManager: EntityManager,
     private val versionRepository: VersionRepository,
     private val nodeConnectionService: NodeConnectionService,
+    private val versionResolver: VersionResolver,
 ) {
   private val logger = LoggerFactory.getLogger(javaClass)
   private val validator = URNValidator()
@@ -54,6 +55,7 @@ class VersionService(
       logger.warn("Failed to drop schema. Possible manual cleanup required")
     }
     versionRepository.delete(versionToDelete)
+    versionResolver.invalidate()
   }
 
   fun getVersions(): List<VersionDTO> = versionRepository.findAll().map(::VersionDTO)
@@ -77,6 +79,7 @@ class VersionService(
     // TODO: Replace this with Clock.System.now() at some point
     beta.published = Instant.now()
     versionRepository.saveAndFlush(beta)
+    versionResolver.invalidate()
 
     disconnectAllInvisibleNodes(beta.hash)
   }
@@ -118,8 +121,9 @@ class VersionService(
             "SELECT count(*) from clone_schema('$sourceSchema', '$schema', true, false)")
         .singleResult
 
+    versionResolver.invalidate()
     return version
   }
 
-  fun schemaFromHash(hash: String?) = hash?.let { "${defaultSchema}_$it" } ?: defaultSchema
+  fun schemaFromHash(hash: String?) = versionResolver.schemaFromHash(hash)
 }

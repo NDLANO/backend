@@ -8,17 +8,12 @@
 package no.ndla.taxonomy.service
 
 import jakarta.servlet.http.HttpServletRequest
-import no.ndla.taxonomy.domain.VersionType
-import no.ndla.taxonomy.repositories.VersionRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /** Takes an http request and extracts a given header. Returns a database schema name. */
 @Component
-class VersionHeaderExtractor(
-    private val versionService: VersionService,
-    private val versionRepository: VersionRepository
-) {
+class VersionHeaderExtractor(private val versionResolver: VersionResolver) {
 
   @Value("\${spring.datasource.hikari.schema:taxonomy_api}")
   private lateinit var defaultSchema: String
@@ -31,16 +26,10 @@ class VersionHeaderExtractor(
       val versionHash = req.getHeader("VersionHash")
       when {
         // Header supplied, use that version if in database. Else use default.
-        versionHash != null ->
-            versionRepository.findFirstByHash(versionHash)?.let {
-              versionService.schemaFromHash(it.hash)
-            } ?: defaultSchema
+        versionHash != null -> versionResolver.versionSchemaForHash(versionHash) ?: defaultSchema
 
         // No header, check published and use for gets
-        req.method == "GET" ->
-            versionRepository.findFirstByVersionType(VersionType.PUBLISHED)?.let {
-              versionService.schemaFromHash(it.hash)
-            } ?: defaultSchema
+        req.method == "GET" -> versionResolver.publishedVersionSchema() ?: defaultSchema
 
         else -> defaultSchema
       }

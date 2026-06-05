@@ -77,17 +77,20 @@ public interface NodeConnectionRepository extends TaxonomyRepository<NodeConnect
     @Query("""
             SELECT DISTINCT nc
             FROM NodeConnection nc
-            JOIN FETCH nc.parent n
             JOIN FETCH nc.child c
-            WHERE nc.child.publicId IN :nodeId""")
-    List<NodeConnection> doFindAllByChildIdIncludeTranslationsAndCachedUrlsAndFilters(Collection<URI> nodeId);
+            LEFT JOIN FETCH c.resourceResourceTypes rrt
+            LEFT JOIN FETCH rrt.resourceType
+            WHERE nc.child.publicId IN :childIds
+            AND nc.parent.publicId IN :parentIds
+            """)
+    List<NodeConnection> doFindChildConnections(Collection<URI> childIds, Collection<URI> parentIds);
 
-    default List<NodeConnection> findAllByChildIdIncludeTranslationsAndCachedUrlsAndFilters(Collection<URI> nodeId) {
-        if (nodeId.isEmpty()) {
+    default List<NodeConnection> findChildConnections(Collection<URI> childIds, Collection<URI> parentIds) {
+        if (childIds.isEmpty()) {
             return List.of();
         }
 
-        return doFindAllByChildIdIncludeTranslationsAndCachedUrlsAndFilters(nodeId);
+        return doFindChildConnections(childIds, parentIds);
     }
 
     Optional<NodeConnection> findFirstByPublicId(URI publicId);

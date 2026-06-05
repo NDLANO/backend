@@ -48,6 +48,10 @@ spring:
     activate:
       on-profile: junit
 
+# Tests create and publish versions directly via repositories, bypassing cache invalidation,
+# so disable the version schema cache to keep test isolation intact.
+taxonomy.version-schema-cache-ttl-seconds: 0
+
 logging.level:
   liquibase: WARN
   org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: WARN
