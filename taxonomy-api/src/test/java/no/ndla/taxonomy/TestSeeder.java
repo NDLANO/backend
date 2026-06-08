@@ -80,7 +80,7 @@ public class TestSeeder {
     }
 
     private void createResourceResourceType(String publicId, Node resource, ResourceType resourceType) {
-        final var resourceResourceType = ResourceResourceType.create(resource, resourceType);
+        final var resourceResourceType = ResourceResourceType.Companion.create(resource, resourceType);
 
         if (publicId != null) {
             resourceResourceType.setPublicId(URI.create(publicId));

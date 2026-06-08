@@ -23,7 +23,7 @@ public class ResourceResourceTypeTest {
     public void setUp() {
         resource = mock(Node.class);
         resourceType = mock(ResourceType.class);
-        resourceResourceType = ResourceResourceType.create(resource, resourceType);
+        resourceResourceType = ResourceResourceType.Companion.create(resource, resourceType);
 
         verify(resource).addResourceResourceType(resourceResourceType);
     }

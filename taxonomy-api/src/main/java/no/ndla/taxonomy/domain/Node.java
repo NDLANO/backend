@@ -457,7 +457,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
                     + " is already marked with resource type with id " + resourceType.getPublicId());
         }
 
-        ResourceResourceType resourceResourceType = ResourceResourceType.create(this, resourceType);
+        ResourceResourceType resourceResourceType = ResourceResourceType.Companion.create(this, resourceType);
         addResourceResourceType(resourceResourceType);
         return resourceResourceType;
     }

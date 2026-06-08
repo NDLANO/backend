@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import no.ndla.taxonomy.config.Constants;
 import no.ndla.taxonomy.domain.*;
+import no.ndla.taxonomy.rest.v1.dtos.ResourceTypeWithConnectionDTO;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.LanguageFieldDTO;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.SearchableTaxonomyResourceType;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.TaxonomyContextDTO;
@@ -305,8 +306,8 @@ public class NodeDTO {
                 LanguageFieldDTO.fromLanguageField(LanguageField.fromRelevance(relevance)),
                 entity.getResourceTypes().stream()
                         .sorted((o1, o2) -> {
-                            if (o1.getParent().isEmpty()) return -1;
-                            if (o2.getParent().isEmpty()) return 1;
+                            if (o1.getParent() == null) return -1;
+                            if (o2.getParent() == null) return 1;
                             return 0;
                         })
                         .map(SearchableTaxonomyResourceType::new)

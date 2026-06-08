@@ -8,10 +8,14 @@
 package no.ndla.taxonomy.domain
 
 import java.util.Optional
+import java.util.TreeSet
 
 interface Translatable {
 
   var translations: MutableList<JsonTranslation>
+
+  val supportedLanguages: TreeSet<String>
+    get() = translations.mapNotNull { it.languageCode }.toCollection(TreeSet())
 
   fun clearTranslations() {
     translations = mutableListOf()

@@ -944,4 +944,15 @@
         </sql>
     </changeSet>
 
+
+    <changeSet id="20260604 resource_type parent_id on delete set null" author="Jonas Carlsen">
+        <dropForeignKeyConstraint baseTableName="resource_type" constraintName="resource_type_parent_id_fkey"/>
+        <addForeignKeyConstraint baseTableName="resource_type"
+                                 baseColumnNames="parent_id"
+                                 referencedTableName="resource_type"
+                                 referencedColumnNames="id"
+                                 constraintName="resource_type_parent_id_fkey"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
 </databaseChangeLog>

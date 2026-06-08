@@ -17,7 +17,7 @@ import org.springframework.data.repository.NoRepositoryBean
 interface TaxonomyRepository<T> : JpaRepository<T, Int>, JpaSpecificationExecutor<T> {
   fun findByPublicId(id: URI): T?
 
-  fun getByPublicId(id: URI) = findByPublicId(id) ?: throw NotFoundException("entity", id)
+  fun getByPublicId(id: URI): T = findByPublicId(id) ?: throw NotFoundException("entity", id)
 
   fun deleteAllAndFlush() {
     deleteAll()

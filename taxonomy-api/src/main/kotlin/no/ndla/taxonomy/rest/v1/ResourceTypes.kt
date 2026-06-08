@@ -12,13 +12,13 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import java.net.URI
 import no.ndla.taxonomy.domain.ResourceType
+import no.ndla.taxonomy.domain.exceptions.DuplicateIdException
 import no.ndla.taxonomy.domain.exceptions.NotFoundException
 import no.ndla.taxonomy.repositories.ResourceTypeRepository
 import no.ndla.taxonomy.rest.v1.dtos.ResourceTypeDTO
 import no.ndla.taxonomy.rest.v1.dtos.ResourceTypePUT
 import no.ndla.taxonomy.rest.v1.responses.Created201ApiResponse
 import no.ndla.taxonomy.service.ResourceTypeService
-import no.ndla.taxonomy.service.UpdatableDto
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -51,10 +51,11 @@ class ResourceTypes(
       @Parameter(description = "ISO-639-1 language code", example = "nb")
       @RequestParam(value = "language", required = false, defaultValue = "")
       language: String,
-  ): List<ResourceTypeDTO> =
-      resourceTypeRepository.findAllByParentIncludingTranslationsAndFirstLevelSubtypes(null).map {
-        ResourceTypeDTO(it, language, 100)
-      }
+  ): List<ResourceTypeDTO> {
+    val byParentId =
+        resourceTypeRepository.findAllByOrderByOrderAsc().groupBy { it.parent?.publicId }
+    return buildTree(byParentId, null, language)
+  }
 
   @GetMapping("/{id}")
   @Operation(summary = "Gets a single resource type")
@@ -65,10 +66,9 @@ class ResourceTypes(
       @RequestParam(value = "language", required = false, defaultValue = "")
       language: String,
   ): ResourceTypeDTO =
-      resourceTypeRepository
-          .findFirstByPublicIdIncludingTranslations(id)
-          .map { ResourceTypeDTO(it, language, 0) }
-          .orElseThrow { NotFoundException("ResourceType", id) }
+      resourceTypeRepository.findFirstByPublicIdIncludingTranslations(id)?.let {
+        ResourceTypeDTO(it, language)
+      } ?: throw NotFoundException("ResourceType", id)
 
   @PostMapping
   @Operation(
@@ -85,13 +85,20 @@ class ResourceTypes(
   ): ResponseEntity<Unit> {
     val resourceType = ResourceType()
     if (command.parentId != null) {
-      val parent = resourceTypeRepository.getByPublicId(command.parentId)
-      resourceType.setParent(parent)
+      resourceType.parent = resourceTypeRepository.getByPublicId(command.parentId)
     }
-    if (command.order > -1) {
-      resourceType.order = command.order
+    return try {
+      command.id?.let {
+        validateUrn(it, resourceType)
+        resourceType.publicId = it
+      }
+      command.apply(resourceType)
+      resourceTypeRepository.saveAndFlush(resourceType)
+      resourceTypeService.shiftOrderAfterInsertUpdate(resourceType)
+      ResponseEntity.created(URI.create("$location/${resourceType.publicId}")).build()
+    } catch (e: DataIntegrityViolationException) {
+      throw DuplicateIdException(command.id?.toString())
     }
-    return createEntity(resourceType, command)
   }
 
   @PutMapping("/{id}")
@@ -112,16 +119,14 @@ class ResourceTypes(
       @RequestBody
       command: ResourceTypePUT,
   ) {
-    val resourceType = updateEntity(id, command)
-
-    val parent = command.parentId?.let { resourceTypeRepository.getByPublicId(it) }
-    resourceType.setParent(parent)
-    if (command.id != null) {
-      resourceType.publicId = command.id
+    val resourceType = resourceTypeRepository.getByPublicId(id)
+    command.id?.let {
+      validateUrn(it, resourceType)
+      resourceType.publicId = it
     }
-    if (command.order > -1) {
-      resourceType.order = command.order
-    }
+    command.apply(resourceType)
+    resourceType.parent = command.parentId?.let { resourceTypeRepository.getByPublicId(it) }
+    resourceTypeService.shiftOrderAfterInsertUpdate(resourceType)
   }
 
   @GetMapping("/{id}/subtypes")
@@ -132,13 +137,18 @@ class ResourceTypes(
       @Parameter(description = "ISO-639-1 language code", example = "nb")
       @RequestParam(value = "language", required = false, defaultValue = "")
       language: String,
-      @RequestParam(value = "recursive", required = false, defaultValue = "false")
+      @RequestParam(value = "recursive", required = false, defaultValue = "true")
       @Parameter(description = "If true, sub resource types are fetched recursively")
       recursive: Boolean,
-  ): List<ResourceTypeDTO> =
-      resourceTypeRepository
-          .findAllByParentPublicIdIncludingTranslationsAndFirstLevelSubtypes(id)
-          .map { ResourceTypeDTO(it, language, 100) }
+  ): List<ResourceTypeDTO> {
+    return if (recursive) {
+      val byParentId =
+          resourceTypeRepository.findAllByOrderByOrderAsc().groupBy { it.parent?.publicId }
+      buildTree(byParentId, id, language)
+    } else {
+      resourceTypeRepository.findByParentPublicId(id).map { ResourceTypeDTO(it, language) }
+    }
+  }
 
   @DeleteMapping("/{id}")
   @Operation(
@@ -155,28 +165,12 @@ class ResourceTypes(
     resourceTypeService.updateOrderAfterDelete()
   }
 
-  @Transactional
-  fun createEntity(
-      entity: ResourceType,
-      command: UpdatableDto<ResourceType>
-  ): ResponseEntity<Unit> {
-    return try {
-      validateAndAssignId(entity, command)
-      command.apply(entity)
-      resourceTypeRepository.saveAndFlush(entity)
-      resourceTypeService.shiftOrderAfterInsertUpdate(entity)
-      ResponseEntity.created(URI.create("$location/${entity.publicId}")).build()
-    } catch (e: DataIntegrityViolationException) {
-      handleDuplicateId(command)
-    }
-  }
-
-  @Transactional
-  fun updateEntity(id: URI, command: UpdatableDto<ResourceType>): ResourceType {
-    val entity = resourceTypeRepository.getByPublicId(id)
-    validateUrn(id, entity)
-    command.apply(entity)
-    resourceTypeService.shiftOrderAfterInsertUpdate(entity)
-    return entity
-  }
+  private fun buildTree(
+      byParentId: Map<URI?, List<ResourceType>>,
+      parentId: URI?,
+      language: String,
+  ): List<ResourceTypeDTO> =
+      byParentId[parentId]?.map { rt ->
+        ResourceTypeDTO(rt, language, buildTree(byParentId, rt.publicId, language))
+      } ?: emptyList()
 }

@@ -30,8 +30,8 @@ public class ResourceTypeTranslationsTest extends RestTest {
         ResourceTypeDTO[] resourceTypes = testUtils.getObject(ResourceTypeDTO[].class, response);
 
         assertTrue(resourceTypes.length >= 2);
-        assertAnyTrue(resourceTypes, s -> "Artikkel".equals(s.name));
-        assertAnyTrue(resourceTypes, s -> "Forelesning".equals(s.name));
+        assertAnyTrue(resourceTypes, s -> "Artikkel".equals(s.getName()));
+        assertAnyTrue(resourceTypes, s -> "Forelesning".equals(s.getName()));
     }
 
     @Test
@@ -40,14 +40,14 @@ public class ResourceTypeTranslationsTest extends RestTest {
                 .getPublicId();
 
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, "nb");
-        assertEquals("Artikkel", resourceType.name);
+        assertEquals("Artikkel", resourceType.getName());
     }
 
     @Test
     public void fallback_to_default_language() throws Exception {
         URI id = builder.resourceType(t -> t.name("Article")).getPublicId();
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, "XX");
-        assertEquals("Article", resourceType.name);
+        assertEquals("Article", resourceType.getName());
     }
 
     @Test
@@ -56,7 +56,7 @@ public class ResourceTypeTranslationsTest extends RestTest {
                 .getPublicId();
 
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, null);
-        assertEquals("Article", resourceType.name);
+        assertEquals("Article", resourceType.getName());
     }
 
     @Test

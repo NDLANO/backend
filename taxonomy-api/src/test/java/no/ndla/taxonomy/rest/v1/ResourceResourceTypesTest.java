@@ -29,14 +29,12 @@ public class ResourceResourceTypesTest extends RestTest {
         createdResource.setName("Introduction to integration");
         var integrationResourceId = createdResource.getPublicId();
 
-        URI textTypeId = newResourceType().name("text").getPublicId();
+        ResourceType rt = newResourceType();
+        rt.setName("text");
+        URI textTypeId = rt.getPublicId();
 
-        URI id = getId(testUtils.createResource("/v1/resource-resourcetypes", new ResourceResourceTypePOST() {
-            {
-                resourceId = integrationResourceId;
-                resourceTypeId = textTypeId;
-            }
-        }));
+        URI id = getId(testUtils.createResource(
+                "/v1/resource-resourcetypes", new ResourceResourceTypePOST(integrationResourceId, textTypeId)));
 
         var resource = nodeRepository.getByPublicId(integrationResourceId);
         assertEquals(1, resource.getResourceTypes().size());
@@ -49,17 +47,13 @@ public class ResourceResourceTypesTest extends RestTest {
         var integrationResource = newResource();
         integrationResource.setName("Introduction to integration");
 
-        ResourceType resourceType = newResourceType().name("text");
+        ResourceType resourceType = newResourceType();
+        resourceType.setName("text");
         save(integrationResource.addResourceType(resourceType));
 
         testUtils.createResource(
                 "/v1/resource-resourcetypes",
-                new ResourceResourceTypePOST() {
-                    {
-                        resourceId = integrationResource.getPublicId();
-                        resourceTypeId = resourceType.getPublicId();
-                    }
-                },
+                new ResourceResourceTypePOST(integrationResource.getPublicId(), resourceType.getPublicId()),
                 status().isConflict());
     }
 
@@ -77,12 +71,14 @@ public class ResourceResourceTypesTest extends RestTest {
     public void can_list_all_resource_resourcetypes() throws Exception {
         var trigonometry = newResource();
         trigonometry.setName("Advanced trigonometry");
-        ResourceType article = newResourceType().name("article");
+        ResourceType article = newResourceType();
+        article.setName("article");
         save(trigonometry.addResourceType(article));
 
         var integration = newResource();
         integration.setName("Introduction to integration");
-        ResourceType text = newResourceType().name("text");
+        ResourceType text = newResourceType();
+        text.setName("text");
         save(integration.addResourceType(text));
 
         MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes");
@@ -91,34 +87,36 @@ public class ResourceResourceTypesTest extends RestTest {
         assertEquals(2, resourceResourcetypes.length);
         assertAnyTrue(
                 resourceResourcetypes,
-                t -> trigonometry.getPublicId().equals(t.resourceId)
-                        && article.getPublicId().equals(t.resourceTypeId));
+                t -> trigonometry.getPublicId().equals(t.getResourceId())
+                        && article.getPublicId().equals(t.getResourceTypeId()));
         assertAnyTrue(
                 resourceResourcetypes,
-                t -> integration.getPublicId().equals(t.resourceId)
-                        && text.getPublicId().equals(t.resourceTypeId));
+                t -> integration.getPublicId().equals(t.getResourceId())
+                        && text.getPublicId().equals(t.getResourceTypeId()));
     }
 
     @Test
     public void can_get_a_resource_resourcetype() throws Exception {
         var resource = newResource();
         resource.setName("Advanced trigonometry");
-        ResourceType resourceType = newResourceType().name("article");
+        ResourceType resourceType = newResourceType();
+        resourceType.setName("article");
         ResourceResourceType resourceResourceType = resource.addResourceType(resourceType);
         URI id = save(resourceResourceType).getPublicId();
 
         MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes/" + id);
         ResourceResourceTypeDTO result = testUtils.getObject(ResourceResourceTypeDTO.class, response);
 
-        assertEquals(resource.getPublicId(), result.resourceId);
-        assertEquals(resourceType.getPublicId(), result.resourceTypeId);
+        assertEquals(resource.getPublicId(), result.getResourceId());
+        assertEquals(resourceType.getPublicId(), result.getResourceTypeId());
     }
 
     @Test
     public void can_change_id_of_resource_type() throws Exception {
         var resource = newResource();
         resource.setName("Advanced trigonometry");
-        ResourceType resourceType = newResourceType().name("article");
+        ResourceType resourceType = newResourceType();
+        resourceType.setName("article");
         ResourceResourceType resourceResourceType = resource.addResourceType(resourceType);
         URI id = save(resourceResourceType).getPublicId();
 
@@ -127,7 +125,7 @@ public class ResourceResourceTypesTest extends RestTest {
         MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes/" + id);
         ResourceResourceTypeDTO result = testUtils.getObject(ResourceResourceTypeDTO.class, response);
 
-        assertEquals(resource.getPublicId(), result.resourceId);
-        assertEquals(URI.create("urn:resourcetype:article"), result.resourceTypeId);
+        assertEquals(resource.getPublicId(), result.getResourceId());
+        assertEquals(URI.create("urn:resourcetype:article"), result.getResourceTypeId());
     }
 }
