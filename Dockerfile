@@ -8,6 +8,11 @@ WORKDIR /app
 
 # Build Scala backend module
 RUN apk add --no-cache curl jq
+
+ARG OTEL_AGENT_VERSION=2.27.0
+RUN curl -sSfL -o /otel-agent.jar \
+    "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar"
+
 COPY . .
 RUN ./mill -i ${MODULE}.assembly
 
@@ -21,9 +26,8 @@ RUN $JAVA_HOME/bin/jdeps \
     --class-path "$(cat classpath.info)" \
     out/${MODULE}/compile.dest/classes > deps.info
 
-# Create custom JRE with the above modules
 RUN $JAVA_HOME/bin/jlink \
-         --add-modules $(cat deps.info) \
+         --add-modules "$(cat deps.info),java.instrument,jdk.unsupported,java.management,jdk.management,jdk.attach,java.naming,java.sql,java.net.http,jdk.jfr,java.security.sasl" \
          --strip-debug \
          --no-man-pages \
          --no-header-files \
@@ -45,6 +49,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Set up and run Scala app
 COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar /app/out.jar
+COPY --from=builder /otel-agent.jar /app/opentelemetry-javaagent.jar
 ENV LOG_APPENDER=Docker
 COPY jvm-runtime-options /app/jvm-runtime-options
-ENTRYPOINT ["sh", "-c", "exec java @/app/jvm-runtime-options $JAVA_OPTS -jar /app/out.jar"]
+ENTRYPOINT ["sh", "-c", "exec java ${OTEL_JAVAAGENT:+-javaagent:/app/opentelemetry-javaagent.jar} @/app/jvm-runtime-options $JAVA_OPTS -jar /app/out.jar"]
