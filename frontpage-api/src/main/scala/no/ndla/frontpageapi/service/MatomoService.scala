@@ -23,8 +23,6 @@ import no.ndla.network.clients.TaxonomyApiClient
 import no.ndla.network.clients.matomo.model.MatomoPageUrlResult
 import no.ndla.network.clients.matomo.MatomoApiClient
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import scala.util.{Failure, Success, Try}
 
 class MatomoService(using
@@ -80,12 +78,6 @@ class MatomoService(using
     _                  <- subjectPageRepository.updateSubjectPage(subjectPageToUpdate)
   } yield popularArticles.size
 
-  private def lastWeekDateRange: String = {
-    val today   = LocalDate.now()
-    val weekAgo = today.minusDays(DaysInDateRange)
-    s"${weekAgo.format(DateTimeFormatter.ISO_LOCAL_DATE)},${today.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
-  }
-
   def updatePopularArticlesForSubjectPage(
       contentUriToNode: Map[String, Node],
       subjectPageResult: Try[SubjectPage],
@@ -131,10 +123,9 @@ class MatomoService(using
       for {
         taxonomySubjects <- taxonomyApiClient.getSubjects(true)
         contentUriToNode  = taxonomySubjects.flatMap(node => node.contentUri.map(_ -> node)).toMap
-        dateRange         = lastWeekDateRange
         dimensionId      <- matomoApiClient.getDimensionIdForSubjectId
-        subtableIds      <- matomoApiClient.getSubtableIds(MatomoPeriod, dateRange, dimensionId)
-        result           <- updatePopularArticlesForEachSubjectPage(contentUriToNode, dateRange, subtableIds, dimensionId)
+        subtableIds      <- matomoApiClient.getSubtableIds(MatomoPeriod, MatomoDate, dimensionId)
+        result           <- updatePopularArticlesForEachSubjectPage(contentUriToNode, MatomoDate, subtableIds, dimensionId)
       } yield result
   }
 }
@@ -142,9 +133,9 @@ class MatomoService(using
 object MatomoService {
   case class MissingMatomoDataEx(message: String) extends RuntimeException(message)
 
-  private val MatomoPeriod     = "range"
+  private val MatomoPeriod     = "week"
+  private val MatomoDate       = "last1"
   private val PageLimit        = 100
   private val TopArticlesLimit = 20
-  private val DaysInDateRange  = 7
   private val ContextIdRegex   = "[A-Fa-f0-9]{10}([A-Fa-f0-9]{2})?".r
 }
