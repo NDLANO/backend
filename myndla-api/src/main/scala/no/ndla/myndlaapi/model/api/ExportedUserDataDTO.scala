@@ -18,6 +18,8 @@ case class ExportedUserDataDTO(
     userData: MyNDLAUserDTO,
     @description("The users folders")
     folders: List[FolderDTO],
+    @description("Resources saved on the root level")
+    rootResources: List[ResourceDTO],
 )
 
 object ExportedUserDataDTO {
