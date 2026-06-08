@@ -40,7 +40,6 @@ case class FeideAuth()(using
   private val feideUserWrapperMapping               = Mapping.fromDecode(decodeFeideUserWrapper)(encodeFeideUserWrapper)
   private val bearerFeideUserWrapperMapping         = bearerMapping.map(feideUserWrapperMapping)
   private val optionalBearerFeideUserWrapperMapping = TapirAuthUtil.makeOptionalMapping(bearerFeideUserWrapperMapping)
-  private val optionalBearerMapping                 = TapirAuthUtil.makeOptionalMapping(bearerMapping)
 
   private val feideIdTokenMapping       = Mapping.fromDecode(decodeFeideIdToken)(encodeFeideIdToken)
   private val bearerFeideIdTokenMapping = bearerMapping.map(feideIdTokenMapping)
@@ -48,7 +47,6 @@ case class FeideAuth()(using
   private val requiredFeideUserWrapperHeaderInput = header[String](headerName).map(bearerFeideUserWrapperMapping)
   private val optionalFeideUserWrapperHeaderInput =
     header[Option[String]](headerName).map(optionalBearerFeideUserWrapperMapping)
-  private val optionalRawBearerHeaderInput = header[Option[String]](headerName).map(optionalBearerMapping)
 
   private val requiredFeideIdTokenHeaderInput = header[String](headerName).map(bearerFeideIdTokenMapping)
 
@@ -56,8 +54,6 @@ case class FeideAuth()(using
     oauth2EndpointInput(requiredFeideUserWrapperHeaderInput)
   val feideOptionalAuth: EndpointInput.Auth[Option[FeideUserWrapper], AuthType.OAuth2] =
     oauth2EndpointInput(optionalFeideUserWrapperHeaderInput)
-  val feideOptionalUncheckedAuth: EndpointInput.Auth[Option[String], AuthType.OAuth2] =
-    oauth2EndpointInput(optionalRawBearerHeaderInput)
 
   val feideIdTokenRequiredAuth: EndpointInput.Auth[FeideIdToken, AuthType.OAuth2] =
     oauth2EndpointInput(requiredFeideIdTokenHeaderInput)

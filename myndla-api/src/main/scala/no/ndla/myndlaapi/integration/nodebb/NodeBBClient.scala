@@ -14,7 +14,7 @@ import io.circe.generic.auto.*
 import io.circe.parser.parse
 import no.ndla.common.implicits.*
 import no.ndla.myndlaapi.Props
-import no.ndla.network.model.FeideAccessToken
+import no.ndla.network.model.FeideIdToken
 import sttp.client4.Response
 import sttp.client4.quick.*
 import sttp.model.headers.CookieWithMeta
@@ -28,8 +28,10 @@ class NodeBBClient(using props: Props) extends StrictLogging {
 
   case class NodeBBSession(csrfToken: String, cookies: Seq[CookieWithMeta])
 
-  private def getCSRFToken(feideToken: FeideAccessToken): Try[NodeBBSession] = permitTry {
-    val request   = quickRequest.get(uri"$baseUrl/api/config").header("FeideAuthorization", s"Bearer $feideToken")
+  private def getCSRFToken(feideToken: FeideIdToken): Try[NodeBBSession] = permitTry {
+    val request = quickRequest
+      .get(uri"$baseUrl/api/config")
+      .header("FeideAuthorization", s"Bearer ${feideToken.originalToken}")
     val resp      = doReq(request).?
     val csrfToken = parse(resp.body).flatMap(_.as[NodeBBApiConfig]).toTry.map(_.csrf_token).?
 
@@ -53,10 +55,12 @@ class NodeBBClient(using props: Props) extends StrictLogging {
     }
   }
 
-  def getUserId(feideToken: FeideAccessToken): Try[Option[Long]] = boundary {
+  def getUserId(feideToken: FeideIdToken): Try[Option[Long]] = boundary {
     permitTry {
-      val request = quickRequest.get(uri"$baseUrl/api/config").header("FeideAuthorization", s"Bearer $feideToken")
-      val resp    = doReq(request).?
+      val request = quickRequest
+        .get(uri"$baseUrl/api/config")
+        .header("FeideAuthorization", s"Bearer ${feideToken.originalToken}")
+      val resp = doReq(request).?
 
       if (resp.code.code == 403) boundary.break(Success(None))
 
@@ -65,7 +69,7 @@ class NodeBBClient(using props: Props) extends StrictLogging {
     }
   }
 
-  def deleteUser(userId: Option[Long], feideToken: FeideAccessToken): Try[Unit] = {
+  def deleteUser(userId: Option[Long], feideToken: FeideIdToken): Try[Unit] = {
     userId match {
       case None     => Success(())
       case Some(id) => for {
@@ -75,19 +79,18 @@ class NodeBBClient(using props: Props) extends StrictLogging {
     }
   }
 
-  def deleteUserWithCSRF(userId: Long, feideToken: FeideAccessToken, nodebbSession: NodeBBSession): Try[Unit] =
-    permitTry {
-      val request = quickRequest
-        .delete(uri"$baseUrl/api/v3/users/$userId/account")
-        .header("FeideAuthorization", s"Bearer $feideToken")
-        .header("X-CSRF-Token", nodebbSession.csrfToken)
-        .cookies(nodebbSession.cookies)
-      val resp = doReq(request).?
-      if (resp.isSuccess) Success(())
-      else {
-        val msg = s"Failed to delete nodebb user with id $userId, Got code: ${resp.code}, with body:\n\n${resp.body}"
-        logger.error(msg)
-        Failure(new Exception(msg))
-      }
+  def deleteUserWithCSRF(userId: Long, feideToken: FeideIdToken, nodebbSession: NodeBBSession): Try[Unit] = permitTry {
+    val request = quickRequest
+      .delete(uri"$baseUrl/api/v3/users/$userId/account")
+      .header("FeideAuthorization", s"Bearer ${feideToken.originalToken}")
+      .header("X-CSRF-Token", nodebbSession.csrfToken)
+      .cookies(nodebbSession.cookies)
+    val resp = doReq(request).?
+    if (resp.isSuccess) Success(())
+    else {
+      val msg = s"Failed to delete nodebb user with id $userId, Got code: ${resp.code}, with body:\n\n${resp.body}"
+      logger.error(msg)
+      Failure(new Exception(msg))
     }
+  }
 }

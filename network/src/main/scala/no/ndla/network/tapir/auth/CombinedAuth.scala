@@ -11,7 +11,9 @@ package no.ndla.network.tapir.auth
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.*
+import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
 import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
+import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.server.PartialServerEndpoint
 
@@ -19,6 +21,10 @@ case class CombinedAuth()(using ndlaAuth: NdlaAuth, feideAuth: FeideAuth, errorH
     extends StrictLogging {
 
   extension [INPUT, OUTPUT, R](self: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R]) {
+    private def selfWithErrorOut: Endpoint[Unit, INPUT, AllErrors, OUTPUT, R] = self
+      .errorOutVariantPrepend(errorOutputVariantFor(StatusCode.Unauthorized.code))
+      .errorOutVariantPrepend(errorOutputVariantFor(StatusCode.Forbidden.code))
+
     def withOptionalMyNDLAUserOrTokenUser[F[_]]: PartialServerEndpoint[
       (Option[TokenUser], Option[FeideUserWrapper]),
       CombinedUser,
@@ -27,7 +33,7 @@ case class CombinedAuth()(using ndlaAuth: NdlaAuth, feideAuth: FeideAuth, errorH
       OUTPUT,
       R,
       F,
-    ] = self
+    ] = selfWithErrorOut
       .securityIn(ndlaAuth.ndlaOptionalAuth)
       .securityIn(feideAuth.feideOptionalAuth)
       .serverSecurityLogicPure(OptionalCombinedUser.apply.tupled.andThen(Right(_)))
@@ -40,7 +46,7 @@ case class CombinedAuth()(using ndlaAuth: NdlaAuth, feideAuth: FeideAuth, errorH
       OUTPUT,
       R,
       F,
-    ] = self
+    ] = selfWithErrorOut
       .securityIn(ndlaAuth.ndlaOptionalAuth)
       .securityIn(feideAuth.feideOptionalAuth)
       .serverSecurityLogicPure {

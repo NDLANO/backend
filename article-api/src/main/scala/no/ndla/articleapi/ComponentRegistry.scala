@@ -32,7 +32,6 @@ import no.ndla.common.Clock
 import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
 import no.ndla.network.tapir.{
   ErrorHandling,
@@ -62,7 +61,6 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given traitUtil: TraitUtil                                = new TraitUtil
   given articleRepository: ArticleRepository                = new ArticleRepository
   given converterService: ConverterService                  = new ConverterService
-  given redisClient: FeideRedisClient                       = new FeideRedisClient(props.RedisHost, props.RedisPort)
   given ndlaClient: NdlaClient                              = new NdlaClient
   given searchApiClient: SearchApiClient                    = new SearchApiClient(props.SearchApiUrl)
   given feideApiClient: FeideApiClient                      = new FeideApiClient

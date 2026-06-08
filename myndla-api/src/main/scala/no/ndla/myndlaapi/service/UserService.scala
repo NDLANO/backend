@@ -12,7 +12,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaEmailClient
-import no.ndla.common.errors.{InactivityEmailException, NotFoundException}
+import no.ndla.common.errors.InactivityEmailException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
@@ -21,7 +21,6 @@ import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.repository.UserRepository
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID, FeideIdToken, FeideUserWrapper}
 import scalikejdbc.DBSession
@@ -30,7 +29,6 @@ import scala.util.{Failure, Success, Try}
 
 class UserService(using
     feideApiClient: FeideApiClient,
-    feideRedisClient: FeideRedisClient,
     folderConverterService: FolderConverterService,
     userRepository: UserRepository,
     clock: Clock,
@@ -40,33 +38,26 @@ class UserService(using
     emailClient: NdlaEmailClient,
     props: Props,
 ) extends StrictLogging {
-  def getOrCreateMyNdlaUser(feideId: FeideID, feideAccessToken: FeideAccessToken)(implicit
-      session: DBSession
-  ): Try[MyNDLAUser] = {
-    for {
-      alreadyExists <- userRepository.reserveFeideIdIfNotExists(feideId)
-      user          <-
-        if (alreadyExists) {
-          userRepository
-            .userWithFeideId(feideId)
-            .flatMap {
-              case None                                         => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
-              case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
-              case Some(userData)                               => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)
-            }
-        } else createMyNDLAUser(feideId, feideAccessToken)
-      lastSeen <- userRepository.updateLastSeen(feideId, clock.now())(using session)
-    } yield user.copy(lastSeen = lastSeen)
-  }
-
-  def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Try[Option[FeideUserWrapper]] = for {
-    maybeAccessToken <- feideRedisClient.getFeideSession(idToken)
-    userWrapper      <- maybeAccessToken.traverse { accessToken =>
-      dbUtility
-        .rollbackOnFailure(implicit session => getOrCreateMyNdlaUser(idToken.sub, accessToken))
-        .map(FeideUserWrapper(_, idToken, accessToken))
+  def createOrUpdateUser(idToken: FeideIdToken, accessToken: FeideAccessToken): Try[MyNDLAUserDTO] = dbUtility
+    .writeSession { implicit session =>
+      for {
+        feideId     = idToken.sub
+        userExists <- userRepository.reserveFeideIdIfNotExists(feideId)
+        user       <-
+          if (userExists) {
+            userRepository
+              .userWithFeideId(feideId)
+              .flatMap {
+                case Some(userData) => fetchDataAndUpdateMyNDLAUser(feideId, accessToken, userData)
+                case None           => Failure(IllegalStateException(s"Expected user with Feide ID $feideId to exist"))
+              }
+          } else createMyNDLAUser(feideId, accessToken)
+      } yield folderConverterService.toApiUserData(user)
     }
-  } yield userWrapper
+
+  def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Try[Option[FeideUserWrapper]] = dbUtility
+    .rollbackOnFailure(implicit session => userRepository.userWithFeideId(idToken.sub))
+    .map(_.map(FeideUserWrapper(_, idToken)))
 
   def getApiUserFromFeideWrapper(feide: FeideUserWrapper): MyNDLAUserDTO =
     folderConverterService.toApiUserData(feide.user)
@@ -94,14 +85,6 @@ class UserService(using
     } yield api
   }
 
-  private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[MyNDLAUser] = {
-    userRepository.userWithFeideId(feideId) match {
-      case Failure(ex)         => Failure(ex)
-      case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
-      case Success(Some(user)) => Success(user)
-    }
-  }
-
   private def toDomainGroups(feideGroups: Seq[FeideGroup]): Seq[MyNDLAGroup] = {
     feideGroups
       .filter(group => group.`type` == FeideGroup.FC_ORG)
@@ -119,10 +102,9 @@ class UserService(using
       session: DBSession
   ): Try[MyNDLAUser] = {
     for {
-      feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
-      organization          <- feideApiClient.getOrganization(feideAccessToken)
-      feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
-      userRole               =
+      feideExtendedUserData       <- feideApiClient.getFeideExtendedUser(feideAccessToken)
+      (feideGroups, organization) <- feideApiClient.getFeideGroupsAndOrganization(feideAccessToken)
+      userRole                     =
         if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE
         else UserRole.STUDENT
       newUser = MyNDLAUserDocument(
@@ -143,10 +125,9 @@ class UserService(using
   private def fetchDataAndUpdateMyNDLAUser(feideId: FeideID, feideAccessToken: FeideAccessToken, userData: MyNDLAUser)(
       implicit session: DBSession
   ): Try[MyNDLAUser] = permitTry {
-    val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
-    val organization = feideApiClient.getOrganization(feideAccessToken).?
-    val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-    val userRole     =
+    val feideUser                   = feideApiClient.getFeideExtendedUser(feideAccessToken).?
+    val (feideGroups, organization) = feideApiClient.getFeideGroupsAndOrganization(feideAccessToken).?
+    val userRole                    =
       if (feideUser.isTeacher) UserRole.EMPLOYEE
       else UserRole.STUDENT
 
@@ -171,8 +152,8 @@ class UserService(using
 
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure(session => {
     for {
-      nodebbUserId <- nodeBBClient.getUserId(feide.accessToken)
-      _            <- nodeBBClient.deleteUser(nodebbUserId, feide.accessToken)
+      nodebbUserId <- nodeBBClient.getUserId(feide.idToken)
+      _            <- nodeBBClient.deleteUser(nodebbUserId, feide.idToken)
       _            <- userRepository.deleteUser(feide.user.feideId)(using session)
     } yield ()
   })
@@ -224,12 +205,6 @@ class UserService(using
       cleanupResult                     <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
     } yield InactiveUserResultDTO(cleanupResult.numCleanup, cleanupResult.numEmailed)
   }
-
-  def setFeideSessionAndGetUser(idToken: FeideIdToken, accessToken: FeideAccessToken): Try[MyNDLAUserDTO] = for {
-    _      <- feideRedisClient.setFeideSession(idToken, accessToken)
-    user   <- dbUtility.rollbackOnFailure(implicit session => getOrCreateMyNdlaUser(idToken.sub, accessToken))
-    apiUser = folderConverterService.toApiUserData(user)
-  } yield apiUser
 }
 
 object UserService {

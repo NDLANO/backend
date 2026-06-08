@@ -28,7 +28,7 @@ object JwtDecoder {
     for {
       iss                    <- claims.stringClaim("iss")
       jti                    <- claims.stringClaim("jti")
-      aud                    <- claims.stringListClaim("aud")
+      aud                    <- claims.audience
       sub                    <- claims.stringClaim("sub")
       iat                    <- claims.issueTime
       exp                    <- claims.expirationTime

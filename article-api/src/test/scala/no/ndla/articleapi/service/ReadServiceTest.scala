@@ -165,7 +165,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds doesn't perform filter when every article has availability status everyone") {
-    val feideId  = "asd"
     val ids      = List(1L, 2L, 3L)
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
@@ -179,8 +178,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
       .get
     result.length should be(3)
-
-    verify(feideApiClient, times(0)).getFeideExtendedUser(feideId)
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
@@ -197,7 +194,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(true)
-    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken])
 
     val result = readService
       .getArticlesByIds(
@@ -220,7 +217,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(false)
-    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken])
 
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))

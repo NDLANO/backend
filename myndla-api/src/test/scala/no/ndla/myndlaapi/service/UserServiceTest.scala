@@ -98,7 +98,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
     )
 
-    val feide = FeideUserWrapper(userBefore, mock[FeideIdToken], feideAccessToken)
+    val feide = FeideUserWrapper(userBefore, mock[FeideIdToken])
     when(folderWriteService.canWriteOrAccessDenied(any[FeideUserWrapper])).thenReturn(Success(userBefore))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
@@ -122,12 +122,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     service.updateMyNDLAUserData(updatedUserData, feide) should be(Failure(expectedException))
   }
 
-  test("That getOrCreateMyNdlaUser creates new UserData if no user exist") {
-    val now = TestData.today
-    when(clock.now()).thenReturn(now)
-    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
-
-    val feideId     = "feide"
+  test("That createOrUpdateUser creates new UserData if no user exist") {
+    val now         = TestData.today
+    val feide       = FeideAuthTestData.AsbjornElev
     val feideGroups = Seq(
       FeideGroup(
         id = "id",
@@ -137,19 +134,13 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         parent = None,
       )
     )
-    val domainUserData = MyNDLAUser(
-      id = 42,
-      feideId = feideId,
-      favoriteSubjects = Seq("r", "e"),
-      userRole = UserRole.STUDENT,
-      lastUpdated = now,
-      organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      username = "example@email.com",
-      displayName = "Feide",
-      email = "example@email.com",
-      arenaEnabled = false,
-      lastSeen = now,
+    val myNdlaGroups = feideGroups.map(feideGroup =>
+      MyNDLAGroup(
+        id = feideGroup.id,
+        displayName = feideGroup.displayName,
+        isPrimarySchool = feideGroup.membership.primarySchool.getOrElse(false),
+        parentId = feideGroup.parent,
+      )
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -158,61 +149,41 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       eduPersonPrincipalName = "example@email.com",
       mail = Some(Seq("example@email.com")),
     )
+    val expectedUser = folderConverterService.toApiUserData(
+      feide
+        .user
+        .copy(
+          groups = myNdlaGroups,
+          organization = "oslo",
+          username = feideUserInfo.username,
+          displayName = feideUserInfo.displayName,
+          email = feideUserInfo.email,
+        )
+    )
 
+    when(clock.now()).thenReturn(now)
+    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
     when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(feideUserInfo))
-    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
-    when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
-    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any)).thenReturn(Success(domainUserData))
+    when(feideApiClient.getFeideGroupsAndOrganization(eqTo(feideAccessToken))).thenReturn(
+      Success((feideGroups, "oslo"))
+    )
+    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any)).thenAnswer { i =>
+      Success(i.getArgument[MyNDLAUserDocument](1).toFullUser(feide.user.id, feide.user.feideId, now))
+    }
 
-    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
+    service.createOrUpdateUser(feide.idToken, feideAccessToken).get should be(expectedUser)
 
-    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getFeideGroups(any)
-    verify(feideApiClient, times(1)).getOrganization(any)
     verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(using any)
+    verify(userRepository, times(0)).userWithFeideId(any)(using any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(1)).getFeideGroupsAndOrganization(any)
     verify(userRepository, times(1)).insertUser(any, any)(using any)
     verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
-  test("That getOrCreateMyNdlaUser returns already created user if it exists and was updated lately") {
-    val now = TestData.today
-    when(clock.now()).thenReturn(now)
-    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
-
-    val feideId        = "feide"
-    val domainUserData = MyNDLAUser(
-      id = 42,
-      feideId = feideId,
-      favoriteSubjects = Seq("r", "e"),
-      userRole = UserRole.STUDENT,
-      lastUpdated = now.plusDays(1),
-      organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      username = "example@email.com",
-      displayName = "Feide",
-      email = "example@email.com",
-      arenaEnabled = false,
-      lastSeen = now,
-    )
-
-    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
-
-    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
-
-    verify(feideApiClient, times(0)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(0)).getFeideGroups(any)
-    verify(userRepository, times(1)).userWithFeideId(any)(using any)
-    verify(userRepository, times(0)).insertUser(any, any)(using any)
-    verify(userRepository, times(0)).updateUser(any, any)(using any)
-  }
-
-  test("That getOrCreateMyNdlaUser returns already created user if it exists but needs update") {
-    val now = TestData.today
-    when(clock.now()).thenReturn(now)
-    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
-
-    val feideId     = "feide"
+  test("That createOrUpdateUser updates user if it already exists") {
+    val now         = TestData.today
+    val feide       = FeideAuthTestData.AsbjornElev
     val feideGroups = Seq(
       FeideGroup(
         id = "id",
@@ -222,40 +193,48 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
         parent = None,
       )
     )
-    val domainUserData = MyNDLAUser(
-      id = 42,
-      feideId = feideId,
-      favoriteSubjects = Seq("r", "e"),
-      userRole = UserRole.STUDENT,
-      lastUpdated = now.minusDays(1),
-      organization = "oslo",
-      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      username = "example@email.com",
-      displayName = "Feide",
-      email = "example@email.com",
-      arenaEnabled = false,
-      lastSeen = now,
+    val myNdlaGroups = feideGroups.map(feideGroup =>
+      MyNDLAGroup(
+        id = feideGroup.id,
+        displayName = feideGroup.displayName,
+        isPrimarySchool = feideGroup.membership.primarySchool.getOrElse(false),
+        parentId = feideGroup.parent,
+      )
     )
-    val updatedFeideUser = FeideExtendedUserInfo(
-      displayName = "name",
-      eduPersonAffiliation = Seq.empty,
+    val feideUserInfo = FeideExtendedUserInfo(
+      displayName = "David",
+      eduPersonAffiliation = Seq("student"),
       None,
       eduPersonPrincipalName = "example@email.com",
       mail = Some(Seq("example@email.com")),
     )
+    val expectedUser = folderConverterService.toApiUserData(
+      feide
+        .user
+        .copy(
+          groups = myNdlaGroups,
+          organization = "oslo",
+          username = feideUserInfo.username,
+          displayName = feideUserInfo.displayName,
+          email = feideUserInfo.email,
+        )
+    )
 
-    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(updatedFeideUser))
-    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
-    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
-    when(userRepository.updateUser(any, any)(using any)).thenReturn(Success(domainUserData))
+    when(clock.now()).thenReturn(now)
+    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
+    when(userRepository.userWithFeideId(eqTo(feide.user.feideId))(using any)).thenReturn(Success(Some(feide.user)))
+    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(feideUserInfo))
+    when(feideApiClient.getFeideGroupsAndOrganization(eqTo(feideAccessToken))).thenReturn(
+      Success((feideGroups, "oslo"))
+    )
+    when(userRepository.updateUser(any, any)(using any)).thenAnswer(i => Success(i.getArgument(1)))
 
-    service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
+    service.createOrUpdateUser(feide.idToken, feideAccessToken).get should be(expectedUser)
 
-    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getFeideGroups(any)
-    verify(feideApiClient, times(1)).getOrganization(any)
+    verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(using any)
     verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(1)).getFeideGroupsAndOrganization(any)
     verify(userRepository, times(0)).insertUser(any, any)(using any)
     verify(userRepository, times(1)).updateUser(any, any)(using any)
   }

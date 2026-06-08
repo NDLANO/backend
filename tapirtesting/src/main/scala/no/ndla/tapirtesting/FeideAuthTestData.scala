@@ -86,7 +86,7 @@ object FeideAuthTestData {
       lastUpdated = NDLADate.now(),
       lastSeen = NDLADate.now(),
     )
-    FeideUserWrapper(user, idToken.copy(originalToken = jwt), UUID.randomUUID().toString)
+    FeideUserWrapper(user, idToken.copy(originalToken = jwt))
   }
 
   private val rsaJwk                    = TestRsaJwk.FeideAuthKey

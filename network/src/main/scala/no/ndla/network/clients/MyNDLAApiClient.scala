@@ -41,7 +41,7 @@ class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends My
     val req = quickRequest.post(url).body(CirceUtil.toJsonString(idToken))
     ndlaClient.fetch[Option[FeideUserWrapper]](req) match {
       case Success(Some(userWrapper)) => Right(userWrapper)
-      case Success(None)              => Left(MissingFeideAccessTokenException())
+      case Success(None)              => Left(MissingFeideUserException())
       case Failure(ex)                => Left(GetFeideUserWrapperException(ex))
     }
   }

@@ -16,7 +16,7 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.integration.SearchApiClient
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.api.{FeideSessionDTO, FolderDTO}
+import no.ndla.myndlaapi.model.api.{FeideAccessTokenDTO, FolderDTO}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
@@ -70,13 +70,12 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
       override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
-      when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+      when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
         Success(
           FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
       )
-      when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(nodebb.getUserId(any)).thenReturn(Success(Some(1L)))
       when(nodebb.deleteUser(any, any)).thenReturn(Success(()))
     }
@@ -106,18 +105,23 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers
 
-    val feideSessionDto  = FeideSessionDTO(FeideAuthTestData.FrankForeleser.accessToken)
-    val feideSessionBody = CirceUtil.toJsonString(feideSessionDto)
-    quickRequest
-      .put(uri"$myndlaApiUserUrl/session")
-      .header("FeideAuthorization", s"Bearer $feideIdToken")
-      .contentType("application/json")
-      .body(feideSessionBody)
-      .send()
+    createUser()
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
+  }
+
+  def createUser(): Unit = {
+    val feideAccessTokenJson = CirceUtil.toJsonString(FeideAccessTokenDTO("access-token"))
+    val res                  = quickRequest
+      .put(uri"$myndlaApiUserUrl")
+      .header("FeideAuthorization", s"Bearer $feideIdToken")
+      .contentType("application/json")
+      .body(feideAccessTokenJson)
+      .send()
+    if !res.isSuccess then
+      fail(s"Failed to create user $feideId failed with code ${res.code} and body:\n${res.body}")
   }
 
   def createFolder(name: String, parentId: Option[String]): api.FolderDTO = {
@@ -238,6 +242,7 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
     rootResourcesForU1.length should be(1)
 
     deleteUser()
+    createUser()
 
     val foldersForU1again = getFolders(false)
     foldersForU1again.sharedFolders.length should be(0)
