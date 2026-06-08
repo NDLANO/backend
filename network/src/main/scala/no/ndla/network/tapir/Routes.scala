@@ -148,6 +148,7 @@ class Routes(using
       val requestInfo = RequestInfo.fromRequest(req)
       requestInfo.setThreadContextRequestInfo()
       setBeforeMDC(requestInfo, req)
+      CorrelationID.get.foreach(id => NdlaTracing.setSpanAttribute("ndla.correlation_id", id))
       val startTime = System.currentTimeMillis()
 
       val shouldLog = shouldLogRequest(req)
@@ -256,6 +257,7 @@ class Routes(using
       .decodeFailureHandler(NdlaDecodeFailureHandler)
       .serverLog(None)
       .metricsInterceptor(prometheusMetrics.metricsInterceptor())
+      .addInterceptor(NdlaTracing.spanNamingInterceptor)
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
