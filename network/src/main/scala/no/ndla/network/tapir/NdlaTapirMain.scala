@@ -61,13 +61,9 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
     this.serverBinding match {
       case Some(server) =>
         // Make sure to wait for readiness probe to fail before we stop the server
-        if (props.Environment == "local") {
-          logger.info("Skipping readiness probe delay in local environment...")
-        } else {
-          val readinessProbeDelay = props.ReadinessProbeDetectionTimeoutSeconds
-          logger.info(s"Waiting $readinessProbeDelay for shutdown to be detected before stopping...")
-          Thread.sleep(readinessProbeDelay.toMillis)
-        }
+        val readinessProbeDelay = props.ReadinessProbeDetectionTimeoutSeconds
+        logger.info(s"Waiting $readinessProbeDelay for shutdown to be detected before stopping...")
+        Thread.sleep(readinessProbeDelay.toMillis)
         logger.info("Stopping server gracefully...")
         server.stop()
       case None => logger.error("Got shutdown signal, but no server is running, this seems weird.")
@@ -84,7 +80,10 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
 
   private def runServer(): Try[Unit] = {
     logCopyrightHeader()
-    setupShutdownHook()
+
+    if (props.Environment != "local") {
+      setupShutdownHook()
+    }
 
     val serverStartedLatch = new CountDownLatch(1)
     val serverFailure      = new AtomicReference[Option[Throwable]](None)
