@@ -35,11 +35,11 @@ class FeideRedisClient(host: String, port: Int) extends StrictLogging {
 
   def ping(): Try[Unit] = jedis.ping()
 
-  private def updateFeideCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
+  private def updateFeideCache(feideId: FeideID, field: String, data: String): Try[?] = {
     for {
-      newExpireTime <- jedis.getNewTTL(FeideToken, accessToken)
-      _             <- jedis.hset(FeideToken, accessToken, field, data)
-      _             <- jedis.expire(FeideToken, accessToken, newExpireTime)
+      newExpireTime <- jedis.getFieldNewTtl(FeideToken, feideId, field)
+      _             <- jedis.hset(FeideToken, feideId, field, data)
+      _             <- jedis.hexpire(FeideToken, feideId, field, newExpireTime)
     } yield ()
   }
 
@@ -58,29 +58,15 @@ class FeideRedisClient(host: String, port: Int) extends StrictLogging {
   }
 
   def updateCacheAndReturnFeideUser(
-      accessToken: FeideAccessToken,
+      feideId: FeideID,
       feideExtendedUser: FeideExtendedUserInfo,
   ): Try[FeideExtendedUserInfo] = {
-    updateFeideCache(accessToken, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
+    updateFeideCache(feideId, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
   }
 
-  def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] =
-    jedis.hget(FeideToken, accessToken, feideIdField)
-
-  def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = {
-    updateFeideCache(accessToken, feideIdField, feideId).map(_ => feideId)
-  }
-
-  def getOrganizationFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
-    jedis.hget(FeideToken, accessToken, feideGroupField)
-
-  def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
-    updateFeideCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
-  }
-
-  def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {
+  def getGroupsFromCache(feideId: FeideID): Try[Option[Seq[FeideGroup]]] = {
     jedis
-      .hget(FeideToken, accessToken, feideGroupsField)
+      .hget(FeideToken, feideId, feideGroupsField)
       .map {
         case Some(feideGroups) => CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
             case Success(value) => Some(value)
@@ -92,15 +78,16 @@ class FeideRedisClient(host: String, port: Int) extends StrictLogging {
       }
   }
 
-  def updateCacheAndReturnGroups(accessToken: FeideAccessToken, feideGroups: Seq[FeideGroup]): Try[Seq[FeideGroup]] = {
-    updateFeideCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
+  def updateCacheAndReturnGroups(feideId: FeideID, feideGroups: Seq[FeideGroup]): Try[Seq[FeideGroup]] = {
+    updateFeideCache(feideId, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
   }
 
-  def getFeideSession(idToken: FeideIdToken): Try[Option[FeideAccessToken]] = jedis.get(FeideToken, idToken.sub)
+  def getFeideSession(idToken: FeideIdToken): Try[Option[FeideAccessToken]] =
+    jedis.hget(FeideToken, idToken.sub, feideSessionField)
 
   def setFeideSession(idToken: FeideIdToken, accessToken: FeideAccessToken): Try[Unit] = for {
     key = idToken.sub
-    _  <- jedis.set(FeideToken, key, accessToken)
-    _  <- jedis.expireAt(FeideToken, key, idToken.exp)
+    _  <- jedis.hset(FeideToken, key, feideSessionField, accessToken)
+    _  <- jedis.hexpireAt(FeideToken, key, feideSessionField, idToken.exp)
   } yield ()
 }

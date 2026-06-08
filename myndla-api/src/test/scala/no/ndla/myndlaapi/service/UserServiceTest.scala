@@ -159,17 +159,17 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       mail = Some(Seq("example@email.com")),
     )
 
-    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(feideUserInfo))
-    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
+    when(feideApiClient.getFeideExtendedUser(eqTo(feideId), eqTo(feideAccessToken))).thenReturn(Success(feideUserInfo))
+    when(feideApiClient.getFeideGroupsAndOrganization(eqTo(feideId), eqTo(feideAccessToken))).thenReturn(
+      Success((feideGroups, "oslo"))
+    )
     when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any)).thenReturn(Success(domainUserData))
 
     service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
-    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getFeideGroups(any)
-    verify(feideApiClient, times(1)).getOrganization(any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any, any)
+    verify(feideApiClient, times(1)).getFeideGroupsAndOrganization(any, any)
     verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(using any)
     verify(userRepository, times(1)).insertUser(any, any)(using any)
     verify(userRepository, times(0)).updateUser(any, any)(using any)
@@ -200,8 +200,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
     service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
-    verify(feideApiClient, times(0)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(0)).getFeideGroups(any)
+    verify(feideApiClient, times(0)).getFeideExtendedUser(any, any)
+    verify(feideApiClient, times(0)).getFeideGroupsAndOrganization(any, any)
     verify(userRepository, times(1)).userWithFeideId(any)(using any)
     verify(userRepository, times(0)).insertUser(any, any)(using any)
     verify(userRepository, times(0)).updateUser(any, any)(using any)
@@ -244,17 +244,19 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       mail = Some(Seq("example@email.com")),
     )
 
-    when(feideApiClient.getFeideExtendedUser(eqTo(feideAccessToken))).thenReturn(Success(updatedFeideUser))
-    when(feideApiClient.getFeideGroups(eqTo(feideAccessToken))).thenReturn(Success(feideGroups))
-    when(feideApiClient.getOrganization(eqTo(feideAccessToken))).thenReturn(Success("oslo"))
+    when(feideApiClient.getFeideExtendedUser(eqTo(feideId), eqTo(feideAccessToken))).thenReturn(
+      Success(updatedFeideUser)
+    )
+    when(feideApiClient.getFeideGroupsAndOrganization(eqTo(feideId), eqTo(feideAccessToken))).thenReturn(
+      Success((feideGroups, "oslo"))
+    )
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(using any)).thenReturn(Success(domainUserData))
 
     service.getOrCreateMyNdlaUser(feideId, feideAccessToken)(using DBUtil.autoSession).get should be(domainUserData)
 
-    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getFeideGroups(any)
-    verify(feideApiClient, times(1)).getOrganization(any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any, any)
+    verify(feideApiClient, times(1)).getFeideGroupsAndOrganization(any, any)
     verify(userRepository, times(1)).userWithFeideId(any)(using any)
     verify(userRepository, times(0)).insertUser(any, any)(using any)
     verify(userRepository, times(1)).updateUser(any, any)(using any)

@@ -70,13 +70,12 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
       override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
-      when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
-      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
+      when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+      when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(
         Success(
           FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
       )
-      when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(nodebb.getUserId(any)).thenReturn(Success(Some(1L)))
       when(nodebb.deleteUser(any, any)).thenReturn(Success(()))
     }

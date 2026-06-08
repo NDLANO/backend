@@ -119,10 +119,9 @@ class UserService(using
       session: DBSession
   ): Try[MyNDLAUser] = {
     for {
-      feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
-      organization          <- feideApiClient.getOrganization(feideAccessToken)
-      feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
-      userRole               =
+      feideExtendedUserData       <- feideApiClient.getFeideExtendedUser(feideId, feideAccessToken)
+      (feideGroups, organization) <- feideApiClient.getFeideGroupsAndOrganization(feideId, feideAccessToken)
+      userRole                     =
         if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE
         else UserRole.STUDENT
       newUser = MyNDLAUserDocument(
@@ -143,10 +142,9 @@ class UserService(using
   private def fetchDataAndUpdateMyNDLAUser(feideId: FeideID, feideAccessToken: FeideAccessToken, userData: MyNDLAUser)(
       implicit session: DBSession
   ): Try[MyNDLAUser] = permitTry {
-    val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
-    val organization = feideApiClient.getOrganization(feideAccessToken).?
-    val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-    val userRole     =
+    val feideUser                   = feideApiClient.getFeideExtendedUser(feideId, feideAccessToken).?
+    val (feideGroups, organization) = feideApiClient.getFeideGroupsAndOrganization(feideId, feideAccessToken).?
+    val userRole                    =
       if (feideUser.isTeacher) UserRole.EMPLOYEE
       else UserRole.STUDENT
 

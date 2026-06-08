@@ -69,13 +69,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       override implicit lazy val userService: UserService           = spy(new UserService)
       override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
-      when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
-      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
+      when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+      when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(
         Success(
           FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
       )
-      when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
   }
@@ -179,7 +178,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that cloning a folder without destination works as expected") {
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
     val folderRepository = myndlaApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -741,7 +740,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that cloning a folder twice works as expected") {
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
     val folderRepository = myndlaApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()

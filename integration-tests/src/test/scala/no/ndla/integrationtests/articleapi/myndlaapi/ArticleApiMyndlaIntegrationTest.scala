@@ -23,7 +23,7 @@ import no.ndla.network.tapir.auth.FeideAuth
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import no.ndla.tapirtesting.{FeideAuthTest, FeideAuthTestData}
 import no.ndla.{articleapi, myndlaapi}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
 import org.scalatestplus.mockito.MockitoSugar
@@ -140,20 +140,33 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite, RedisInt
         })
     }: Unit
 
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(teacherFeide.accessToken))).thenReturn(
+    when(
+      myndlaApi
+        .componentRegistry
+        .feideApiClient
+        .getFeideExtendedUser(eqTo(teacherFeide.user.feideId), eqTo(teacherFeide.accessToken))
+    ).thenReturn(
       Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
-    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(eqTo(teacherFeide.accessToken))).thenReturn(
-      Success("org")
-    )
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+    when(
+      myndlaApi
+        .componentRegistry
+        .feideApiClient
+        .getFeideGroupsAndOrganization(eqTo(teacherFeide.user.feideId), eqTo(teacherFeide.accessToken))
+    ).thenReturn(Success((Seq.empty, "org")))
 
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(studentFeide.accessToken))).thenReturn(
-      Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
-    )
-    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(eqTo(studentFeide.accessToken))).thenReturn(
-      Success("org")
-    )
+    when(
+      myndlaApi
+        .componentRegistry
+        .feideApiClient
+        .getFeideExtendedUser(eqTo(studentFeide.user.feideId), eqTo(studentFeide.accessToken))
+    ).thenReturn(Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no")))))
+    when(
+      myndlaApi
+        .componentRegistry
+        .feideApiClient
+        .getFeideGroupsAndOrganization(eqTo(studentFeide.user.feideId), eqTo(studentFeide.accessToken))
+    ).thenReturn(Success((Seq.empty, "org")))
 
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")

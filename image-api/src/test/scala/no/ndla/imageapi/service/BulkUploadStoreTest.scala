@@ -73,10 +73,13 @@ class BulkUploadStoreTest extends UnitSuite with TestEnvironment {
   test("set writes the encoded state and refreshes the TTL using BulkUploadType.cacheTime") {
     val uploadId    = UUID.randomUUID()
     val expectedTtl = BulkUploadType.cacheTime.toSeconds
-    when(jedis.getNewTTL(eqTo(BulkUploadType), eqTo(uploadId.toString))).thenReturn(Success(expectedTtl))
+    when(jedis.getFieldNewTtl(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField)))
+      .thenReturn(Success(expectedTtl))
     when(jedis.hset(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField), any[String]))
       .thenReturn(Success(1L))
-    when(jedis.expire(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(expectedTtl))).thenReturn(Success(1L))
+    when(
+      jedis.hexpire(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField), eqTo(expectedTtl))
+    ).thenReturn(Success(1L))
 
     store.set(uploadId, sampleState) should be(Success(()))
 
@@ -86,19 +89,27 @@ class BulkUploadStoreTest extends UnitSuite with TestEnvironment {
       eqTo(BulkUploadType.stateField),
       eqTo(CirceUtil.toJsonString(sampleState)),
     )
-    verify(jedis).expire(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(expectedTtl))
+    verify(jedis).hexpire(
+      eqTo(BulkUploadType),
+      eqTo(uploadId.toString),
+      eqTo(BulkUploadType.stateField),
+      eqTo(expectedTtl),
+    )
   }
 
   test("set followed by get round-trips a state through the cache without losing fields") {
     val uploadId     = UUID.randomUUID()
     val capturedJson = new AtomicReference[String]()
-    when(jedis.getNewTTL(eqTo(BulkUploadType), eqTo(uploadId.toString))).thenReturn(Success(1L))
+    when(jedis.getFieldNewTtl(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField)))
+      .thenReturn(Success(1L))
     when(jedis.hset(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField), any[String]))
       .thenAnswer { i =>
         capturedJson.set(i.getArgument[String](3))
         Success(1L)
       }
-    when(jedis.expire(any[RedisStoredType], any[String], any[Long])).thenReturn(Success(1L))
+    when(jedis.hexpire(any[RedisStoredType], any[String], eqTo(BulkUploadType.stateField), any[Long])).thenReturn(
+      Success(1L)
+    )
     when(jedis.hget(eqTo(BulkUploadType), eqTo(uploadId.toString), eqTo(BulkUploadType.stateField))).thenAnswer(_ =>
       Success(Option(capturedJson.get()))
     )

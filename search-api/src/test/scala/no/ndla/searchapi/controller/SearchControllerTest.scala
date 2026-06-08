@@ -219,7 +219,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val expectedSettings = baseSettings.copy(availability = List())
     response.code.code should be(200)
     verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
-    verify(feideApiClient, never).getFeideExtendedUser(any)
+    verify(myndlaApiClient, never).getFeideUserWrapperFromIdToken(any)
   }
 
   test("That fetching feide user does happen if token is supplied") {

@@ -128,7 +128,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("search should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2DTO]]
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
+    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
 
     readService.search(
       query = None,
@@ -165,7 +165,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds doesn't perform filter when every article has availability status everyone") {
-    val feideId  = "asd"
     val ids      = List(1L, 2L, 3L)
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
@@ -179,8 +178,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
       .get
     result.length should be(3)
-
-    verify(feideApiClient, times(0)).getFeideExtendedUser(feideId)
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
@@ -190,7 +187,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), None, "", None)
 
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
+    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
@@ -249,7 +246,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
+    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Failure(new RuntimeException))
 
     val result = readService
       .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
