@@ -12,6 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.BaseProps
+import no.ndla.common.{CorrelationID, RequestLogger}
+import no.ndla.common.configuration.Constants
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.*
 import no.ndla.network.tapir.NoNullJsonPrinter.*
@@ -221,10 +223,25 @@ class Routes(using
           else logger.info(s)
         }
 
+        val response = withCorrelationIdHeader(result)
+
         RequestInfo.clear()
         MDC.clear()
-        result
+
+        response
       }
+    }
+  }
+
+  private def withCorrelationIdHeader[B](result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
+    CorrelationID.get match {
+      case None                => result
+      case Some(correlationId) => result match {
+          case RequestResult.Response(response, source) =>
+            val header = Header(Constants.CorrelationIdHeader, correlationId)
+            RequestResult.Response(response.addHeaders(List(header)), source)
+          case other => other
+        }
     }
   }
 
