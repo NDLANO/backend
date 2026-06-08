@@ -33,6 +33,9 @@ object DataSource extends StrictLogging {
     dataSourceConfig.setPassword(props.MetaPassword)
     dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${props.MetaServer}:${props.MetaPort}/${props.MetaResource}")
     dataSourceConfig.setDriverClassName("org.postgresql.Driver")
+    dataSourceConfig.addDataSourceProperty("socketTimeout", "1800") // 30 minutes
+    dataSourceConfig.addDataSourceProperty("loginTimeout", "10")
+    dataSourceConfig.addDataSourceProperty("tcpKeepAlive", "true")
     dataSourceConfig.setSchema(props.MetaSchema)
     dataSourceConfig.setMaximumPoolSize(props.MetaMaxConnections)
     dataSourceConfig.setMetricsTrackerFactory(
