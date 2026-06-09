@@ -855,6 +855,8 @@ export type components = {
             userData: components["schemas"]["MyNDLAUserDTO"];
             /** @description The users folders */
             folders: components["schemas"]["FolderDTO"][];
+            /** @description Resources saved on the root level */
+            rootResources: components["schemas"]["ResourceDTO"][];
         };
         /** FolderDTO */
         FolderDTO: {
