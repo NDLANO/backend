@@ -20,7 +20,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import sttp.tapir.server.netty.sync.NettySyncServerBinding
 
-import scala.concurrent.duration.DurationInt
 import scala.util.Success
 
 trait TapirControllerTest extends UnitTestSuite {
@@ -74,11 +73,7 @@ trait TapirControllerTest extends UnitTestSuite {
     Thread
       .ofVirtual()
       .start(() => {
-        routes.startServerAndWait(
-          s"TapirControllerTest:${this.getClass.getName}",
-          serverPort,
-          gracefulShutdownTimeout = 1.seconds,
-        ) { s =>
+        routes.startServerAndWait(s"TapirControllerTest:${this.getClass.getName}", serverPort) { s =>
           server = Some(s)
         }
       })

@@ -11,14 +11,9 @@ package no.ndla.network.tapir
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.common.RequestLogger
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.TaxonomyData
-import no.ndla.network.model.{
-  AuthException,
-  ForbiddenException,
-  RequestInfo,
-  UnauthenticatedException,
-  UnexpectedNimbusException,
-}
+import no.ndla.network.model.*
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import org.playframework.netty.http.StreamedHttpRequest
 import org.slf4j.MDC
@@ -40,10 +35,14 @@ import sttp.tapir.server.netty.NettyConfig
 import sttp.tapir.server.netty.sync.{NettySyncServer, NettySyncServerBinding, NettySyncServerOptions}
 import sttp.tapir.{AttributeKey, DecodeResult, EndpointInput, headers, statusCode}
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.DurationInt
 
-class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, services: List[TapirController])
-    extends StrictLogging {
+class Routes(using
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling,
+    services: List[TapirController],
+    props: BaseProps,
+) extends StrictLogging {
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
     val logMsg = s"Failure handler got: $error"
     exception match {
@@ -229,9 +228,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     }
   }
 
-  def startServerAndWait(name: String, port: Int, gracefulShutdownTimeout: FiniteDuration = 30.seconds)(
-      onStartup: NettySyncServerBinding => Unit
-  ): Unit = {
+  def startServerAndWait(name: String, port: Int)(onStartup: NettySyncServerBinding => Unit): Unit = {
     val prometheusMetrics = NdlaPrometheusRegistry.tapirPrometheusMetrics
 
     val options = NettySyncServerOptions
@@ -246,12 +243,14 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
 
+    val gracefulShutdownTimeout = 30.seconds
+
     val config = NettyConfig
       .default
-      .withGracefulShutdownTimeout(gracefulShutdownTimeout)
+      .copy(gracefulShutdownTimeout = Option.when(props.Environment != "local")(gracefulShutdownTimeout))
       .connectionTimeout(30.seconds) // Use same connection timeout as Netty default
       .requestTimeout(55.minutes)    // Allow for long-running requests (e.g., internal indexing endpoints)
-      .idleTimeout(60.minutes)       // --||--
+      .idleTimeout(60.minutes)       // Same as the comment above
     val endpoints = services.flatMap(_.builtEndpoints)
 
     logger.info(s"Starting $name on port $port")
