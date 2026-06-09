@@ -257,7 +257,10 @@ class FolderWriteService(using
         user <- feide.userOrAccessDenied
         _    <- canWriteOrAccessDenied(feide)
         _    <- userService.importUser(toImport.userData, feide)(using session)
-        _    <- importFolders(toImport.folders, user.feideId)(using session)
+        _    <- toImport
+          .rootResources
+          .traverse(resource => newResourceConnection(None, folderConverterService.toNewResource(resource), feide))
+        _ <- importFolders(toImport.folders, user.feideId)(using session)
       } yield toImport
     }
   }

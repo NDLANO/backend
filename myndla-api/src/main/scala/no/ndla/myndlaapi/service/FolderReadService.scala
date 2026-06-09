@@ -299,9 +299,14 @@ class FolderReadService(using
 
   def exportUserData(feide: FeideUserWrapper): Try[ExportedUserDataDTO] = {
     for {
-      user    <- feide.userOrAccessDenied
-      folders <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, user.feideId)
-    } yield api.ExportedUserDataDTO(userData = folderConverterService.toApiUserData(user), folders = folders.folders)
+      user          <- feide.userOrAccessDenied
+      rootResources <- getRootResources(feide)
+      folders       <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, user.feideId)
+    } yield api.ExportedUserDataDTO(
+      userData = folderConverterService.toApiUserData(user),
+      folders = folders.folders,
+      rootResources = rootResources,
+    )
   }
 
   def getAllTheFavorites: Try[Map[String, Map[String, Long]]] = {

@@ -274,6 +274,15 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     domain.ResourceDocument(tags = tags, resourceId = newResource.resourceId)
   }
 
+  def toNewResource(resource: api.ResourceDTO): api.NewResourceDTO = {
+    api.NewResourceDTO(
+      resourceType = resource.resourceType,
+      path = resource.path,
+      tags = resource.tags.some,
+      resourceId = resource.resourceId,
+    )
+  }
+
   def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
     val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
     maybeUUID match {
