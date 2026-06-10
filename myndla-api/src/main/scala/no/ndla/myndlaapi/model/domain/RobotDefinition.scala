@@ -47,9 +47,9 @@ case class RobotConfiguration(version: String, settings: RobotSettings)
 case class RobotSettings(
     name: String,
     title: String,
-    description: String,
-    systemprompt: Option[String],
-    question: Option[String],
+    description: Option[String],
+    systemprompt: String,
+    question: String,
     temperature: String,
     model: String,
     voice: String,
