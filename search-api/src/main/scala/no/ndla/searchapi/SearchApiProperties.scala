@@ -63,7 +63,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
   def ElasticSearchScrollKeepAlive               = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
-  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
+  def RedisHost: String = propOrElse("REDIS_HOST", "valkey")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   def ExternalApiUrls: Map[String, String] = Map(

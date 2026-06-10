@@ -21,7 +21,7 @@ class MyNdlaApiProperties extends BaseProps with DatabaseProps {
   override def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   override def ApplicationName: String = "myndla-api"
 
-  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
+  def RedisHost: String = propOrElse("REDIS_HOST", "valkey")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   def nodeBBUrl: String = propOrElse("NODEBB_URL", s"$ApiGatewayUrl/groups")

@@ -8,25 +8,25 @@
 
 package no.ndla.scalatestsuite
 
-import com.redis.testcontainers.RedisContainer
 import org.testcontainers.utility.DockerImageName
 
 import scala.util.Try
 import sys.env
 
 trait RedisIntegrationSuite extends UnitTestSuite {
-  protected object redisContainer extends ContainerIntegrationSuiteBase[RedisContainer, Int] {
-    override protected val containerName: String                 = "redis"
-    override protected def createContainer(): RedisContainer     = new RedisContainer(DockerImageName.parse("redis:6.2"))
-    override protected def fromContainer(c: RedisContainer): Int = c.getMappedPort(6379).intValue()
-    override protected def fromEnv(): Int                        = env.getOrElse("REDIS_PORT", "6379").toInt
-    override protected def healthCheck(port: Int): Boolean       = SharedContainer.isReachable("localhost", port)
+  protected object valkeyContainer extends ContainerIntegrationSuiteBase[ValkeyContainer, Int] {
+    override protected val containerName: String              = "valkey"
+    override protected def createContainer(): ValkeyContainer =
+      new ValkeyContainer(DockerImageName.parse("valkey/valkey:9.0"))
+    override protected def fromContainer(c: ValkeyContainer): Int = c.getMappedPort(6379).intValue()
+    override protected def fromEnv(): Int                         = env.getOrElse("REDIS_PORT", "6379").toInt
+    override protected def healthCheck(port: Int): Boolean        = SharedContainer.isReachable("localhost", port)
   }
 
-  val redisPort: Try[Int] = redisContainer.output
+  val redisPort: Try[Int] = valkeyContainer.output
 
   override def afterAll(): Unit = {
     super.afterAll()
-    redisContainer.close()
+    valkeyContainer.close()
   }
 }

@@ -39,7 +39,7 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
 
   def MinimumAllowedTags = 3
 
-  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
+  def RedisHost: String = propOrElse("REDIS_HOST", "valkey")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   // When converting a content node, the converter may run several times over the content to make sure

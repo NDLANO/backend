@@ -65,7 +65,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val RawImageUrlBase: String                  = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", Domain + RawControllerPath)
   val CloudFrontDistributionId: Option[String] = propOrNone("IMAGE_API_CLOUDFRONT_DISTRIBUTION_ID")
 
-  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
+  def RedisHost: String = propOrElse("REDIS_HOST", "valkey")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
