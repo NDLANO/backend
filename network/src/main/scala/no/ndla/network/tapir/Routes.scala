@@ -10,7 +10,6 @@ package no.ndla.network.tapir
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
-import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.{CorrelationID, RequestLogger}
 import no.ndla.common.configuration.Constants
@@ -257,7 +256,7 @@ class Routes(using
       .decodeFailureHandler(NdlaDecodeFailureHandler)
       .serverLog(None)
       .metricsInterceptor(prometheusMetrics.metricsInterceptor())
-      .addInterceptor(NdlaTracing.spanNamingInterceptor)
+      .addInterceptor(NdlaTracing.tracingInterceptor)
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options

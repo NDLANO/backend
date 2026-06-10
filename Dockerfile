@@ -50,6 +50,10 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # Set up and run Scala app
 COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar /app/out.jar
 COPY --from=builder /otel-agent.jar /app/opentelemetry-javaagent.jar
+
+ENV OTEL_INSTRUMENTATION_NETTY_ENABLED=false
+ENV OTEL_INSTRUMENTATION_NETTY_4_1_ENABLED=false
+
 ENV LOG_APPENDER=Docker
 COPY jvm-runtime-options /app/jvm-runtime-options
 ENTRYPOINT ["sh", "-c", "exec java ${OTEL_JAVAAGENT:+-javaagent:/app/opentelemetry-javaagent.jar} @/app/jvm-runtime-options $JAVA_OPTS -jar /app/out.jar"]

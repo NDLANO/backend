@@ -8,9 +8,14 @@
 
 package no.ndla.network.tapir
 
-import io.opentelemetry.api.trace.Span
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.trace.{Span, SpanKind, StatusCode}
+import io.opentelemetry.context.Context
+import io.opentelemetry.context.propagation.TextMapGetter
+import no.ndla.common.CorrelationID
 import sttp.monad.MonadError
 import sttp.shared.Identity
+import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.interceptor.{
   DecodeFailureContext,
   DecodeSuccessContext,
@@ -22,12 +27,16 @@ import sttp.tapir.server.interceptor.{
 import sttp.tapir.server.interpreter.BodyListener
 import sttp.tapir.server.model.ServerResponse
 
-/** OpenTelemetry helpers used to enrich the spans created by the OpenTelemetry Java agent. All calls are safe no-ops
-  * when no agent/SDK is attached: in that case `Span.current()` returns an invalid, non-recording span.
-  */
-object NdlaTracing {
+import scala.jdk.CollectionConverters.*
 
-  /** Set an attribute on the currently active span, if there is a valid one. */
+object NdlaTracing {
+  private val InstrumentationScope = "no.ndla.network.tapir"
+
+  private val requestHeaderGetter: TextMapGetter[ServerRequest] = new TextMapGetter[ServerRequest] {
+    override def keys(carrier: ServerRequest): java.lang.Iterable[String] = carrier.headers.map(_.name).asJava
+    override def get(carrier: ServerRequest, key: String): String         = carrier.header(key).orNull
+  }
+
   def setSpanAttribute(key: String, value: String): Unit = {
     val span = Span.current()
     if (span.getSpanContext.isValid) {
@@ -35,11 +44,53 @@ object NdlaTracing {
     }
   }
 
-  /** Endpoint interceptor that renames the active span after the matched endpoint (e.g. `GET /v1/articles/{id}`) and
-    * sets the `http.route` attribute. The agent instruments raw Netty, which has no knowledge of Tapir routes, so
-    * without this every server span would be named `/`.
+  private def startServerSpan(request: ServerRequest, method: String, route: String): Span = {
+    val otel    = GlobalOpenTelemetry.get()
+    val parent  = otel.getPropagators.getTextMapPropagator.extract(Context.current(), request, requestHeaderGetter)
+    val builder = otel
+      .getTracer(InstrumentationScope)
+      .spanBuilder(s"$method $route")
+      .setSpanKind(SpanKind.SERVER)
+      .setParent(parent)
+      .setAttribute("http.request.method", method)
+      .setAttribute("http.route", route)
+    val withCorrelationId = CorrelationID.get match {
+      case Some(id) => builder.setAttribute("ndla.correlation_id", id)
+      case None     => builder
+    }
+    withCorrelationId.startSpan()
+  }
+
+  private def withServerSpan[A](request: ServerRequest, method: String, route: String, statusCode: A => Option[Int])(
+      body: => A
+  ): A = {
+    val span  = startServerSpan(request, method, route)
+    val scope = span.makeCurrent()
+    try {
+      val result = body
+      statusCode(result).foreach { code =>
+        val _ = span.setAttribute("http.response.status_code", code.toLong)
+        if (code >= 500) {
+          val _ = span.setStatus(StatusCode.ERROR)
+        }
+      }
+      result
+    } catch {
+      case e: Throwable =>
+        val _ = span.recordException(e)
+        val _ = span.setStatus(StatusCode.ERROR)
+        throw e
+    } finally {
+      scope.close()
+      span.end()
+    }
+  }
+
+  /** Endpoint interceptor that opens a SERVER span around the endpoint execution, named `METHOD /path/template`, and
+    * makes it the current context so downstream spans (JDBC, outgoing HTTP, ...) nest under it. The agent instruments
+    * raw Netty, which has no knowledge of Tapir routes, so the span is named and attributed here.
     */
-  val spanNamingInterceptor: EndpointInterceptor[Identity] = new EndpointInterceptor[Identity] {
+  val tracingInterceptor: EndpointInterceptor[Identity] = new EndpointInterceptor[Identity] {
     override def apply[B](
         responder: Responder[Identity, B],
         endpointHandler: EndpointHandler[Identity, B],
@@ -48,27 +99,33 @@ object NdlaTracing {
       override def onDecodeSuccess[A, U, I](
           ctx: DecodeSuccessContext[Identity, A, U, I]
       )(implicit monad: MonadError[Identity], bodyListener: BodyListener[Identity, B]): Identity[ServerResponse[B]] = {
-        nameSpanFromEndpoint(ctx.request.method.method, ctx.endpoint.showPathTemplate(showQueryParam = None))
-        endpointHandler.onDecodeSuccess(ctx)
+        val method = ctx.request.method.method
+        val route  = ctx.endpoint.showPathTemplate(showQueryParam = None)
+        withServerSpan(ctx.request, method, route, (r: ServerResponse[B]) => Some(r.code.code)) {
+          endpointHandler.onDecodeSuccess(ctx)
+        }
       }
 
       override def onSecurityFailure[A](
           ctx: SecurityFailureContext[Identity, A]
-      )(implicit monad: MonadError[Identity], bodyListener: BodyListener[Identity, B]): Identity[ServerResponse[B]] =
-        endpointHandler.onSecurityFailure(ctx)
+      )(implicit monad: MonadError[Identity], bodyListener: BodyListener[Identity, B]): Identity[ServerResponse[B]] = {
+        val method = ctx.request.method.method
+        val route  = ctx.endpoint.showPathTemplate(showQueryParam = None)
+        withServerSpan(ctx.request, method, route, (r: ServerResponse[B]) => Some(r.code.code)) {
+          endpointHandler.onSecurityFailure(ctx)
+        }
+      }
 
       override def onDecodeFailure(ctx: DecodeFailureContext)(implicit
           monad: MonadError[Identity],
           bodyListener: BodyListener[Identity, B],
-      ): Identity[Option[ServerResponse[B]]] = endpointHandler.onDecodeFailure(ctx)
-    }
-  }
-
-  private def nameSpanFromEndpoint(method: String, pathTemplate: String): Unit = {
-    val span = Span.current()
-    if (span.getSpanContext.isValid) {
-      span.updateName(s"$method $pathTemplate")
-      span.setAttribute("http.route", pathTemplate): Unit
+      ): Identity[Option[ServerResponse[B]]] = {
+        val method = ctx.request.method.method
+        val route  = ctx.endpoint.showPathTemplate(showQueryParam = None)
+        withServerSpan(ctx.request, method, route, (r: Option[ServerResponse[B]]) => r.map(_.code.code)) {
+          endpointHandler.onDecodeFailure(ctx)
+        }
+      }
     }
   }
 }
