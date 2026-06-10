@@ -193,6 +193,7 @@ public class NodesTest extends RestTest {
     @Test
     public void can_get_nodes_by_contextId() {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource"));
+        Node resource2 = builder.node(NodeType.RESOURCE, r -> r.name("Resource2"));
         builder.node(
                 NodeType.SUBJECT,
                 s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
@@ -203,12 +204,15 @@ public class NodesTest extends RestTest {
                 NodeType.SUBJECT,
                 s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
                     t.name("trigonometry");
-                    t.contentUri(URI.create("urn:test:2")).resource(resource);
+                    t.contentUri(URI.create("urn:test:2")).resource(resource).resource(resource2);
                 }));
 
         Optional<Node> fromDB = nodeRepository.findFirstByPublicId(resource.getPublicId());
         assertTrue(fromDB.isPresent());
         assertEquals(2, fromDB.get().getContexts().size());
+        Optional<Node> fromDB2 = nodeRepository.findFirstByPublicId(resource2.getPublicId());
+        assertTrue(fromDB2.isPresent());
+        assertEquals(1, fromDB2.get().getContexts().size());
 
         // Check fetching by contextid and make sure correct path and breadcrumbs is used
         fromDB.get().getContexts().forEach(context -> {
@@ -226,6 +230,32 @@ public class NodesTest extends RestTest {
                 // Not happening
             }
         });
+
+        // Check fetching by contextids. This does not guarantee url and breadcrumbs
+        fromDB.get().getContexts().forEach(context -> {
+            try {
+                final var response =
+                        testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + context.contextId());
+                final var nodes = testUtils.getObject(NodeDTO[].class, response);
+                assertEquals(1, nodes.length);
+                assertEquals("Resource", nodes[0].getName());
+                assertTrue(nodes[0].getPaths().contains(context.path()));
+            } catch (Exception e) {
+                // Not happening
+            }
+        });
+
+        // Check fetching by all contextids. This does not guarantee url and breadcrumbs
+        var contextIds = fromDB.get().getContextIds();
+        contextIds.addAll(fromDB2.get().getContextIds());
+        try {
+            final var response =
+                    testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + String.join(",", contextIds));
+            final var nodes = testUtils.getObject(NodeDTO[].class, response);
+            assertEquals(2, nodes.length);
+        } catch (Exception e) {
+            // Not happening
+        }
     }
 
     @Test
