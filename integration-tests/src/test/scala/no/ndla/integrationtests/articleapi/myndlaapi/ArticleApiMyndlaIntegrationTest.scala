@@ -14,7 +14,7 @@ import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.myndlaapi.model.api.FeideSessionDTO
+import no.ndla.myndlaapi.model.api.FeideAccessTokenDTO
 import no.ndla.myndlaapi.{ComponentRegistry, MyNdlaApiProperties}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
@@ -86,8 +86,10 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite, RedisInt
   val articleApiBaseUrl: String        = s"http://localhost:${articleApiProperties.ApplicationPort}"
   val myndlaApiBaseUrl: String         = s"http://localhost:${myndlaApiProperties.ApplicationPort}"
 
-  val studentFeide: FeideUserWrapper = FeideAuthTestData.AsbjornElev
-  val teacherFeide: FeideUserWrapper = FeideAuthTestData.FrankForeleser
+  val studentFeide: FeideUserWrapper  = FeideAuthTestData.AsbjornElev
+  val studentFeideAccessToken: String = "access-token-1"
+  val teacherFeide: FeideUserWrapper  = FeideAuthTestData.FrankForeleser
+  val teacherFeideAccessToken: String = "access-token-2"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -140,33 +142,17 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite, RedisInt
         })
     }: Unit
 
-    when(
-      myndlaApi
-        .componentRegistry
-        .feideApiClient
-        .getFeideExtendedUser(eqTo(teacherFeide.user.feideId), eqTo(teacherFeide.accessToken))
-    ).thenReturn(
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(teacherFeideAccessToken))).thenReturn(
       Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
-    when(
-      myndlaApi
-        .componentRegistry
-        .feideApiClient
-        .getFeideGroupsAndOrganization(eqTo(teacherFeide.user.feideId), eqTo(teacherFeide.accessToken))
-    ).thenReturn(Success((Seq.empty, "org")))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroupsAndOrganization(eqTo(teacherFeideAccessToken)))
+      .thenReturn(Success((Seq.empty, "org")))
 
-    when(
-      myndlaApi
-        .componentRegistry
-        .feideApiClient
-        .getFeideExtendedUser(eqTo(studentFeide.user.feideId), eqTo(studentFeide.accessToken))
-    ).thenReturn(Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no")))))
-    when(
-      myndlaApi
-        .componentRegistry
-        .feideApiClient
-        .getFeideGroupsAndOrganization(eqTo(studentFeide.user.feideId), eqTo(studentFeide.accessToken))
-    ).thenReturn(Success((Seq.empty, "org")))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(eqTo(studentFeideAccessToken))).thenReturn(
+      Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
+    )
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroupsAndOrganization(eqTo(studentFeideAccessToken)))
+      .thenReturn(Success((Seq.empty, "org")))
 
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
@@ -224,13 +210,14 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite, RedisInt
 
     insertResult.isSuccess should be(true)
 
-    Seq(teacherFeide, studentFeide).foreach { feide =>
-      val body = CirceUtil.toJsonString(FeideSessionDTO(feide.accessToken))
-      quickRequest
-        .put(uri"$myndlaApiBaseUrl/myndla-api/v1/users/session")
-        .header("FeideAuthorization", s"Bearer ${feide.idToken.originalToken}")
-        .body(body)
-        .send()
+    Seq((teacherFeide, teacherFeideAccessToken), (studentFeide, studentFeideAccessToken)).foreach {
+      (feide, accessToken) =>
+        val body = CirceUtil.toJsonString(FeideAccessTokenDTO(accessToken))
+        quickRequest
+          .put(uri"$myndlaApiBaseUrl/myndla-api/v1/users")
+          .header("FeideAuthorization", s"Bearer ${feide.idToken.originalToken}")
+          .body(body)
+          .send()
     }
 
     val teacherResponse = quickRequest

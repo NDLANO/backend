@@ -19,7 +19,6 @@ import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
 import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.DBUtilityStub
@@ -61,7 +60,6 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
   implicit lazy val searchApiClient: SearchApiClient                        = mock[SearchApiClient]
   implicit lazy val oembedProxyClient: OembedProxyClient                    = mock[OembedProxyClient]
   implicit lazy val feideApiClient: FeideApiClient                          = mock[FeideApiClient]
-  implicit lazy val redisClient: FeideRedisClient                           = mock[FeideRedisClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient                        = mock[MyNDLAApiClient]
   implicit lazy val DBUtil: DBUtility                                       = DBUtilityStub()
   implicit lazy val searchLanguage: SearchLanguage                          = mock[SearchLanguage]

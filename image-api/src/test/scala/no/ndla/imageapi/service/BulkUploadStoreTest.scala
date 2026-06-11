@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.imageapi.model.api.bulk.{BulkUploadItemDTO, BulkUploadItemStatus, BulkUploadStateDTO, BulkUploadStatus}
-import no.ndla.network.clients.rediscache.{FeideRedisClient, RedisStoredType, ScalaJedis}
+import no.ndla.network.clients.rediscache.{RedisStoredType, ScalaJedis}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, verify, when}
 
@@ -20,13 +20,8 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.util.{Failure, Success}
 
 class BulkUploadStoreTest extends UnitSuite with TestEnvironment {
-
-  given redisClient: FeideRedisClient = mock[FeideRedisClient]
-  val jedis: ScalaJedis               = mock[ScalaJedis]
-  when(redisClient.jedis).thenReturn(jedis)
-
-  override implicit lazy val bulkUploadStore: BulkUploadStore = new BulkUploadStore
-  private val store: BulkUploadStore                          = bulkUploadStore
+  private val jedis: ScalaJedis      = mock[ScalaJedis]
+  private val store: BulkUploadStore = new BulkUploadStore(jedis)
 
   override def beforeEach(): Unit = reset(jedis)
 

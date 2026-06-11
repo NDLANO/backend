@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.api.{FeideSessionDTO, FolderDTO, MoveResourceDTO}
+import no.ndla.myndlaapi.model.api.{FeideAccessTokenDTO, FolderDTO, MoveResourceDTO}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
@@ -71,8 +71,8 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
       override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
-      when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
-      when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(
+      when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
+      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
         Success(
           FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
@@ -104,15 +104,17 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers
 
-    Seq(feide1, feide2).foreach { feide =>
-      val body = CirceUtil.toJsonString(FeideSessionDTO(feide.accessToken))
-      quickRequest
-        .put(uri"$myndlaApiUserUrl/session")
-        .header("FeideAuthorization", s"Bearer ${feide.idToken.originalToken}")
-        .contentType("application/json")
-        .body(body)
-        .send()
-    }
+    Seq(feide1, feide2)
+      .zipWithIndex
+      .foreach { (feide, i) =>
+        val body = CirceUtil.toJsonString(FeideAccessTokenDTO(s"access-token-$i"))
+        quickRequest
+          .put(uri"$myndlaApiUserUrl")
+          .header("FeideAuthorization", s"Bearer ${feide.idToken.originalToken}")
+          .contentType("application/json")
+          .body(body)
+          .send()
+      }
   }
 
   override def afterAll(): Unit = {
@@ -347,7 +349,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Inserting and sorting folders") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1 = createFolder(feide1, "folder1", None)
     val f2 = createFolder(feide1, "folder2", None)
@@ -382,8 +384,8 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Saving and sorting shared folders") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(any, any)).thenReturn(
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(any)).thenReturn(
       Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
 
@@ -442,7 +444,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Inserting and sorting root resources") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
     doNothing().when(searchApiClient).reindexDraft(any);
 
     val rootResourcesU = getRootResources(feide1)
@@ -490,7 +492,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
   test("Saving, sorting and deleting resources in a folder") {
     // This test fails if you remove the order by clause in fetching resources in FolderRepository
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1 = createFolder(feide1, "folder1", None)
 
@@ -549,7 +551,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Saving and then moving folder to different parent") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     /*
         f1
@@ -588,7 +590,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving resources to and from different folders work as intended") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     /*
         f1
@@ -687,7 +689,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving a resource to the same folder returns 400") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1  = createFolder(feide1, "folder1", None)
     val res = addResourceToFolder(
@@ -704,7 +706,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving a resource from a folder you don't own returns 403") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1  = createFolder(feide1, "folder1", None)
     val f2  = createFolder(feide1, "folder2", None)
@@ -722,7 +724,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving a resource to a folder you don't own returns 403") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1U1 = createFolder(feide1, "folder1", None)
     val f1U2 = createFolder(feide2, "folder1", None)
@@ -740,7 +742,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving a resource you don't own returns 403") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1U1  = createFolder(feide1, "folder1", None)
     val u1Res = addResourceToFolder(
@@ -760,7 +762,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("moving a resource to a folder that already contains it fails") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
 
     val f1 = createFolder(feide1, "folder1", None)
     val f2 = createFolder(feide1, "folder2", None)

@@ -31,8 +31,8 @@ case class JwtParseException()                   extends UnauthenticatedExceptio
 case class ExpiredJwtException()                 extends UnauthenticatedException("JWT is expired")
 case class InvalidJwtSignatureException()        extends UnauthenticatedException("Invalid JWT signature")
 case class InvalidJwtException(cause: Throwable) extends UnauthenticatedException("Failed to verify JWT", cause)
-case class MissingFeideAccessTokenException()
-    extends UnauthenticatedException("Missing Feide access token for auth session")
+case class MissingFeideUserException()
+    extends UnauthenticatedException("Failed to find Feide user for the given ID token")
 
 case class MissingClaimException(name: String) extends ForbiddenException(s"JWT is missing claim '$name'")
 case class ClaimParseException(name: String, cause: Throwable)

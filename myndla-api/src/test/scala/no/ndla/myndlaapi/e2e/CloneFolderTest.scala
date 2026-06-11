@@ -14,13 +14,14 @@ import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
-import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FeideSessionDTO, FolderDTO, OwnerDTO}
+import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FeideAccessTokenDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.auth.FeideAuth
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import no.ndla.tapirtesting.{FeideAuthTest, FeideAuthTestData}
@@ -52,12 +53,14 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     override def RedisPort: Int    = redisPort.get
   }
 
-  val feideId: String                = FeideAuthTestData.FrankForeleser.idToken.sub
-  val feideIdToken: String           = FeideAuthTestData.FrankForeleser.idToken.originalToken
-  val feideAccessToken: String       = FeideAuthTestData.FrankForeleser.accessToken
-  val destinationFeideId: String     = FeideAuthTestData.AnneLaerer.idToken.sub
-  val destinationIdToken: String     = FeideAuthTestData.AnneLaerer.idToken.originalToken
-  val destinationAccessToken: String = FeideAuthTestData.AnneLaerer.accessToken
+  val feide: FeideUserWrapper            = FeideAuthTestData.FrankForeleser
+  val feideId: String                    = feide.idToken.sub
+  val feideIdToken: String               = feide.idToken.originalToken
+  val feideAccessToken: String           = "access-token-1"
+  val destinationFeide: FeideUserWrapper = FeideAuthTestData.AnneLaerer
+  val destinationFeideId: String         = destinationFeide.idToken.sub
+  val destinationIdToken: String         = destinationFeide.idToken.originalToken
+  val destinationAccessToken: String     = "access-token-2"
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
@@ -69,8 +72,8 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       override implicit lazy val userService: UserService           = spy(new UserService)
       override implicit lazy val feideAuth: FeideAuth               = FeideAuthTest()
 
-      when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
-      when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(
+      when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
+      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
         Success(
           FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
@@ -102,16 +105,16 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
-    val feideAccessTokenSessionBody = CirceUtil.toJsonString(FeideSessionDTO(feideAccessToken))
+    val feideAccessTokenSessionBody = CirceUtil.toJsonString(FeideAccessTokenDTO(feideAccessToken))
     quickRequest
-      .put(uri"$myndlaApiUserUrl/session")
+      .put(uri"$myndlaApiUserUrl")
       .header("FeideAuthorization", s"Bearer $feideIdToken")
       .body(feideAccessTokenSessionBody)
       .readTimeout(10.seconds)
       .send()
-    val destinationAccessTokenSessionBody = CirceUtil.toJsonString(FeideSessionDTO(destinationAccessToken))
+    val destinationAccessTokenSessionBody = CirceUtil.toJsonString(FeideAccessTokenDTO(destinationAccessToken))
     quickRequest
-      .put(uri"$myndlaApiUserUrl/session")
+      .put(uri"$myndlaApiUserUrl")
       .header("FeideAuthorization", s"Bearer $destinationIdToken")
       .body(destinationAccessTokenSessionBody)
       .readTimeout(10.seconds)
@@ -178,7 +181,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that cloning a folder without destination works as expected") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
     val folderRepository = myndlaApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -188,9 +191,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val expectedUser = myndlaApi
       .componentRegistry
       .userService
-      .getOrCreateMyNdlaUser(destinationFeideId, destinationAccessToken)(using
-        myndlaApi.componentRegistry.dbUtil.autoSession
-      )
+      .createOrUpdateUser(destinationFeide.idToken, destinationAccessToken)
       .get
 
     val parentChild1 = api.FolderDTO(
@@ -281,9 +282,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val expectedUser = myndlaApi
       .componentRegistry
       .userService
-      .getOrCreateMyNdlaUser(destinationFeideId, destinationAccessToken)(using
-        myndlaApi.componentRegistry.dbUtil.autoSession
-      )
+      .createOrUpdateUser(destinationFeide.idToken, destinationAccessToken)
       .get
 
     val folderThatShouldNotBeCloned = NewFolderData(
@@ -398,9 +397,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val expectedUser = myndlaApi
       .componentRegistry
       .userService
-      .getOrCreateMyNdlaUser(destinationFeideId, destinationAccessToken)(using
-        myndlaApi.componentRegistry.dbUtil.autoSession
-      )
+      .createOrUpdateUser(destinationFeide.idToken, destinationAccessToken)
       .get
 
     val destinationFolder = NewFolderData(
@@ -740,7 +737,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that cloning a folder twice works as expected") {
-    when(feideApiClient.getFeideGroupsAndOrganization(any, any)).thenReturn(Success((Seq.empty, "zxc")))
+    when(feideApiClient.getFeideGroupsAndOrganization(any)).thenReturn(Success((Seq.empty, "zxc")))
     val folderRepository = myndlaApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -750,9 +747,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val expectedUser = myndlaApi
       .componentRegistry
       .userService
-      .getOrCreateMyNdlaUser(destinationFeideId, destinationAccessToken)(using
-        myndlaApi.componentRegistry.dbUtil.autoSession
-      )
+      .createOrUpdateUser(destinationFeide.idToken, destinationAccessToken)
       .get
 
     val parentChild1 = api.FolderDTO(

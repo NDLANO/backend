@@ -42,7 +42,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   private def feideWrapper(feideId: String): FeideUserWrapper =
-    FeideUserWrapper(emptyMyNDLAUser.copy(feideId = feideId), mock[FeideIdToken], "access-token")
+    FeideUserWrapper(emptyMyNDLAUser.copy(feideId = feideId), mock[FeideIdToken])
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
     val created        = clock.now()

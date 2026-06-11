@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 
-case class FeideUserWrapper(user: MyNDLAUser, idToken: FeideIdToken, accessToken: FeideAccessToken)
+case class FeideUserWrapper(user: MyNDLAUser, idToken: FeideIdToken)
 
 object FeideUserWrapper {
   implicit val encoder: Encoder[FeideUserWrapper] = deriveEncoder

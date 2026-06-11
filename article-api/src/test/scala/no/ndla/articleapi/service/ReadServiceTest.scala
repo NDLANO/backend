@@ -128,7 +128,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("search should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2DTO]]
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
-    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new AccessDeniedException("not allowed")))
 
     readService.search(
       query = None,
@@ -187,14 +187,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), None, "", None)
 
-    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Success(teacherUser))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
 
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(true)
-    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken])
 
     val result = readService
       .getArticlesByIds(
@@ -217,7 +217,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(false)
-    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken], "access-token")
+    val feideUserInfo = FeideUserWrapper(userMock, mock[FeideIdToken])
 
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
@@ -246,7 +246,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(feideApiClient.getFeideExtendedUser(any, any)).thenReturn(Failure(new RuntimeException))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     val result = readService
       .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)

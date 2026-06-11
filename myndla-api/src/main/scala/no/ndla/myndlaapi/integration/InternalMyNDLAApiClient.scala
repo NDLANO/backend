@@ -18,7 +18,7 @@ class InternalMyNDLAApiClient(using userService: UserService) extends MyNDLAProv
   override def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Either[AuthException, FeideUserWrapper] =
     userService.getFeideUserWrapperFromIdToken(idToken) match {
       case Success(Some(userWrapper)) => Right(userWrapper)
-      case Success(None)              => Left(MissingFeideAccessTokenException())
+      case Success(None)              => Left(MissingFeideUserException())
       case Failure(ex)                => Left(GetFeideUserWrapperException(ex))
     }
 }

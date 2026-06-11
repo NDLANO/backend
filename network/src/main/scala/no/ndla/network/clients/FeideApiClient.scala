@@ -12,11 +12,9 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
-import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
+import no.ndla.network.model.{FeideAccessToken, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits.*
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import sttp.client4.Response
 import sttp.client4.quick.*
 import sttp.model.Uri
@@ -82,7 +80,7 @@ object FeideExtendedUserInfo {
   implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
 }
 
-class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging {
+class FeideApiClient extends StrictLogging {
 
   private val feideTimeout          = 30.seconds
   private val feideUserInfoEndpoint = uri"https://api.dataporten.no/userinfo/v1/userinfo"
@@ -151,26 +149,13 @@ class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging 
     }
   }
 
-  def getFeideExtendedUser(feideId: FeideID, accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] = permitTry {
-    val maybeFeideUser    = redisClient.getFeideUserFromCache(feideId).?
-    val feideExtendedUser = (
-      maybeFeideUser match {
-        case Some(feideUser) => Success(feideUser)
-        case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
-      }
-    ).?
-    redisClient.updateCacheAndReturnFeideUser(feideId, feideExtendedUser)
-  }
+  def getFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
+    getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
 
-  def getFeideGroupsAndOrganization(feideId: FeideID, accessToken: FeideAccessToken): Try[(Seq[FeideGroup], String)] =
-    for {
-      maybeGroups <- redisClient.getGroupsFromCache(feideId)
-      groups      <- maybeGroups match {
-        case Some(groups) => Success(groups)
-        case None         => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
-      }
-      organization <- findOrganization(groups)
-    } yield (groups, organization)
+  def getFeideGroupsAndOrganization(accessToken: FeideAccessToken): Try[(Seq[FeideGroup], String)] = for {
+    groups       <- getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
+    organization <- findOrganization(groups)
+  } yield (groups, organization)
 }
 
 object FeideApiClient {

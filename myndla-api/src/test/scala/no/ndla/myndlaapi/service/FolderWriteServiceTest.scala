@@ -14,20 +14,14 @@ import no.ndla.common.model.api.{Missing, NullValue, UpdateWith, Value}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
-import no.ndla.myndlaapi.model.api.{
-  CopyResourcesDTO,
-  FolderDTO,
-  FolderSortRequestDTO,
-  MoveResourcesDTO,
-  NewFolderDTO,
-  NewResourceDTO,
-}
-import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
+import no.ndla.myndlaapi.model.api.*
+import no.ndla.myndlaapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting}
 import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, Resource, ResourceConnection, SavedSharedFolder}
+import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.tapirtesting.FeideAuthTestData
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
@@ -35,8 +29,6 @@ import scalikejdbc.DBSession
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
-import no.ndla.myndlaapi.model.domain.FolderSortObject.ResourceSorting
-import no.ndla.tapirtesting.FeideAuthTestData
 
 class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
@@ -193,7 +185,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
     val folderResource = ResourceConnection(folderId = Some(folder.id), resourceId = resource.id, rank = 1, clock.now())
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
     when(folderRepository.resourceConnectionCount(eqTo(resourceId))(using any)).thenReturn(Success(2L))
@@ -453,7 +444,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       subfolders = List(folder2),
     )
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folder1Id))(using any[DBSession])).thenReturn(Success(folder1))
     when(folderReadService.getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(using any[DBSession]))
       .thenReturn(Success(folder1))
@@ -524,7 +514,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val parentId  = UUID.randomUUID()
     val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
@@ -583,7 +572,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val belowLimit: Long = MaxFolderDepth - 2
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
@@ -643,7 +631,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val belowLimit = MaxFolderDepth - 2
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
@@ -704,7 +691,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val belowLimit = MaxFolderDepth - 2
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
@@ -783,7 +769,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val belowLimit = MaxFolderDepth - 2
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
@@ -883,7 +868,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     doReturn(Success(newParentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(newParentId.toString)), eqTo("parentId"))
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(
       Success(movedFolder.copy(parentId = Some(oldParentId), rank = 1, name = "updated"))
     )
@@ -983,7 +967,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     doReturn(Success(newParentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(newParentId.toString)), eqTo("parentId"))
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(
       Success(movedFolder.copy(parentId = Some(oldParentId), rank = 1, name = "duplicateName"))
     )
@@ -1026,7 +1009,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.setFolderRank(any, any, any)(using any)).thenReturn(Success(()))
     when(folderRepository.setResourceConnectionRank(any, any, any)(using any)).thenReturn(Success(()))
     when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(using any)).thenReturn(Success(parent))
@@ -1067,7 +1049,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       func(mock[DBSession])
     })
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.setResourceConnectionRank(any, any, any)(using any)).thenReturn(Success(()))
     when(folderRepository.getRootResources(any)(using any)).thenReturn(Success(List(resource1, resource2, resource3)))
 
@@ -1228,14 +1209,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("that can create connection between folder and user") {
-
     val folderId = UUID.randomUUID()
     val feideId  = "feideId"
+    val folder   = emptyDomainFolder.copy(id = folderId, status = FolderStatus.SHARED)
 
-    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
-    val folder     = emptyDomainFolder.copy(id = folderId, status = FolderStatus.SHARED)
-
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(folderRepository.createFolderUserConnection(any, any, any)(using any)).thenReturn(
       Success(SavedSharedFolder(folderId, feideId, 1))
@@ -1252,10 +1229,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId       = "feideId"
     val folderId      = UUID.randomUUID()
     val folderIdChild = UUID.randomUUID()
-    val myNDLAUser    = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     val folder        = emptyDomainFolder.copy(id = folderId, feideId = feideId, status = FolderStatus.SHARED)
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(folderRepository.getFoldersAndSubfoldersIds(any)(using any)).thenReturn(Success(List(folderId, folderIdChild)))
     when(folderRepository.folderWithId(any)(using any)).thenReturn(Success(folder))
@@ -1327,7 +1302,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("that copying resources only copies resources not in the target folder") {
     val feideId        = "feideId"
-    val myNDLAUser     = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE, feideId = feideId)
     val targetFolderId = UUID.randomUUID()
 
     val favoritedDate = NDLADate.now()
@@ -1346,7 +1320,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
     val targetFolder = emptyDomainFolder.copy(id = targetFolderId, feideId = feideId)
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(folderRepository.folderWithId(eqTo(targetFolderId))(using any)).thenReturn(Success(targetFolder))
 
@@ -1381,7 +1354,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     "that moving resources only moves resources not in the target folder, and deletes the ones that already exist in the target folder"
   ) {
     val feideId        = "feideId"
-    val myNDLAUser     = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE, feideId = feideId)
     val sourceFolderId = UUID.randomUUID()
     val targetFolderId = UUID.randomUUID()
 
@@ -1402,7 +1374,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val sourceFolder = emptyDomainFolder.copy(id = sourceFolderId, feideId = feideId)
     val targetFolder = emptyDomainFolder.copy(id = targetFolderId, feideId = feideId)
 
-    when(userService.getOrCreateMyNdlaUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(folderRepository.folderWithId(eqTo(sourceFolderId))(using any)).thenReturn(Success(sourceFolder))
     when(folderRepository.folderWithId(eqTo(targetFolderId))(using any)).thenReturn(Success(targetFolder))

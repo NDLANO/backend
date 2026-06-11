@@ -52,7 +52,6 @@ trait TapirControllerTest extends UnitTestSuite {
             lastSeen = clock.now(),
           ),
           i.getArgument(0),
-          "",
         )
       )
     }

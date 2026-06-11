@@ -23,7 +23,6 @@ import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
 import no.ndla.network.tapir.auth.NdlaAuth
 import no.ndla.network.tapir.*
@@ -38,7 +37,6 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
 
   implicit lazy val s3Client: NdlaS3Client                  = new NdlaS3Client(props.StorageName, props.StorageRegion)
   implicit lazy val cloudFrontClient: NdlaCloudFrontClient  = new NdlaCloudFrontClient
-  given redisClient: FeideRedisClient                       = new FeideRedisClient(props.RedisHost, props.RedisPort)
   given ndlaClient: NdlaClient                              = new NdlaClient
   implicit lazy val e4sClient: NdlaE4sClient                = Elastic4sClientFactory.getClient(props.SearchServer)
   given searchLanguage: SearchLanguage                      = new SearchLanguage
@@ -57,7 +55,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   implicit lazy val tagIndexService: TagIndexService        = new TagIndexService
   implicit lazy val tagSearchService: TagSearchService      = new TagSearchService
   given validationService: ValidationService                = new ValidationService
-  given bulkUploadStore: BulkUploadStore                    = new BulkUploadStore
+  given bulkUploadStore: BulkUploadStore                    = BulkUploadStore(props.RedisHost, props.RedisPort)
   given readService: ReadService                            = new ReadService
   implicit lazy val imageStorage: ImageStorageService       = new ImageStorageService
   given writeService: WriteService                          = new WriteService
