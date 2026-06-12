@@ -63,51 +63,13 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
   }
 
   private def updateTitleAndTranslations(node: Node, defaultTitle: Title, titles: Seq[Title], user: TokenUser) = {
-    val strippedTitles    = titles.map(title => title.copy(title = Jsoup.parseBodyFragment(title.title).body().text()))
-    val nodeResult        = updateNode(node.withName(Jsoup.parseBodyFragment(defaultTitle.title).body().text()), user)
-    val translationResult = updateTranslations(node.id, strippedTitles, user)
-
-    val deleteResult = getTranslations(node.id).flatMap(translations => {
-      val translationsToDelete = translations.filterNot(trans => {
-        strippedTitles.exists(title => trans.language.contains(title.language))
-      })
-
-      translationsToDelete.traverse(deleteTranslation(node.id, _, user))
-    })
-
-    (nodeResult, translationResult, deleteResult) match {
-      case (Success(s1), Success(_), Success(_)) => Success(s1)
-      case (Failure(ex), _, _)                   => Failure(ex)
-      case (_, Failure(ex), _)                   => Failure(ex)
-      case (_, _, Failure(ex))                   => Failure(ex)
-    }
+    def extractTitle(title: Title) = Jsoup.parseBodyFragment(title.title).body().text()
+    val translations               = titles.map(title => Translation(extractTitle(title), Some(title.language)))
+    updateNode(node.copy(name = extractTitle(defaultTitle), translations = translations.toList), user)
   }
-
-  private def updateTranslations(id: String, titles: Seq[Title], user: TokenUser) = {
-    val tries = titles.map(t => updateNodeTranslation(id, t.language, t.title, user))
-    Traverse[List].sequence(tries.toList)
-  }
-
-  private[integration] def updateNodeTranslation(nodeId: String, lang: String, name: String, user: TokenUser) =
-    putRaw[Translation](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$lang", Translation(name), user)
 
   private[integration] def updateNode(node: Node, user: TokenUser) =
     putRaw[Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user)
-
-  private[integration] def getTranslations(nodeId: String) =
-    get[List[Translation]](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations")
-
-  private def deleteTranslation(nodeId: String, translation: Translation, user: TokenUser) = {
-    translation
-      .language
-      .map(language => {
-        delete(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$language", user)
-      })
-      .getOrElse({
-        logger.info(s"Cannot delete translation without language for $nodeId")
-        Success(())
-      })
-  }
 
   def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean, user: TokenUser): Try[Long] = {
     for {
@@ -176,9 +138,8 @@ class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends Stri
   }
 }
 
-case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
-  def withName(name: String): Node = this.copy(name = name)
-}
+case class Node(id: String, name: String, contentUri: Option[String], translations: List[Translation] = Nil)
+
 object Node {
   implicit val encoder: Encoder[Node] = deriveEncoder
   implicit val decoder: Decoder[Node] = deriveDecoder
