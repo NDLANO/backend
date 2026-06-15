@@ -18,7 +18,9 @@ import no.ndla.taxonomy.domain.exceptions.ChildNotFoundException;
 import no.ndla.taxonomy.domain.exceptions.DuplicateIdException;
 import no.ndla.taxonomy.util.PrettyUrlUtil;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 public class Node extends DomainObject implements EntityWithMetadata {
@@ -51,9 +53,9 @@ public class Node extends DomainObject implements EntityWithMetadata {
     @Column
     private boolean context;
 
-    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 100)
-    private Set<ResourceResourceType> resourceResourceTypes = new TreeSet<>();
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "resource_type_ids", columnDefinition = "text[]")
+    private Set<String> resourceTypeIds = new HashSet<>();
 
     @Column
     private boolean visible = true;
@@ -139,17 +141,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
 
         this.translations =
                 node.getTranslations().stream().map(JsonTranslation::new).toList();
-        TreeSet<ResourceResourceType> rrts = new TreeSet<>();
-        for (ResourceResourceType rt : node.getResourceResourceTypes()) {
-            ResourceResourceType rrt = new ResourceResourceType();
-            if (keepPublicId) {
-                rrt.setPublicId(rt.getPublicId());
-            }
-            rrt.setNode(this);
-            rrt.setResourceType(rt.getResourceType());
-            rrts.add(rrt);
-        }
-        this.resourceResourceTypes = rrts;
+        this.resourceTypeIds = new HashSet<>(node.resourceTypeIds);
         setMetadata(new Metadata(node.getMetadata()));
         setName(node.getName());
     }
@@ -442,59 +434,33 @@ public class Node extends DomainObject implements EntityWithMetadata {
     }
 
     public Collection<ResourceType> getResourceTypes() {
-        return getResourceResourceTypes().stream()
-                .map(ResourceResourceType::getResourceType)
+        return resourceTypeIds.stream()
+                .map(id -> ResourceType.Companion.findByPublicId(URI.create(id)))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    public Collection<ResourceResourceType> getResourceResourceTypes() {
-        return this.resourceResourceTypes;
-    }
-
-    public ResourceResourceType addResourceType(ResourceType resourceType) {
-        if (getResourceTypes().contains(resourceType)) {
+    public void addResourceType(ResourceType resourceType) {
+        var id = resourceType.getPublicId().toString();
+        if (this.getNodeType() != NodeType.RESOURCE) {
+            throw new IllegalArgumentException(
+                    "Resource types can only be added to nodes of type " + NodeType.RESOURCE);
+        }
+        if (resourceTypeIds.contains(id)) {
             throw new DuplicateIdException("Resource with id " + getPublicId()
                     + " is already marked with resource type with id " + resourceType.getPublicId());
         }
+        resourceTypeIds.add(id);
+    }
 
-        ResourceResourceType resourceResourceType = ResourceResourceType.Companion.create(this, resourceType);
-        addResourceResourceType(resourceResourceType);
-        return resourceResourceType;
+    public void clearResourceTypes() {
+        resourceTypeIds.clear();
     }
 
     public void removeResourceType(ResourceType resourceType) {
-        var resourceResourceType = getResourceType(resourceType);
-        if (resourceResourceType.isEmpty())
+        if (!resourceTypeIds.remove(resourceType.getPublicId().toString())) {
             throw new ChildNotFoundException(
                     "Resource with id " + this.getPublicId() + " is not of type " + resourceType.getPublicId());
-
-        this.resourceResourceTypes.remove(resourceResourceType.get());
-    }
-
-    private Optional<ResourceResourceType> getResourceType(ResourceType resourceType) {
-        for (ResourceResourceType resourceResourceType : resourceResourceTypes) {
-            if (resourceResourceType.getResourceType().equals(resourceType)) return Optional.of(resourceResourceType);
-        }
-        return Optional.empty();
-    }
-
-    public void addResourceResourceType(ResourceResourceType resourceResourceType) {
-        if (this.getNodeType() != NodeType.RESOURCE)
-            throw new IllegalArgumentException("ResourceResourceType can only be associated with " + NodeType.RESOURCE);
-
-        this.resourceResourceTypes.add(resourceResourceType);
-
-        if (resourceResourceType.getNode() != this) {
-            throw new IllegalArgumentException(
-                    "ResourceResourceType must have Resource set before being associated with Resource");
-        }
-    }
-
-    public void removeResourceResourceType(ResourceResourceType resourceResourceType) {
-        this.resourceResourceTypes.remove(resourceResourceType);
-
-        if (resourceResourceType.getNode() == this) {
-            resourceResourceType.disassociate();
         }
     }
 

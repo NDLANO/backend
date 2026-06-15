@@ -11,7 +11,6 @@ import java.net.URI;
 import java.util.*;
 import no.ndla.taxonomy.domain.NodeConnection;
 import no.ndla.taxonomy.domain.NodeType;
-import no.ndla.taxonomy.domain.Relevance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -27,19 +26,16 @@ public interface NodeConnectionRepository extends TaxonomyRepository<NodeConnect
             """)
     List<NodeConnection> findAllByNodeIdInIncludingTopicAndSubtopic(Set<URI> nodeId, List<NodeType> nodeTypes);
 
-    @Query("""
-            SELECT DISTINCT nc FROM NodeConnection nc
-            LEFT JOIN nc.child c
-            LEFT JOIN nc.parent p
-            LEFT JOIN c.resourceResourceTypes rrt
-            LEFT JOIN rrt.resourceType rt
-            WHERE p.publicId IN :nodeIds
-            AND ((:#{#resourceTypeIds == null} = true) OR rt.publicId IN :resourceTypeIds)
+    @Query(value = """
+            SELECT nc.* FROM node_connection nc
+            JOIN node c ON nc.child_id = c.id
+            JOIN node p ON nc.parent_id = p.id
+            WHERE p.public_id IN :nodeIds
+            AND (CAST(:resourceTypeIds AS text[]) IS NULL OR c.resource_type_ids && CAST(:resourceTypeIds AS text[]))
             AND (:relevance IS NULL OR nc.relevance = :relevance)
-            AND c.nodeType = 'RESOURCE'
-            """)
-    List<NodeConnection> getResourceBy(
-            Set<URI> nodeIds, Optional<List<URI>> resourceTypeIds, Optional<Relevance> relevance);
+            AND c.node_type = 'RESOURCE'
+            """, nativeQuery = true)
+    List<NodeConnection> getResourceBy(Set<String> nodeIds, String[] resourceTypeIds, String relevance);
 
     @Query(
             "SELECT nc FROM NodeConnection nc JOIN FETCH nc.parent JOIN FETCH nc.child c WHERE c.nodeType = :childNodeType")
@@ -78,8 +74,6 @@ public interface NodeConnectionRepository extends TaxonomyRepository<NodeConnect
             SELECT DISTINCT nc
             FROM NodeConnection nc
             JOIN FETCH nc.child c
-            LEFT JOIN FETCH c.resourceResourceTypes rrt
-            LEFT JOIN FETCH rrt.resourceType
             WHERE nc.child.publicId IN :childIds
             AND nc.parent.publicId IN :parentIds
             """)

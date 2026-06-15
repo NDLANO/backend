@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.net.URI;
 import no.ndla.taxonomy.domain.Node;
 import no.ndla.taxonomy.domain.NodeType;
+import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.rest.v1.dtos.TranslationPUT;
 import no.ndla.taxonomy.service.dtos.NodeChildDTO;
 import no.ndla.taxonomy.service.dtos.NodeDTO;
@@ -157,18 +158,16 @@ public class NodeTranslationsTest extends RestTest {
 
     @Test
     public void can_get_resources_for_a_node_recursively_with_translation() throws Exception {
-        builder.resourceType("article", rt -> rt.name("Article").translation("nb", tr -> tr.name("Artikkel")));
-
         URI a = builder.node(
                         NodeType.TOPIC,
                         t -> t.resource(r -> r.name("Introduction to calculus")
                                         .translation("nb", tr -> tr.name("Introduksjon til calculus"))
-                                        .resourceType("article"))
+                                        .resourceType(ResourceType.SUBJECT_MATERIAL))
                                 .child(
                                         NodeType.TOPIC,
                                         st -> st.resource(r -> r.name("Introduction to integration")
                                                 .translation("nb", tr -> tr.name("Introduksjon til integrasjon"))
-                                                .resourceType("article"))))
+                                                .resourceType(ResourceType.SUBJECT_MATERIAL))))
                 .getPublicId();
 
         var response = testUtils.getResource("/v1/nodes/" + a + "/resources?recursive=true&language=nb");
@@ -179,13 +178,11 @@ public class NodeTranslationsTest extends RestTest {
         assertAnyTrue(result, r -> "Introduksjon til integrasjon".equals(r.getName()));
         assertAllTrue(
                 result,
-                r -> "Artikkel".equals(r.getResourceTypes().iterator().next().getName()));
+                r -> "Fagstoff".equals(r.getResourceTypes().iterator().next().getName()));
     }
 
     @Test
     public void can_get_resources_for_a_node_without_child_resources_with_translation() throws Exception {
-        builder.resourceType("article", rt -> rt.name("Article").translation("nb", tr -> tr.name("Artikkel")));
-
         builder.node(
                 NodeType.SUBJECT,
                 s -> s.isContext(true)
@@ -194,10 +191,10 @@ public class NodeTranslationsTest extends RestTest {
                                 t -> t.publicId("urn:topic:1")
                                         .resource(r -> r.name("resource 1")
                                                 .translation("nb", tr -> tr.name("ressurs 1"))
-                                                .resourceType("article"))
+                                                .resourceType(ResourceType.SUBJECT_MATERIAL))
                                         .resource(r -> r.name("resource 2")
                                                 .translation("nb", tr -> tr.name("ressurs 2"))
-                                                .resourceType("article"))
+                                                .resourceType(ResourceType.SUBJECT_MATERIAL))
                                         .child(
                                                 NodeType.TOPIC,
                                                 st -> st.name("subtopic").resource(r -> r.name("subtopic resource")))));
@@ -210,7 +207,7 @@ public class NodeTranslationsTest extends RestTest {
         assertAnyTrue(result, r -> "ressurs 2".equals(r.getName()));
         assertAllTrue(
                 result,
-                r -> "Artikkel".equals(r.getResourceTypes().iterator().next().getName()));
+                r -> "Fagstoff".equals(r.getResourceTypes().iterator().next().getName()));
     }
 
     private NodeDTO getNode(URI id, String language) throws Exception {

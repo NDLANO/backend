@@ -21,9 +21,12 @@ data class ResourceTypeDTO(
     @field:Schema(example = "urn:resourcetype:1") val id: URI,
     @field:Schema(description = "The name of the resource type", example = "Lecture")
     val name: String,
-    @field:Schema(description = "Sub resource types", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @field:Schema(
+        description = "Sub resource types",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+    )
     @field:JsonInclude(JsonInclude.Include.NON_EMPTY)
-    val subtypes: List<ResourceTypeDTO> = emptyList(),
+    val subtypes: List<ResourceTypeDTO>? = null,
     @field:Schema(description = "All translations of this resource type")
     val translations: Set<TranslationDTO>,
     @field:Schema(description = "List of language codes supported by translations")
@@ -37,7 +40,7 @@ data class ResourceTypeDTO(
   ) : this(
       id = resourceType.publicId,
       translations = resourceType.translations.map(::TranslationDTO).toSet(),
-      supportedLanguages = resourceType.translations.mapNotNull { it.languageCode }.toSet(),
+      supportedLanguages = resourceType.supportedLanguages,
       name = resourceType.getTranslatedName(language),
       order = resourceType.order,
       subtypes = subtypes,

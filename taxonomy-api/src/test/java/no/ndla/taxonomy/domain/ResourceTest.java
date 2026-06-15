@@ -86,11 +86,8 @@ public class ResourceTest {
 
     @Test
     public void getAddAndRemoveResourceTypes() {
-        final var resourceType1 = mock(ResourceType.class);
-        final var resourceType2 = mock(ResourceType.class);
-
-        when(resourceType1.getId()).thenReturn(100);
-        when(resourceType2.getId()).thenReturn(101);
+        final var resourceType1 = ResourceType.REVIEW_RESOURCE;
+        final var resourceType2 = ResourceType.GAME;
 
         assertEquals(0, resource.getResourceTypes().size());
 
@@ -116,55 +113,6 @@ public class ResourceTest {
     }
 
     @Test
-    public void addRemoveAndGetResourceResourceType() {
-        final var resourceResourceType1 = mock(ResourceResourceType.class);
-        final var resourceResourceType2 = mock(ResourceResourceType.class);
-
-        assertEquals(0, resource.getResourceResourceTypes().size());
-
-        try {
-            resource.addResourceResourceType(resourceResourceType1);
-            fail("Expected IllegalArgumentException");
-        } catch (IllegalArgumentException ignored) {
-
-        }
-
-        when(resourceResourceType1.getNode()).thenReturn(resource);
-        resource.addResourceResourceType(resourceResourceType1);
-
-        assertEquals(1, resource.getResourceResourceTypes().size());
-        assertTrue(resource.getResourceResourceTypes().contains(resourceResourceType1));
-
-        try {
-            resource.addResourceResourceType(resourceResourceType2);
-            fail("Expected IllegalArgumentException");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        when(resourceResourceType2.getNode()).thenReturn(resource);
-        resource.addResourceResourceType(resourceResourceType2);
-
-        assertEquals(2, resource.getResourceResourceTypes().size());
-        assertTrue(
-                resource.getResourceResourceTypes().containsAll(Set.of(resourceResourceType1, resourceResourceType2)));
-
-        reset(resourceResourceType1);
-        reset(resourceResourceType2);
-
-        when(resourceResourceType1.getNode()).thenReturn(resource);
-        when(resourceResourceType2.getNode()).thenReturn(resource);
-
-        resource.removeResourceResourceType(resourceResourceType1);
-        assertEquals(1, resource.getResourceResourceTypes().size());
-        assertTrue(resource.getResourceResourceTypes().contains(resourceResourceType2));
-        verify(resourceResourceType1).disassociate();
-
-        resource.removeResourceResourceType(resourceResourceType2);
-        assertEquals(0, resource.getResourceResourceTypes().size());
-        verify(resourceResourceType2).disassociate();
-    }
-
-    @Test
     public void setAndGetContentUri() throws URISyntaxException {
         assertNull(resource.getContentUri());
 
@@ -182,13 +130,13 @@ public class ResourceTest {
     public void addAndRemoveResourceType() {
         assertEquals(0, resource.getResourceTypes().size());
 
-        final var resourceType1 = mock(ResourceType.class);
+        final var resourceType1 = ResourceType.SUBJECT_MATERIAL;
         resource.addResourceType(resourceType1);
 
         assertEquals(1, resource.getResourceTypes().size());
         assertTrue(resource.getResourceTypes().contains(resourceType1));
 
-        final var resourceType2 = mock(ResourceType.class);
+        final var resourceType2 = ResourceType.TASKS_AND_ACTIVITIES;
         resource.addResourceType(resourceType2);
 
         assertEquals(2, resource.getResourceTypes().size());

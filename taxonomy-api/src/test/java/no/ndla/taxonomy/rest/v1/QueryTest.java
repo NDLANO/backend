@@ -14,6 +14,7 @@ import java.net.URI;
 import java.util.List;
 import no.ndla.taxonomy.domain.Node;
 import no.ndla.taxonomy.domain.NodeType;
+import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.LanguageFieldDTO;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.TaxonomyContextDTO;
 import no.ndla.taxonomy.service.dtos.NodeDTO;
@@ -35,7 +36,7 @@ public class QueryTest extends RestTest {
                 NodeType.RESOURCE,
                 r -> r.publicId("urn:resource:1")
                         .contentUri("urn:article:345")
-                        .resourceType(rt -> rt.name("Subject material")));
+                        .resourceType(ResourceType.SUBJECT_MATERIAL));
 
         var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
@@ -58,7 +59,7 @@ public class QueryTest extends RestTest {
                 NodeType.RESOURCE,
                 r -> r.publicId("urn:resource:1")
                         .contentUri("urn:article:345")
-                        .resourceType(rt -> rt.name("Subject material")));
+                        .resourceType(ResourceType.SUBJECT_MATERIAL));
 
         builder.node(NodeType.RESOURCE, r -> r.publicId("urn:resource:2").contentUri("urn:article:3"));
 
@@ -75,8 +76,8 @@ public class QueryTest extends RestTest {
                 NodeType.RESOURCE,
                 r -> r.publicId("urn:resource:1")
                         .contentUri("urn:article:345")
-                        .resourceType(rt -> rt.name("Subject material").order(1))
-                        .resourceType(rt -> rt.name("Learning path").order(2)));
+                        .resourceType(ResourceType.SUBJECT_MATERIAL)
+                        .resourceType(ResourceType.LEARNING_PATH));
 
         var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345");
         var resources = testUtils.getObject(NodeDTO[].class, response);
@@ -93,7 +94,7 @@ public class QueryTest extends RestTest {
                         .name("Resource")
                         .translation("nb", tr -> tr.name("ressurs"))
                         .contentUri("urn:article:345")
-                        .resourceType(rt -> rt.name("Subject material")));
+                        .resourceType(ResourceType.SUBJECT_MATERIAL));
 
         var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contentURI=urn:article:345&language=nb");
         var resources = testUtils.getObject(NodeDTO[].class, response);
@@ -109,7 +110,7 @@ public class QueryTest extends RestTest {
                 NodeType.RESOURCE,
                 r -> r.publicId("urn:resource:1")
                         .contentUri("urn:article:345")
-                        .resourceType(rt -> rt.name("Subject material")));
+                        .resourceType(ResourceType.SUBJECT_MATERIAL));
 
         builder.node(NodeType.TOPIC, r -> r.publicId("urn:topic:2").contentUri("urn:article:345"));
 

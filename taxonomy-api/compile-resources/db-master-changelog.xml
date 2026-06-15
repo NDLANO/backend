@@ -945,14 +945,33 @@
     </changeSet>
 
 
-    <changeSet id="20260604 resource_type parent_id on delete set null" author="Jonas Carlsen">
-        <dropForeignKeyConstraint baseTableName="resource_type" constraintName="resource_type_parent_id_fkey"/>
-        <addForeignKeyConstraint baseTableName="resource_type"
-                                 baseColumnNames="parent_id"
-                                 referencedTableName="resource_type"
-                                 referencedColumnNames="id"
-                                 constraintName="resource_type_parent_id_fkey"
-                                 onDelete="SET NULL"/>
+    <changeSet id="20260615 Add resource_type_ids column to node" author="Jonas Carlsen">
+        <addColumn tableName="node">
+            <column name="resource_type_ids" type="text[]" defaultValue="{}">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>CREATE INDEX node_resource_type_ids_index ON node USING GIN (resource_type_ids)</sql>
+    </changeSet>
+
+    <changeSet id="20260615 Migrate resource types from join table to node column" author="Jonas Carlsen">
+        <sql>
+            UPDATE node n
+            SET resource_type_ids = (
+                SELECT array_agg(rt.public_id)
+                FROM resource_resource_type rrt
+                JOIN resource_type rt ON rt.id = rrt.resource_type_id
+                WHERE rrt.resource_id = n.id
+            )
+            WHERE EXISTS (
+                SELECT 1 FROM resource_resource_type rrt WHERE rrt.resource_id = n.id
+            )
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260615 Drop resource type tables" author="Jonas Carlsen">
+        <dropTable tableName="resource_resource_type"/>
+        <dropTable tableName="resource_type"/>
     </changeSet>
 
 </databaseChangeLog>

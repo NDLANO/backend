@@ -16,8 +16,6 @@ import no.ndla.taxonomy.config.Constants;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.repositories.NodeConnectionRepository;
 import no.ndla.taxonomy.repositories.NodeRepository;
-import no.ndla.taxonomy.repositories.ResourceResourceTypeRepository;
-import no.ndla.taxonomy.repositories.ResourceTypeRepository;
 import no.ndla.taxonomy.rest.NotFoundHttpResponseException;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.LanguageFieldDTO;
 import no.ndla.taxonomy.rest.v1.dtos.searchapi.SearchableTaxonomyResourceType;
@@ -40,8 +38,6 @@ public class NodeService {
     Logger logger = LoggerFactory.getLogger(getClass().getName());
     private final NodeRepository nodeRepository;
     private final NodeConnectionRepository nodeConnectionRepository;
-    private final ResourceTypeRepository resourceTypeRepository;
-    private final ResourceResourceTypeRepository resourceResourceTypeRepository;
     private final NodeConnectionService connectionService;
     private final DomainEntityHelperService domainEntityHelperService;
     private final RecursiveNodeTreeService recursiveNodeTreeService;
@@ -55,9 +51,7 @@ public class NodeService {
             NodeRepository nodeRepository,
             RecursiveNodeTreeService recursiveNodeTreeService,
             TreeSorter treeSorter,
-            ContextUpdaterService contextUpdaterService,
-            ResourceTypeRepository resourceTypeRepository,
-            ResourceResourceTypeRepository resourceResourceTypeRepository) {
+            ContextUpdaterService contextUpdaterService) {
         this.nodeRepository = nodeRepository;
         this.nodeConnectionRepository = nodeConnectionRepository;
         this.connectionService = connectionService;
@@ -65,8 +59,6 @@ public class NodeService {
         this.recursiveNodeTreeService = recursiveNodeTreeService;
         this.treeSorter = treeSorter;
         this.contextUpdaterService = contextUpdaterService;
-        this.resourceTypeRepository = resourceTypeRepository;
-        this.resourceResourceTypeRepository = resourceResourceTypeRepository;
     }
 
     @Transactional
@@ -259,10 +251,17 @@ public class NodeService {
             boolean filterProgrammes,
             boolean isVisible) {
         final List<NodeConnection> nodeResources;
-
-        var relevanceEnum = relevanceId.flatMap(Relevance::getRelevance);
-        var nodeResourcesStream =
-                nodeConnectionRepository.getResourceBy(nodeIds, resourceTypeIds, relevanceEnum).stream();
+        var nodeResourcesStream = nodeConnectionRepository
+                .getResourceBy(
+                        nodeIds.stream().map(URI::toString).collect(Collectors.toSet()),
+                        resourceTypeIds
+                                .map(ids -> ids.stream().map(URI::toString).toArray(String[]::new))
+                                .orElse(null),
+                        relevanceId
+                                .flatMap(Relevance::getRelevance)
+                                .map(Enum::name)
+                                .orElse(null))
+                .stream();
         if (relevanceId.isPresent()) {
             final var isRequestingCore = "urn:relevance:core".equals(relevanceId.toString());
             nodeResourcesStream = nodeResourcesStream.filter(nodeResource -> {
@@ -331,13 +330,6 @@ public class NodeService {
         var cloned = new Node(node, false);
         cloned.setContentUri(contentUri.orElse(null)); // Set to null if not provided
         return nodeRepository.save(cloned);
-    }
-
-    public ResourceResourceType connectNodeResourceType(URI nodeId, URI resourceTypeID) {
-        Node node = nodeRepository.getByPublicId(nodeId);
-        ResourceType resourceType = resourceTypeRepository.getByPublicId(resourceTypeID);
-        ResourceResourceType resourceResourceType = node.addResourceType(resourceType);
-        return resourceResourceTypeRepository.save(resourceResourceType);
     }
 
     public List<TaxonomyContextDTO> getSearchableByContentUri(

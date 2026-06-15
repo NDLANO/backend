@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.net.URI;
 import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceTypeDTO;
-import no.ndla.taxonomy.rest.v1.dtos.TranslationPUT;
 import no.ndla.taxonomy.service.dtos.TranslationDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -23,91 +22,48 @@ public class ResourceTypeTranslationsTest extends RestTest {
 
     @Test
     public void can_get_all_resource_types() throws Exception {
-        builder.resourceType(t -> t.name("Article").translation("Artikkel", "nb"));
-        builder.resourceType(t -> t.name("Lecture").translation("Forelesning", "nb"));
-
         MockHttpServletResponse response = testUtils.getResource("/v1/resource-types?language=nb");
         ResourceTypeDTO[] resourceTypes = testUtils.getObject(ResourceTypeDTO[].class, response);
-
-        assertTrue(resourceTypes.length >= 2);
-        assertAnyTrue(resourceTypes, s -> "Artikkel".equals(s.getName()));
-        assertAnyTrue(resourceTypes, s -> "Forelesning".equals(s.getName()));
+        assertAnyTrue(resourceTypes, s -> "Fagstoff".equals(s.getName()));
     }
 
     @Test
     public void can_get_single_resource_type() throws Exception {
-        URI id = builder.resourceType(t -> t.name("Article").translation("Artikkel", "nb"))
-                .getPublicId();
-
+        URI id = ResourceType.SUBJECT_MATERIAL.getPublicId();
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, "nb");
-        assertEquals("Artikkel", resourceType.getName());
+        assertEquals("Fagstoff", resourceType.getName());
     }
 
     @Test
     public void fallback_to_default_language() throws Exception {
-        URI id = builder.resourceType(t -> t.name("Article")).getPublicId();
+        URI id = ResourceType.SUBJECT_MATERIAL.getPublicId();
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, "XX");
-        assertEquals("Article", resourceType.getName());
+        assertEquals("Fagstoff", resourceType.getName());
     }
 
     @Test
     public void can_get_default_language() throws Exception {
-        URI id = builder.resourceType(t -> t.name("Article").translation("Artikkel", "nb"))
-                .getPublicId();
-
+        URI id = ResourceType.SUBJECT_MATERIAL.getPublicId();
         ResourceTypeDTO resourceType = getResourceTypeIndexDocument(id, null);
-        assertEquals("Article", resourceType.getName());
-    }
-
-    @Test
-    public void can_add_translation() throws Exception {
-        ResourceType article = builder.resourceType(t -> t.name("Article"));
-        URI id = article.getPublicId();
-
-        testUtils.updateResource("/v1/resource-types/" + id + "/translations/nb", new TranslationPUT() {
-            {
-                name = "Artikkel";
-            }
-        });
-
-        assertEquals("Artikkel", article.getTranslation("nb").get().getName());
-    }
-
-    @Test
-    public void can_delete_translation() throws Exception {
-        ResourceType resourceType = builder.resourceType(t -> t.name("Article").translation("Artikkel", "nb"));
-        URI id = resourceType.getPublicId();
-
-        testUtils.deleteResource("/v1/resource-types/" + id + "/translations/nb");
-
-        assertNull(resourceType.getTranslation("nb").orElse(null));
+        assertEquals("Fagstoff", resourceType.getName());
     }
 
     @Test
     public void can_get_all_translations() throws Exception {
-        ResourceType resourceType = builder.resourceType(t -> t.name("Article")
-                .translation("Artikkel", "nb")
-                .translation("Article", "en")
-                .translation("Artikel", "de"));
-        URI id = resourceType.getPublicId();
-
+        URI id = ResourceType.SUBJECT_MATERIAL.getPublicId();
         TranslationDTO[] translations = testUtils.getObject(
                 TranslationDTO[].class, testUtils.getResource("/v1/resource-types/" + id + "/translations"));
-
-        assertEquals(3, translations.length);
-        assertAnyTrue(translations, t -> "Artikkel".equals(t.name) && "nb".equals(t.language));
-        assertAnyTrue(translations, t -> "Article".equals(t.name) && "en".equals(t.language));
-        assertAnyTrue(translations, t -> "Artikel".equals(t.name) && "de".equals(t.language));
+        assertEquals(4, translations.length);
+        assertAnyTrue(translations, t -> "Fagstoff".equals(t.name) && "nb".equals(t.language));
+        assertAnyTrue(translations, t -> "Subject Material".equals(t.name) && "en".equals(t.language));
     }
 
     @Test
     public void can_get_single_translation() throws Exception {
-        ResourceType resourceType = builder.resourceType(t -> t.name("Article").translation("Artikkel", "nb"));
-        URI id = resourceType.getPublicId();
-
+        URI id = ResourceType.SUBJECT_MATERIAL.getPublicId();
         TranslationDTO translation = testUtils.getObject(
                 TranslationDTO.class, testUtils.getResource("/v1/resource-types/" + id + "/translations/nb"));
-        assertEquals("Artikkel", translation.name);
+        assertEquals("Fagstoff", translation.name);
         assertEquals("nb", translation.language);
     }
 

@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.net.URI;
 import no.ndla.taxonomy.domain.NodeType;
-import no.ndla.taxonomy.domain.ResourceResourceType;
 import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceResourceTypeDTO;
 import no.ndla.taxonomy.rest.v1.dtos.ResourceResourceTypePOST;
@@ -29,8 +28,7 @@ public class ResourceResourceTypesTest extends RestTest {
         createdResource.setName("Introduction to integration");
         var integrationResourceId = createdResource.getPublicId();
 
-        ResourceType rt = newResourceType();
-        rt.setName("text");
+        ResourceType rt = ResourceType.SUBJECT_MATERIAL;
         URI textTypeId = rt.getPublicId();
 
         URI id = getId(testUtils.createResource(
@@ -38,8 +36,8 @@ public class ResourceResourceTypesTest extends RestTest {
 
         var resource = nodeRepository.getByPublicId(integrationResourceId);
         assertEquals(1, resource.getResourceTypes().size());
-        assertAnyTrue(resource.getResourceTypes(), t -> "text".equals(t.getName()));
-        assertNotNull(resourceResourceTypeRepository.getByPublicId(id));
+        assertAnyTrue(resource.getResourceTypes(), t -> "Fagstoff".equals(t.getTranslatedName("nb")));
+        assertNotNull(id);
     }
 
     @Test
@@ -47,9 +45,9 @@ public class ResourceResourceTypesTest extends RestTest {
         var integrationResource = newResource();
         integrationResource.setName("Introduction to integration");
 
-        ResourceType resourceType = newResourceType();
-        resourceType.setName("text");
-        save(integrationResource.addResourceType(resourceType));
+        ResourceType resourceType = ResourceType.SUBJECT_MATERIAL;
+        integrationResource.addResourceType(resourceType);
+        save(integrationResource);
 
         testUtils.createResource(
                 "/v1/resource-resourcetypes",
@@ -60,26 +58,26 @@ public class ResourceResourceTypesTest extends RestTest {
     @Test
     public void can_delete_resource_resourcetype() throws Exception {
         var integrationResource = builder.node(NodeType.RESOURCE, r -> r.name("Introduction to integration"));
-        ResourceType resourceType = builder.resourceType(rt -> rt.name("text"));
-        URI id = save(integrationResource.addResourceType(resourceType)).getPublicId();
+        integrationResource.addResourceType(ResourceType.DOCUMENTARY);
+        save(integrationResource);
 
-        testUtils.deleteResource("/v1/resource-resourcetypes/" + id);
-        assertNull(resourceResourceTypeRepository.findByPublicId(id));
+        testUtils.deleteResource("/v1/resource-resourcetypes/" + "urn:resource-resourcetype:"
+                + integrationResource.getPublicId() + "_" + ResourceType.DOCUMENTARY.getPublicId());
+        var node = nodeRepository.getByPublicId(integrationResource.getPublicId());
+        assertEquals(0, node.getResourceTypes().size());
     }
 
     @Test
     public void can_list_all_resource_resourcetypes() throws Exception {
         var trigonometry = newResource();
         trigonometry.setName("Advanced trigonometry");
-        ResourceType article = newResourceType();
-        article.setName("article");
-        save(trigonometry.addResourceType(article));
+        trigonometry.addResourceType(ResourceType.DOCUMENTARY);
+        save(trigonometry);
 
         var integration = newResource();
         integration.setName("Introduction to integration");
-        ResourceType text = newResourceType();
-        text.setName("text");
-        save(integration.addResourceType(text));
+        integration.addResourceType(ResourceType.REVIEW_RESOURCE);
+        save(integration);
 
         MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes");
         ResourceResourceTypeDTO[] resourceResourcetypes =
@@ -88,44 +86,26 @@ public class ResourceResourceTypesTest extends RestTest {
         assertAnyTrue(
                 resourceResourcetypes,
                 t -> trigonometry.getPublicId().equals(t.getResourceId())
-                        && article.getPublicId().equals(t.getResourceTypeId()));
+                        && ResourceType.DOCUMENTARY.getPublicId().equals(t.getResourceTypeId()));
         assertAnyTrue(
                 resourceResourcetypes,
                 t -> integration.getPublicId().equals(t.getResourceId())
-                        && text.getPublicId().equals(t.getResourceTypeId()));
+                        && ResourceType.REVIEW_RESOURCE.getPublicId().equals(t.getResourceTypeId()));
     }
 
     @Test
     public void can_get_a_resource_resourcetype() throws Exception {
         var resource = newResource();
         resource.setName("Advanced trigonometry");
-        ResourceType resourceType = newResourceType();
-        resourceType.setName("article");
-        ResourceResourceType resourceResourceType = resource.addResourceType(resourceType);
-        URI id = save(resourceResourceType).getPublicId();
+        var resourceType = ResourceType.SUBJECT_MATERIAL;
+        resource.addResourceType(resourceType);
+        save(resource);
 
-        MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes/" + id);
+        MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes/"
+                + "urn:resource-resourcetype:" + resource.getPublicId() + "_" + resourceType.getPublicId());
         ResourceResourceTypeDTO result = testUtils.getObject(ResourceResourceTypeDTO.class, response);
 
         assertEquals(resource.getPublicId(), result.getResourceId());
         assertEquals(resourceType.getPublicId(), result.getResourceTypeId());
-    }
-
-    @Test
-    public void can_change_id_of_resource_type() throws Exception {
-        var resource = newResource();
-        resource.setName("Advanced trigonometry");
-        ResourceType resourceType = newResourceType();
-        resourceType.setName("article");
-        ResourceResourceType resourceResourceType = resource.addResourceType(resourceType);
-        URI id = save(resourceResourceType).getPublicId();
-
-        resourceType.setPublicId(URI.create("urn:resourcetype:article"));
-
-        MockHttpServletResponse response = testUtils.getResource("/v1/resource-resourcetypes/" + id);
-        ResourceResourceTypeDTO result = testUtils.getObject(ResourceResourceTypeDTO.class, response);
-
-        assertEquals(resource.getPublicId(), result.getResourceId());
-        assertEquals(URI.create("urn:resourcetype:article"), result.getResourceTypeId());
     }
 }

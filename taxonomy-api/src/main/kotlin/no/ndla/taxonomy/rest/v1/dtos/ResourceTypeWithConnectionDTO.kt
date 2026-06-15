@@ -10,7 +10,7 @@ package no.ndla.taxonomy.rest.v1.dtos
 import io.swagger.v3.oas.annotations.media.Schema
 import java.net.URI
 import java.util.TreeSet
-import no.ndla.taxonomy.domain.ResourceResourceType
+import no.ndla.taxonomy.domain.ResourceType
 import no.ndla.taxonomy.service.dtos.TranslationDTO
 
 @Schema(
@@ -34,22 +34,18 @@ data class ResourceTypeWithConnectionDTO(
     val connectionId: URI,
 ) : Comparable<ResourceTypeWithConnectionDTO> {
   constructor(
-      rrt: ResourceResourceType,
+      nodeId: URI,
+      resourceType: ResourceType,
       languageCode: String,
   ) : this(
-      id = rrt.resourceType.publicId,
-      order = rrt.resourceType.order,
-      translations = rrt.resourceType.translations.map(::TranslationDTO).toCollection(TreeSet()),
-      supportedLanguages = rrt.resourceType.supportedLanguages,
-      parentId = rrt.resourceType.parent?.publicId,
-      name = rrt.resourceType.getTranslatedName(languageCode),
-      connectionId = rrt.publicId,
+      id = resourceType.publicId,
+      order = resourceType.order,
+      translations = resourceType.translations.map(::TranslationDTO).toCollection(TreeSet()),
+      supportedLanguages = TreeSet(resourceType.supportedLanguages),
+      parentId = resourceType.parent?.publicId,
+      name = resourceType.getTranslatedName(languageCode),
+      connectionId = URI.create("urn:resource-resourcetype:${nodeId}_${resourceType.publicId}"),
   )
 
-  override fun compareTo(other: ResourceTypeWithConnectionDTO): Int {
-    if (order == -1 || other.order == -1) {
-      return this.id.compareTo(other.id)
-    }
-    return this.order.compareTo(other.order)
-  }
+  override fun compareTo(other: ResourceTypeWithConnectionDTO) = order.compareTo(other.order)
 }

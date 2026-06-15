@@ -309,7 +309,14 @@ class Nodes(
       language: String,
   ): NodeDTO =
       nodeService.getNode(
-          id, language, rootId, parentId, includeContexts, filterProgrammes, isVisible)
+          id,
+          language,
+          rootId,
+          parentId,
+          includeContexts,
+          filterProgrammes,
+          isVisible,
+      )
 
   @PostMapping
   @Operation(
@@ -331,15 +338,13 @@ class Nodes(
       val oldGrade = entity.qualityEvaluationGrade
       command.apply(entity)
       nodeRepository.saveAndFlush(entity)
-      if (command.nodeType == NodeType.RESOURCE && command.resourceTypes.isPresent) {
-        command.resourceTypes.map { types ->
-          types.forEach { type -> nodeService.connectNodeResourceType(entity.publicId, type) }
-        }
-      }
       contextUpdaterService.updateContexts(entity)
       if (locked) {
         qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(
-            entity, oldGrade, command)
+            entity,
+            oldGrade,
+            command,
+        )
       }
       return ResponseEntity.created(URI.create("$location/${entity.publicId}")).build()
     } catch (e: DataIntegrityViolationException) {
@@ -358,7 +363,9 @@ class Nodes(
   fun updateNode(
       @PathVariable("id") id: URI,
       @Parameter(
-          name = "node", description = "The updated node. Fields not included will be set to null.")
+          name = "node",
+          description = "The updated node. Fields not included will be set to null.",
+      )
       @RequestBody
       command: NodePostPut,
   ) {
@@ -370,7 +377,10 @@ class Nodes(
     contextUpdaterService.updateContexts(entity)
     if (locked) {
       qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(
-          entity, oldGrade, command)
+          entity,
+          oldGrade,
+          command,
+      )
     }
   }
 
@@ -576,7 +586,9 @@ class Nodes(
       @PathVariable("id")
       publicId: URI,
       @Parameter(
-          name = "node", description = "Object containing contentUri. Other values are ignored.")
+          name = "node",
+          description = "Object containing contentUri. Other values are ignored.",
+      )
       @RequestBody
       command: NodePostPut,
   ): ResponseEntity<Unit> {

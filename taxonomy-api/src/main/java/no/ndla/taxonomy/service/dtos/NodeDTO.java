@@ -213,8 +213,9 @@ public class NodeDTO {
 
         this.metadata = new MetadataDTO(entity.getMetadata());
 
-        this.resourceTypes = entity.getResourceResourceTypes().stream()
-                .map(resourceType -> new ResourceTypeWithConnectionDTO(resourceType, this.language))
+        this.resourceTypes = entity.getResourceTypes().stream()
+                .map(resourceType ->
+                        new ResourceTypeWithConnectionDTO(entity.getPublicId(), resourceType, this.language))
                 .collect(Collectors.toCollection(TreeSet::new));
 
         this.nodeType = entity.getNodeType();

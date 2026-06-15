@@ -8,8 +8,6 @@
 package no.ndla.taxonomy.rest.v1.dtos.searchapi
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kotlin.collections.buildMap
-import no.ndla.taxonomy.config.Constants.DefaultLanguage
 import no.ndla.taxonomy.domain.ResourceType
 
 @Schema(requiredProperties = ["id", "name"])
@@ -26,8 +24,7 @@ data class SearchableTaxonomyResourceType(
       order = rt.order,
       parentId = rt.parent?.publicId?.toString(),
       name =
-          buildMap<String, String> {
-            put(DefaultLanguage, rt.name)
+          buildMap {
             rt.translations.forEach { t ->
               val code = t.languageCode ?: return@forEach
               val tName = t.name ?: return@forEach
@@ -36,10 +33,5 @@ data class SearchableTaxonomyResourceType(
           },
   )
 
-  override fun compareTo(other: SearchableTaxonomyResourceType): Int {
-    if (order == -1 || other.order == -1) {
-      return id.compareTo(other.id)
-    }
-    return order - other.order
-  }
+  override fun compareTo(other: SearchableTaxonomyResourceType) = order.compareTo(other.order)
 }

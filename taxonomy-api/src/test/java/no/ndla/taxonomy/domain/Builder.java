@@ -23,7 +23,6 @@ public class Builder {
     private final EntityManager entityManager;
     private final ContextUpdaterService contextUpdaterService;
     private final Map<String, VersionBuilder> versions = new HashMap<>();
-    private final Map<String, ResourceTypeBuilder> resourceTypes = new HashMap<>();
     private final Map<String, NodeBuilder> nodes = new HashMap<>();
     private final Map<String, UrlMappingBuilder> cachedUrlOldRigBuilders = new HashMap<>();
     private int keyCounter = 0;
@@ -58,20 +57,6 @@ public class Builder {
         return builder.version;
     }
 
-    public ResourceType resourceType(String key) {
-        return resourceType(key, null);
-    }
-
-    public ResourceType resourceType(Consumer<ResourceTypeBuilder> consumer) {
-        return resourceType(null, consumer);
-    }
-
-    public ResourceType resourceType(String key, Consumer<ResourceTypeBuilder> consumer) {
-        ResourceTypeBuilder resourceType = getResourceTypeBuilder(key);
-        if (null != consumer) consumer.accept(resourceType);
-        return resourceType.resourceType;
-    }
-
     private VersionBuilder getVersionBuilder(String key) {
         if (key == null) {
             key = createKey();
@@ -89,14 +74,6 @@ public class Builder {
         }
         nodes.putIfAbsent(key, new NodeBuilder(nodeType));
         return nodes.get(key);
-    }
-
-    private ResourceTypeBuilder getResourceTypeBuilder(String key) {
-        if (key == null) {
-            key = createKey();
-        }
-        resourceTypes.putIfAbsent(key, new ResourceTypeBuilder());
-        return resourceTypes.get(key);
     }
 
     private NodeBuilder getResourceBuilder(String key) {
@@ -208,61 +185,6 @@ public class Builder {
         }
     }
 
-    @Transactional
-    public class ResourceTypeBuilder {
-        private final ResourceType resourceType;
-
-        public ResourceTypeBuilder() {
-            resourceType = new ResourceType();
-            entityManager.persist(resourceType);
-        }
-
-        public ResourceTypeBuilder name(String name) {
-            resourceType.setName(name);
-            return this;
-        }
-
-        public ResourceTypeBuilder translation(String name, String languageCode) {
-            resourceType.addTranslation(name, languageCode);
-            entityManager.persist(resourceType);
-            return this;
-        }
-
-        public ResourceTypeBuilder translation(String languageCode, Consumer<JsonTranslationBuilder> consumer) {
-            var nodeTranslation = resourceType.addTranslation("", languageCode);
-            var builder = new JsonTranslationBuilder(nodeTranslation);
-            consumer.accept(builder);
-            entityManager.persist(resourceType);
-            return this;
-        }
-
-        public ResourceTypeBuilder subtype(Consumer<ResourceTypeBuilder> consumer) {
-            return subtype(null, consumer);
-        }
-
-        public ResourceTypeBuilder subtype(String key, Consumer<ResourceTypeBuilder> consumer) {
-            ResourceTypeBuilder resourceTypeBuilder = getResourceTypeBuilder(key);
-            if (null != consumer) consumer.accept(resourceTypeBuilder);
-            subtype(resourceTypeBuilder.resourceType);
-            return this;
-        }
-
-        public ResourceTypeBuilder subtype(ResourceType subtype) {
-            subtype.setParent(resourceType);
-            return this;
-        }
-
-        public ResourceTypeBuilder publicId(String id) {
-            resourceType.setPublicId(URI.create(id));
-            return this;
-        }
-
-        public ResourceTypeBuilder order(int order) {
-            resourceType.setOrder(order);
-            return this;
-        }
-    }
-
     public UrlMapping urlMapping(Consumer<UrlMappingBuilder> consumer) {
         return urlMapping(null, consumer);
     }
@@ -293,28 +215,14 @@ public class Builder {
             return this;
         }
 
+        public NodeBuilder resourceType(ResourceType rt) {
+            node.addResourceType(rt);
+            return this;
+        }
+
         public NodeBuilder qualityEvaluation(Grade grade) {
             node.setQualityEvaluation(grade);
             return this;
-        }
-
-        public NodeBuilder resourceType(ResourceType resourceType) {
-            entityManager.persist(node.addResourceType(resourceType));
-            return this;
-        }
-
-        public NodeBuilder resourceType(Consumer<ResourceTypeBuilder> consumer) {
-            return resourceType(null, consumer);
-        }
-
-        public NodeBuilder resourceType(String resourceTypeKey, Consumer<ResourceTypeBuilder> consumer) {
-            ResourceTypeBuilder resourceTypeBuilder = getResourceTypeBuilder(resourceTypeKey);
-            if (null != consumer) consumer.accept(resourceTypeBuilder);
-            return resourceType(resourceTypeBuilder.resourceType);
-        }
-
-        public NodeBuilder resourceType(String resourceTypeKey) {
-            return resourceType(resourceTypeKey, null);
         }
 
         public NodeBuilder contentUri(String contentUri) {
