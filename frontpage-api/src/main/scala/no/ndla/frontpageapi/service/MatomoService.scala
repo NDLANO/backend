@@ -144,7 +144,7 @@ object MatomoService {
 
   private val MatomoPeriod     = "range"
   private val PageLimit        = 100
-  private val TopArticlesLimit = 20
+  private val TopArticlesLimit = 9
   private val DaysInDateRange  = 7
   private val ContextIdRegex   = "[A-Fa-f0-9]{10}([A-Fa-f0-9]{2})?".r
 }
