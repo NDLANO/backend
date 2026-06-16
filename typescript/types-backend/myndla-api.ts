@@ -1098,7 +1098,6 @@ export type components = {
         ResourceType: "article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video";
         /** RobotConfigurationDTO */
         RobotConfigurationDTO: {
-            title: string;
             version: string;
             settings: components["schemas"]["RobotSettingsDTO"];
         };
@@ -1126,16 +1125,19 @@ export type components = {
          */
         RobotSettingsDTO: {
             name: string;
-            systemprompt?: string;
-            question?: string;
+            title: string;
+            description?: string;
+            systemprompt: string;
+            question: string;
             temperature: string;
             model: string;
+            voice: string;
         };
         /**
          * RobotStatus
          * @enum {string}
          */
-        RobotStatus: "PRIVATE" | "SHARED";
+        RobotStatus: "PRIVATE" | "SHARED" | "PUBLIC" | "PUBLISHED";
         /**
          * SingleResourceStatsDTO
          * @description Stats for single resource
