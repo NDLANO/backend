@@ -77,20 +77,22 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
       shared = None,
       status = RobotStatus.PRIVATE,
       configuration = RobotConfiguration(
-        title = "hei",
         version = "1.0",
         settings = RobotSettings(
+          title = "hei",
+          description = None,
           model = "gpt-4-turbo",
           name = "Mattelæreren",
-          question = Some("HEi, hvordan går det?"),
-          systemprompt = Some("Skriv som en luring. Svar lurt på alle spørsmålene"),
+          question = "HEi, hvordan går det?",
+          systemprompt = "Skriv som en luring. Svar lurt på alle spørsmålene",
           temperature = "0.8",
+          voice = "nora",
         ),
       ),
     )
 
     val robot1 = repository.insertRobotDefinition(toInsert)(session).get
-    robot1.configuration.title should be("hei")
+    robot1.configuration.settings.title should be("hei")
 
     val robots = repository.getRobotsWithFeideId(feideId)(using session)
     robots.get.head should be(toInsert)
@@ -111,22 +113,24 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
       shared = None,
       status = RobotStatus.PRIVATE,
       configuration = RobotConfiguration(
-        title = "hei",
         version = "1.0",
         settings = RobotSettings(
           model = "gpt-4-turbo",
+          title = "hei",
+          description = Some("beskrivelse"),
           name = "Mattelæreren",
-          question = Some("HEi, hvordan går det?"),
-          systemprompt = Some("Skriv som en luring. Svar lurt på alle spørsmålene"),
+          question = "HEi, hvordan går det?",
+          systemprompt = "Skriv som en luring. Svar lurt på alle spørsmålene",
           temperature = "0.8",
+          voice = "nora",
         ),
       ),
     )
 
     val robot1 = repository.insertRobotDefinition(toInsert)(session).get
-    robot1.configuration.title should be("hei")
+    robot1.configuration.settings.title should be("hei")
 
-    val toUpdate = robot1.copy(configuration = robot1.configuration.copy(title = "hei2"))
+    val toUpdate = robot1.copy(configuration = robot1.configuration.copy(version = "1.1"))
     repository.updateRobotDefinition(toUpdate)(using session).get
 
     val robots = repository.getRobotsWithFeideId(feideId)(using session)

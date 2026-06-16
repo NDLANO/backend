@@ -42,14 +42,16 @@ object RobotDefinitionDTO {
       updated = domain.updated,
       shared = domain.shared,
       configuration = RobotConfigurationDTO(
-        title = domain.configuration.title,
         version = domain.configuration.version,
         settings = RobotSettingsDTO(
           name = domain.configuration.settings.name,
+          title = domain.configuration.settings.title,
+          description = domain.configuration.settings.description,
           systemprompt = domain.configuration.settings.systemprompt,
           question = domain.configuration.settings.question,
           temperature = domain.configuration.settings.temperature,
           model = domain.configuration.settings.model,
+          voice = domain.configuration.settings.voice,
         ),
       ),
     )

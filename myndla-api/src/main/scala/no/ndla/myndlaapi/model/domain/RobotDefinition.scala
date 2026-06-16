@@ -37,19 +37,22 @@ case class RobotDefinition(
   }
 
   def canRead(feideId: FeideID, notFound: Boolean): Try[RobotDefinition] = {
-    if (this.feideId == feideId || this.status == RobotStatus.SHARED) Success(this)
+    if (this.feideId == feideId || this.status != RobotStatus.PRIVATE) Success(this)
     else if (notFound) Failure(NotFoundException(s"Robot definition with id $id not found"))
     else Failure(new AccessDeniedException("You do not have access to read this robot definition"))
   }
 }
 
-case class RobotConfiguration(title: String, version: String, settings: RobotSettings)
+case class RobotConfiguration(version: String, settings: RobotSettings)
 case class RobotSettings(
     name: String,
-    systemprompt: Option[String],
-    question: Option[String],
+    title: String,
+    description: Option[String],
+    systemprompt: String,
+    question: String,
     temperature: String,
     model: String,
+    voice: String,
 )
 
 object RobotSettings {
@@ -63,14 +66,16 @@ object RobotConfiguration {
 
   def fromDTO(dto: RobotConfigurationDTO): RobotConfiguration = {
     RobotConfiguration(
-      title = dto.title,
       version = dto.version,
       settings = RobotSettings(
         name = dto.settings.name,
+        title = dto.settings.title,
+        description = dto.settings.description,
         systemprompt = dto.settings.systemprompt,
         question = dto.settings.question,
         temperature = dto.settings.temperature,
         model = dto.settings.model,
+        voice = dto.settings.voice,
       ),
     )
   }
