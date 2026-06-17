@@ -147,7 +147,6 @@ class Routes(using
       val requestInfo = RequestInfo.fromRequest(req)
       requestInfo.setThreadContextRequestInfo()
       setBeforeMDC(requestInfo, req)
-      CorrelationID.get.foreach(id => NdlaTracing.setSpanAttribute("ndla.correlation_id", id))
       val startTime = System.currentTimeMillis()
 
       val shouldLog = shouldLogRequest(req)

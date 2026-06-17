@@ -37,13 +37,6 @@ object NdlaTracing {
     override def get(carrier: ServerRequest, key: String): String         = carrier.header(key).orNull
   }
 
-  def setSpanAttribute(key: String, value: String): Unit = {
-    val span = Span.current()
-    if (span.getSpanContext.isValid) {
-      span.setAttribute(key, value): Unit
-    }
-  }
-
   private def startServerSpan(request: ServerRequest, method: String, route: String): Span = {
     val otel    = GlobalOpenTelemetry.get()
     val parent  = otel.getPropagators.getTextMapPropagator.extract(Context.current(), request, requestHeaderGetter)
