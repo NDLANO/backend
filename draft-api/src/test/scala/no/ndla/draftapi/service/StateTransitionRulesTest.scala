@@ -31,11 +31,11 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
   val PlannedStatus: Status                                             = common.Status(PLANNED, Set(END_CONTROL))
   val PlannedWithPublishedStatus: Status                                = common.Status(PLANNED, Set(PUBLISHED))
-  val PublishedStatus: Status                                           = common.Status(PUBLISHED, Set.empty)
+  val PublishedStatus: Status                                           = common.Status(PUBLISHED, Set(PUBLISHED))
   val ExternalReviewStatus: Status                                      = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
   val UnpublishedStatus: Status                                         = common.Status(UNPUBLISHED, Set.empty)
   val InProcessStatus: Status                                           = common.Status(IN_PROGRESS, Set.empty)
-  val ArchivedStatus: Status                                            = common.Status(ARCHIVED, Set(PUBLISHED))
+  val ArchivedStatus: Status                                            = common.Status(ARCHIVED, Set.empty)
   val responsible: Responsible                                          = common.Responsible("someid", TestData.today)
   val InProcessArticle: Draft                                           = TestData
     .sampleArticleWithByNcSa
@@ -77,11 +77,12 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition every state change to Archived should succeed") {
-    val expected1          = common.Status(ARCHIVED, Set.empty)
+    val expected1 = common.Status(ARCHIVED, Set.empty)
+    // Only admins should be able to archive a published article directly.
     val (Success(res1), _) = stateTransitionRules.doTransitionWithoutSideEffect(
       InProcessArticle.copy(status = PublishedStatus),
       ARCHIVED,
-      TestData.userWithPublishAccess,
+      TestData.userWithAdminAccess,
     ): @unchecked
     res1.status should equal(expected1)
 
@@ -116,14 +117,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       TestData.userWithPublishAccess,
     ): @unchecked
     res5.status should equal(expected5)
-
-    val expected6          = common.Status(ARCHIVED, Set.empty)
-    val (Success(res6), _) = stateTransitionRules.doTransitionWithoutSideEffect(
-      InProcessArticle.copy(status = PublishedStatus),
-      ARCHIVED,
-      TestData.userWithPublishAccess,
-    ): @unchecked
-    res6.status should equal(expected6)
 
   }
 
