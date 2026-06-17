@@ -3563,6 +3563,8 @@ export interface operations {
                 value?: string;
                 /** @description Filter by context id. Beware: handled separately from other parameters! */
                 contextId?: string;
+                /** @description Filter by context ids. Beware: handled separately from other parameters! */
+                contextIds?: string[];
                 /** @description Filter contexts by visibility */
                 isVisible?: boolean;
                 /** @description Include all contexts */
@@ -3645,6 +3647,8 @@ export interface operations {
                 value?: string;
                 /** @description Filter by context id. Beware: handled separately from other parameters! */
                 contextId?: string;
+                /** @description Filter by context ids. Beware: handled separately from other parameters! */
+                contextIds?: string[];
                 /** @description Filter contexts by visibility */
                 isVisible?: boolean;
                 /** @description Include all contexts */
