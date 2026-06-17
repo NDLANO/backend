@@ -87,8 +87,9 @@ object NdlaTracing {
   }
 
   /** Endpoint interceptor that opens a SERVER span around the endpoint execution, named `METHOD /path/template`, and
-    * makes it the current context so downstream spans (JDBC, outgoing HTTP, ...) nest under it. The agent instruments
-    * raw Netty, which has no knowledge of Tapir routes, so the span is named and attributed here.
+    * makes it the current context so downstream spans (JDBC, outgoing HTTP, ...) nest under it. By default the agent
+    * instruments raw Netty requests, which has no knowledge of Tapir routes, so we disable that and the span is named
+    * and attributed here.
     */
   val tracingInterceptor: EndpointInterceptor[Identity] = new EndpointInterceptor[Identity] {
     override def apply[B](
