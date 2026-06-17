@@ -191,7 +191,7 @@ class Routes(using
           }
         }
 
-      def apply[B](req: ServerRequest, result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
+      def apply[B](req: ServerRequest, result: RequestResult[B]): RequestResult[B] = {
         if (req.attribute(activityTracked).contains(true)) {
           val code: Int = result match {
             case RequestResult.Response(response, _) => response.code.code
@@ -233,7 +233,7 @@ class Routes(using
     }
   }
 
-  private def withCorrelationIdHeader[B](result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
+  private def withCorrelationIdHeader[B](result: RequestResult[B]): RequestResult[B] = {
     CorrelationID.get match {
       case None                => result
       case Some(correlationId) => result match {
