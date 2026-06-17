@@ -88,6 +88,7 @@ public class NodeService {
             Optional<List<URI>> publicIds,
             Optional<URI> contentUri,
             Optional<String> contextId,
+            Optional<List<String>> contextIds,
             Optional<Boolean> isRoot,
             Optional<Boolean> isContext,
             MetadataFilters metadataFilters,
@@ -98,8 +99,9 @@ public class NodeService {
             Optional<URI> parentId) {
         final List<NodeDTO> listToReturn = new ArrayList<>();
         List<Integer> ids;
-        if (contextId.isPresent()) {
-            ids = nodeRepository.findIdsByContextId(contextId);
+        if (contextId.isPresent() || contextIds.isPresent()) {
+            ids = nodeRepository.findIdsByContextIds(
+                    contextIds.orElse(contextId.map(List::of).orElse(List.of())));
         } else {
             ids = nodeRepository.findIdsFiltered(
                     nodeType,

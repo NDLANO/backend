@@ -72,6 +72,7 @@ class Nodes(
       nodeType: Optional<List<NodeType>>,
       contentURI: Optional<URI>,
       contextId: Optional<String>,
+      contextIds: Optional<List<String>>,
       isContext: Optional<Boolean>,
       metadataFilters: MetadataFilters,
   ): List<NodeType> {
@@ -80,6 +81,7 @@ class Nodes(
     }
     if (contentURI.isEmpty &&
         contextId.isEmpty &&
+        contextIds.isEmpty &&
         isContext.isEmpty &&
         !metadataFilters.hasFilters()) {
       return listOf(NodeType.TOPIC, NodeType.NODE, NodeType.SUBJECT, NodeType.PROGRAMME)
@@ -122,6 +124,10 @@ class Nodes(
           description = "Filter by context id. Beware: handled separately from other parameters!")
       @RequestParam(value = "contextId", required = false)
       contextId: Optional<String>,
+      @Parameter(
+          description = "Filter by context ids. Beware: handled separately from other parameters!")
+      @RequestParam(value = "contextIds", required = false)
+      contextIds: Optional<List<String>>,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false)
       isVisible: Optional<Boolean>,
@@ -141,13 +147,21 @@ class Nodes(
     val metadataFilters = MetadataFilters(key, value, isVisible)
     val isRootOrContext = if (isRoot.isPresent) isRoot else isContext
     val defaultNodeTypes =
-        getDefaultNodeTypes(nodeType, contentUri, contextId, isRootOrContext, metadataFilters)
+        getDefaultNodeTypes(
+            nodeType,
+            contentUri,
+            contextId,
+            contextIds,
+            isRootOrContext,
+            metadataFilters,
+        )
     return nodeService.getNodesByType(
         Optional.of(defaultNodeTypes),
         language,
         publicIds,
         contentUri,
         contextId,
+        contextIds,
         isRoot,
         isContext,
         metadataFilters,
@@ -309,7 +323,14 @@ class Nodes(
       language: String,
   ): NodeDTO =
       nodeService.getNode(
-          id, language, rootId, parentId, includeContexts, filterProgrammes, isVisible)
+          id,
+          language,
+          rootId,
+          parentId,
+          includeContexts,
+          filterProgrammes,
+          isVisible,
+      )
 
   @PostMapping
   @Operation(
@@ -339,7 +360,10 @@ class Nodes(
       contextUpdaterService.updateContexts(entity)
       if (locked) {
         qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(
-            entity, oldGrade, command)
+            entity,
+            oldGrade,
+            command,
+        )
       }
       return ResponseEntity.created(URI.create("$location/${entity.publicId}")).build()
     } catch (e: DataIntegrityViolationException) {
@@ -358,7 +382,9 @@ class Nodes(
   fun updateNode(
       @PathVariable("id") id: URI,
       @Parameter(
-          name = "node", description = "The updated node. Fields not included will be set to null.")
+          name = "node",
+          description = "The updated node. Fields not included will be set to null.",
+      )
       @RequestBody
       command: NodePostPut,
   ) {
@@ -370,7 +396,10 @@ class Nodes(
     contextUpdaterService.updateContexts(entity)
     if (locked) {
       qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(
-          entity, oldGrade, command)
+          entity,
+          oldGrade,
+          command,
+      )
     }
   }
 
@@ -431,6 +460,7 @@ class Nodes(
     val nodeTypes =
         getDefaultNodeTypes(
             nodeType,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
@@ -576,7 +606,9 @@ class Nodes(
       @PathVariable("id")
       publicId: URI,
       @Parameter(
-          name = "node", description = "Object containing contentUri. Other values are ignored.")
+          name = "node",
+          description = "Object containing contentUri. Other values are ignored.",
+      )
       @RequestBody
       command: NodePostPut,
   ): ResponseEntity<Unit> {
