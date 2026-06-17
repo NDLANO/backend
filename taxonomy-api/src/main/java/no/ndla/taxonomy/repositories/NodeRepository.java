@@ -83,7 +83,7 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
 
     @Query(value = """
             SELECT n.id FROM Node n
-            WHERE (CAST(n.contextids as text[]) && CAST(:contextIds as text[]))
+            WHERE n.contextids ?| :contextIds
             """, nativeQuery = true)
     List<Integer> findIdsByContextIds(List<String> contextIds);
 
