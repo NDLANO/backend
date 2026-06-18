@@ -10,11 +10,13 @@ package no.ndla.myndlaapi.db.migration
 
 import io.circe.{Json, parser}
 import no.ndla.database.{TableIdType, TableMigration}
+import no.ndla.myndlaapi.uuidBinder
 import org.postgresql.util.PGobject
 import scalikejdbc.interpolation.Implicits.scalikejdbcSQLInterpolationImplicitDef
 import scalikejdbc.{DBSession, SQLSyntax, WrappedResultSet}
 
 import java.util.UUID
+import scala.util.Try
 
 case class RobotDocumentRow(id: UUID, configuration: String)
 
@@ -27,7 +29,7 @@ class V29__MigrateRobotConfiguration extends TableMigration[RobotDocumentRow] {
   override lazy val whereClause: SQLSyntax  = sqls"$columnNameSQL is not null"
 
   override def extractRowData(rs: WrappedResultSet): RobotDocumentRow =
-    RobotDocumentRow(rs.any("id").asInstanceOf[UUID], rs.string(columnName))
+    RobotDocumentRow(rs.get[Try[UUID]]("id").get, rs.string(columnName))
 
   override def updateRow(rowData: RobotDocumentRow)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
@@ -51,16 +53,18 @@ class V29__MigrateRobotConfiguration extends TableMigration[RobotDocumentRow] {
         // Remove title from root
         val rootWithoutTitle = root.remove("title")
 
+        def nullToStr(json: Option[Json]): Json = json match {
+          case Some(x) if x.isString => x
+          case _                     => Json.fromString("")
+        }
+
         // Transform settings object
         val newSettings = rootWithoutTitle("settings").flatMap(_.asObject) match {
           case None           => Json.obj()
           case Some(settings) =>
             // systemprompt and question were Option[String], default null to empty string
-            val systemprompt = settings("systemprompt")
-              .flatMap(_.asString)
-              .map(Json.fromString)
-              .getOrElse(Json.fromString(""))
-            val question = settings("question").flatMap(_.asString).map(Json.fromString).getOrElse(Json.fromString(""))
+            val systemprompt = nullToStr(settings("systemprompt"))
+            val question     = nullToStr(settings("question"))
 
             Json.fromJsonObject(
               settings
