@@ -9,13 +9,38 @@
 package no.ndla.myndlaapi.db.migration
 
 import io.circe.{Json, parser}
-import no.ndla.database.DocumentMigration
+import no.ndla.database.{TableIdType, TableMigration}
+import org.postgresql.util.PGobject
+import scalikejdbc.interpolation.Implicits.scalikejdbcSQLInterpolationImplicitDef
+import scalikejdbc.{DBSession, SQLSyntax, WrappedResultSet}
 
-class V29__MigrateRobotConfiguration extends DocumentMigration {
-  override val columnName: String = "configuration"
-  override val tableName: String  = "robot_definitions"
+import java.util.UUID
 
-  override def convertColumn(document: String): String = {
+case class RobotDocumentRow(id: UUID, configuration: String)
+
+class V29__MigrateRobotConfiguration extends TableMigration[RobotDocumentRow] {
+  private val columnName: String        = "configuration"
+  override val tableName: String        = "robot_definitions"
+  override val tableIdType: TableIdType = TableIdType.UUID
+
+  private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
+  override lazy val whereClause: SQLSyntax  = sqls"$columnNameSQL is not null"
+
+  override def extractRowData(rs: WrappedResultSet): RobotDocumentRow =
+    RobotDocumentRow(rs.any("id").asInstanceOf[UUID], rs.string(columnName))
+
+  override def updateRow(rowData: RobotDocumentRow)(implicit session: DBSession): Int = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    val newDocument = convertColumn(rowData.configuration)
+    dataObject.setValue(newDocument)
+    sql"""update $tableNameSQL
+          set $columnNameSQL = $dataObject
+          where id = ${rowData.id}
+       """.update()
+  }
+
+  def convertColumn(document: String): String = {
     val oldDoc = parser.parse(document).toTry.get
     oldDoc.asObject match {
       case None       => document
@@ -50,4 +75,5 @@ class V29__MigrateRobotConfiguration extends DocumentMigration {
         Json.fromJsonObject(rootWithoutTitle.add("settings", newSettings)).noSpaces
     }
   }
+
 }
