@@ -8,8 +8,10 @@
 
 package no.ndla.network
 
+import io.prometheus.metrics.model.snapshots.CounterSnapshot
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
+import no.ndla.network.tapir.NdlaPrometheusRegistry
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -17,6 +19,8 @@ import org.mockito.Mockito.{reset, verify, when}
 import org.scalatest.TryValues.*
 import sttp.client4.{Response, UriContext, WebSocketSyncBackend, basicRequest}
 import sttp.model.{Method, RequestMetadata, StatusCode}
+
+import scala.jdk.CollectionConverters.*
 
 class NdlaClientTest extends UnitSuite {
 
@@ -163,6 +167,44 @@ class NdlaClientTest extends UnitSuite {
 
     val sent = captureSent()
     sent.headers.find(_.is("Authorization")).map(_.value) should equal(Some(authHeaderValue))
+  }
+
+  private def clientRequestCount(host: String, method: String, status: String): Double = NdlaPrometheusRegistry
+    .registry
+    .scrape()
+    .iterator()
+    .asScala
+    .collectFirst {
+      case cs: CounterSnapshot if cs.getMetadata.getPrometheusName.startsWith("ndla_http_client_requests") => cs
+    }
+    .flatMap { cs =>
+      cs.getDataPoints
+        .asScala
+        .find { dp =>
+          val l = dp.getLabels
+          l.get("host") == host && l.get("method") == method && l.get("status") == status
+        }
+    }
+    .map(_.getValue)
+    .getOrElse(0.0d)
+
+  test("That metrics are recorded for outgoing requests") {
+    val targetUri        = uri"http://my-service/path"
+    val httpRequest      = basicRequest.get(targetUri).response(sttp.client4.asStringAlways)
+    val httpResponseMock = new Response(
+      body = ParseableContent,
+      code = StatusCode(200),
+      statusText = "OK",
+      headers = Seq.empty,
+      history = List.empty,
+      request = RequestMetadata(Method.GET, targetUri, List.empty),
+    )
+    when(httpClientMock.send(any[NdlaRequest])).thenReturn(httpResponseMock)
+
+    val before = clientRequestCount("my-service", "GET", "200")
+    ndlaClient.fetchRaw(httpRequest).isSuccess should be(true)
+    val after = clientRequestCount("my-service", "GET", "200")
+    after should be(before + 1.0d)
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {

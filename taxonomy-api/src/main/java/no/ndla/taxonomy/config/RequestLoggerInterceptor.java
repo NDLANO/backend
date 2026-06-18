@@ -28,7 +28,10 @@ public class RequestLoggerInterceptor implements AsyncHandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         request.setAttribute(START_TIME, System.currentTimeMillis());
-        MDC.put("Correlation-ID", getCorrelationId(request));
+        var correlationId = getCorrelationId(request);
+        MDC.put("correlationID", correlationId);
+        // Echo the correlation id back so clients can quote it when reporting issues.
+        response.setHeader("X-Correlation-ID", correlationId);
         var requestPath = request.getRequestURI();
         var queryString = Optional.ofNullable(request.getQueryString()).orElse("");
         var pathAndQuery = requestPath + (queryString.isEmpty() ? "" : "?" + queryString);
@@ -52,6 +55,11 @@ public class RequestLoggerInterceptor implements AsyncHandlerInterceptor {
                 Optional.ofNullable(request.getHeader("VersionHash")).orElse(""),
                 "" + latency,
                 response.getStatus());
+        // Spring reuses worker threads, so clear MDC to avoid leaking context into the next request.
+        MDC.remove("correlationID");
+        MDC.remove("requestPath");
+        MDC.remove("method");
+        MDC.remove("reqLatencyMs");
         AsyncHandlerInterceptor.super.afterCompletion(request, response, handler, ex);
     }
 }

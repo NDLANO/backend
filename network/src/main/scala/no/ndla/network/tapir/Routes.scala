@@ -10,8 +10,9 @@ package no.ndla.network.tapir
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
-import no.ndla.common.RequestLogger
 import no.ndla.common.configuration.BaseProps
+import no.ndla.common.{CorrelationID, RequestLogger}
+import no.ndla.common.configuration.Constants
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.*
 import no.ndla.network.tapir.NoNullJsonPrinter.*
@@ -189,7 +190,7 @@ class Routes(using
           }
         }
 
-      def apply[B](req: ServerRequest, result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
+      def apply[B](req: ServerRequest, result: RequestResult[B]): RequestResult[B] = {
         if (req.attribute(activityTracked).contains(true)) {
           val code: Int = result match {
             case RequestResult.Response(response, _) => response.code.code
@@ -221,10 +222,25 @@ class Routes(using
           else logger.info(s)
         }
 
+        val response = withCorrelationIdHeader(result)
+
         RequestInfo.clear()
         MDC.clear()
-        result
+
+        response
       }
+    }
+  }
+
+  private def withCorrelationIdHeader[B](result: RequestResult[B]): RequestResult[B] = {
+    CorrelationID.get match {
+      case None                => result
+      case Some(correlationId) => result match {
+          case RequestResult.Response(response, source) =>
+            val header = Header(Constants.CorrelationIdHeader, correlationId)
+            RequestResult.Response(response.addHeaders(List(header)), source)
+          case other => other
+        }
     }
   }
 
@@ -239,6 +255,7 @@ class Routes(using
       .decodeFailureHandler(NdlaDecodeFailureHandler)
       .serverLog(None)
       .metricsInterceptor(prometheusMetrics.metricsInterceptor())
+      .addInterceptor(NdlaTracing.tracingInterceptor)
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options

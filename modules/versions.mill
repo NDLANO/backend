@@ -72,6 +72,7 @@ object SharedDependencies {
   val tapirTesting: Dep = mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV"
   val PrometheusV       = "1.6.1"
   val SimpleclientV     = "0.16.0"
+  val OpenTelemetryV    = "1.55.0"
   val tapir: Seq[Dep]   = Seq(
     mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
@@ -81,6 +82,7 @@ object SharedDependencies {
     mvn"io.prometheus:prometheus-metrics-instrumentation-jvm:$PrometheusV",
     mvn"io.prometheus:prometheus-metrics-simpleclient-bridge:$PrometheusV",
     mvn"io.prometheus:simpleclient:$SimpleclientV",
+    mvn"io.opentelemetry:opentelemetry-api:$OpenTelemetryV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
   )
 

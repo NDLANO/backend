@@ -17,6 +17,12 @@ Configuration:
         KeyValuePair:
           - key: "correlationID"
             value: "$${ctx:correlationID:-}"
+          - key: "trace_id"
+            value: "$${ctx:trace_id:-}"
+          - key: "span_id"
+            value: "$${ctx:span_id:-}"
+          - key: "trace_flags"
+            value: "$${ctx:trace_flags:-}"
           - key: "timestamp"
             value: "$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}"
 
