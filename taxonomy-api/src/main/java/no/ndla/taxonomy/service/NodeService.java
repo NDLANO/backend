@@ -92,8 +92,9 @@ public class NodeService {
         final List<NodeDTO> listToReturn = new ArrayList<>();
         List<Integer> ids;
         if (contextId.isPresent() || contextIds.isPresent()) {
-            ids = nodeRepository.findIdsByContextIds(
-                    contextIds.orElse(contextId.map(List::of).orElse(List.of())));
+            var input =
+                    contextIds.orElse(contextId.map(List::of).orElse(List.of())).toArray(new String[0]);
+            ids = nodeRepository.findIdsByContextIds(input);
         } else {
             ids = nodeRepository.findIdsFiltered(
                     nodeType,
