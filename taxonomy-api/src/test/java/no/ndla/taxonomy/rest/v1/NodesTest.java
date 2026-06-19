@@ -189,7 +189,7 @@ public class NodesTest extends RestTest {
     }
 
     @Test
-    public void can_get_nodes_by_contextId() {
+    public void can_get_nodes_by_contextId() throws Exception {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource"));
         Node resource2 = builder.node(NodeType.RESOURCE, r -> r.name("Resource2"));
         builder.node(
@@ -213,51 +213,37 @@ public class NodesTest extends RestTest {
         assertEquals(1, fromDB2.get().getContexts().size());
 
         // Check fetching by contextid and make sure correct path and breadcrumbs is used
-        fromDB.get().getContexts().forEach(context -> {
-            try {
-                final var response =
-                        testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextId=" + context.contextId());
-                final var nodes = testUtils.getObject(NodeDTO[].class, response);
-                assertEquals(1, nodes.length);
-                assertEquals("Resource", nodes[0].getName());
-                assertTrue(nodes[0].getUrl().get().endsWith(String.format("resource/%s", context.contextId())));
-                assertEquals(context.path(), nodes[0].getPath().get());
-                assertTrue(nodes[0].getBreadcrumbs()
-                        .containsAll(context.breadcrumbs().get("nb")));
-            } catch (Exception e) {
-                // Not happening
-            }
-        });
+        for (var context : fromDB.get().getContexts()) {
+            final var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextId=" + context.contextId());
+            final var nodes = testUtils.getObject(NodeDTO[].class, response);
+            assertEquals(1, nodes.length);
+            assertEquals("Resource", nodes[0].getName());
+            assertTrue(nodes[0].getUrl().get().endsWith(String.format("resource/%s", context.contextId())));
+            assertEquals(context.path(), nodes[0].getPath().get());
+            assertTrue(
+                    nodes[0].getBreadcrumbs().containsAll(context.breadcrumbs().get("nb")));
+        }
 
         // Check fetching by contextids. This does not guarantee url and breadcrumbs
-        fromDB.get().getContexts().forEach(context -> {
-            try {
-                final var response =
-                        testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + context.contextId());
-                final var nodes = testUtils.getObject(NodeDTO[].class, response);
-                assertEquals(1, nodes.length);
-                assertEquals("Resource", nodes[0].getName());
-                assertTrue(nodes[0].getPaths().contains(context.path()));
-            } catch (Exception e) {
-                // Not happening
-            }
-        });
+        for (var context : fromDB.get().getContexts()) {
+            final var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + context.contextId());
+            final var nodes = testUtils.getObject(NodeDTO[].class, response);
+            assertEquals(1, nodes.length);
+            assertEquals("Resource", nodes[0].getName());
+            assertTrue(nodes[0].getPaths().contains(context.path()));
+        }
 
         // Check fetching by all contextids. This does not guarantee url and breadcrumbs
         var contextIds = fromDB.get().getContextIds();
         contextIds.addAll(fromDB2.get().getContextIds());
-        try {
-            final var response =
-                    testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + String.join(",", contextIds));
-            final var nodes = testUtils.getObject(NodeDTO[].class, response);
-            assertEquals(2, nodes.length);
-        } catch (Exception e) {
-            // Not happening
-        }
+        final var response =
+                testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextIds=" + String.join(",", contextIds));
+        final var nodes = testUtils.getObject(NodeDTO[].class, response);
+        assertEquals(2, nodes.length);
     }
 
     @Test
-    public void can_get_moved_nodes_by_contextId() {
+    public void can_get_moved_nodes_by_contextId() throws Exception {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource"));
         builder.node(
                 NodeType.SUBJECT,
@@ -286,16 +272,12 @@ public class NodesTest extends RestTest {
                 }));
 
         // Try fetching by old contextid
-        try {
-            final var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextId=" + contextId);
-            final var nodes = testUtils.getObject(NodeDTO[].class, response);
-            assertEquals(1, nodes.length);
-            assertEquals("Resource", nodes[0].getName());
-            // Should not be the old contextid
-            assertFalse(nodes[0].getUrl().get().endsWith(String.format("resource/%s", contextId)));
-        } catch (Exception e) {
-            // Not happening
-        }
+        final var response = testUtils.getResource("/v1/nodes?nodeType=RESOURCE&contextId=" + contextId);
+        final var nodes = testUtils.getObject(NodeDTO[].class, response);
+        assertEquals(1, nodes.length);
+        assertEquals("Resource", nodes[0].getName());
+        // Should not be the old contextid
+        assertFalse(nodes[0].getUrl().get().endsWith(String.format("resource/%s", contextId)));
     }
 
     @Test
