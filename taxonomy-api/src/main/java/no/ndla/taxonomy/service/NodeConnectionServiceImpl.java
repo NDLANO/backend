@@ -327,20 +327,18 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     @Transactional
     @Override
     public Optional<DomainEntity> disconnectAllInvisibleNodes() {
-        nodeRepository.findRootSubjects().forEach(subject -> {
-            disconnectInvisibleConnections(subject);
-            nodeRepository.save(subject);
-        });
+        disconnectInvisibleConnectionsBatch();
         return Optional.empty();
     }
 
-    private void disconnectInvisibleConnections(Node node) {
-        if (!node.isVisible()) {
-            node.getParentConnections().forEach(this::disconnectParentChildConnection);
-        } else {
-            node.getChildConnections()
-                    .forEach(nodeConnection ->
-                            nodeConnection.getChild().ifPresent(this::disconnectInvisibleConnections));
+    /**
+     * Efficiently disconnects all invisible nodes using batch SQL operations.
+     */
+    private void disconnectInvisibleConnectionsBatch() {
+        int deletedCount = nodeConnectionRepository.deleteConnectionsWhereChildIsInvisible();
+
+        if (deletedCount > 0) {
+            nodeRepository.clearContextsForInvisibleNodes();
         }
     }
 }

@@ -20,6 +20,20 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface NodeRepository extends TaxonomyRepository<Node> {
+
+    /**
+     * Batch clear contexts for all invisible nodes.
+     * Since invisible nodes are now orphaned (no parent connections), their
+     * context data is no longer valid and should be cleared.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE node
+            SET contexts = '[]'::jsonb
+            WHERE visible = false
+            """, nativeQuery = true)
+    void clearContextsForInvisibleNodes();
+
     @Query("SELECT DISTINCT n FROM Node n WHERE n.context = :isContext")
     List<Node> findAllByContextIncludingCachedUrlsAndTranslations(boolean isContext);
 
