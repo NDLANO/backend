@@ -181,7 +181,7 @@ export type paths = {
         put: operations["updateNodeConnection"];
         post?: never;
         /** Removes a connection between a node and a child */
-        delete: operations["deleteEntity_3"];
+        delete: operations["deleteEntity_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -358,7 +358,7 @@ export type paths = {
         put: operations["updateNode"];
         post?: never;
         /** Deletes a single node by id */
-        delete: operations["deleteEntity_2"];
+        delete: operations["deleteEntity_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -763,10 +763,16 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all connections between resources and resource types */
+        /**
+         * Gets all connections between resources and resource types
+         * @deprecated
+         */
         get: operations["getAllResourceResourceTypes"];
         put?: never;
-        /** Adds a resource type to a resource */
+        /**
+         * Adds a resource type to a resource
+         * @deprecated
+         */
         post: operations["createResourceResourceType"];
         delete?: never;
         options?: never;
@@ -781,10 +787,16 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all connections between resources and resource types */
+        /**
+         * Gets all connections between resources and resource types
+         * @deprecated
+         */
         get: operations["getAllResourceResourceTypes_1"];
         put?: never;
-        /** Adds a resource type to a resource */
+        /**
+         * Adds a resource type to a resource
+         * @deprecated
+         */
         post: operations["createResourceResourceType_1"];
         delete?: never;
         options?: never;
@@ -799,11 +811,17 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets a single connection between resource and resource type */
+        /**
+         * Gets a single connection between resource and resource type
+         * @deprecated
+         */
         get: operations["getResourceResourceType"];
         put?: never;
         post?: never;
-        /** Removes a resource type from a resource */
+        /**
+         * Removes a resource type from a resource
+         * @deprecated
+         */
         delete: operations["deleteResourceResourceType"];
         options?: never;
         head?: never;
@@ -820,8 +838,7 @@ export type paths = {
         /** Gets a list of all resource types */
         get: operations["getAllResourceTypes"];
         put?: never;
-        /** Adds a new resource type */
-        post: operations["createResourceType"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -838,8 +855,7 @@ export type paths = {
         /** Gets a list of all resource types */
         get: operations["getAllResourceTypes_1"];
         put?: never;
-        /** Adds a new resource type */
-        post: operations["createResourceType_1"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -855,11 +871,9 @@ export type paths = {
         };
         /** Gets a single resource type */
         get: operations["getResourceType"];
-        /** Updates a resource type. Use to update which resource type is parent. You can also update the id, take care! */
-        put: operations["updateResourceType"];
+        put?: never;
         post?: never;
-        /** Deletes a single entity by id */
-        delete: operations["deleteEntity_1"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -889,7 +903,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all relevanceTranslations for a single resource type */
+        /**
+         * Gets all relevanceTranslations for a single resource type
+         * @deprecated
+         */
         get: operations["getAllResourceTypeTranslations"];
         put?: never;
         post?: never;
@@ -906,7 +923,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all relevanceTranslations for a single resource type */
+        /**
+         * Gets all relevanceTranslations for a single resource type
+         * @deprecated
+         */
         get: operations["getAllResourceTypeTranslations_1"];
         put?: never;
         post?: never;
@@ -923,13 +943,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets a single translation for a single resource type */
+        /**
+         * Gets a single translation for a single resource type
+         * @deprecated
+         */
         get: operations["getResourceTypeTranslation"];
-        /** Creates or updates a translation of a resource type */
-        put: operations["createUpdateResourceTypeTranslation"];
+        put?: never;
         post?: never;
-        /** Deletes a translation */
-        delete: operations["deleteResourceTypeTranslation"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2068,7 +2089,7 @@ export type components = {
             nodeType?: components["schemas"]["NodeType"];
             /** @description The quality evaluation of the node. Consist of a score from 1 to 5 and a comment. Can be null to remove existing evaluation. */
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
-            /** @description ResourceType public ids to assign to the node. Only works on create for nodes of type RESOURCE */
+            /** @description ResourceType public ids to assign to the node. Only works for nodes of type RESOURCE */
             resourceTypes?: string[];
             /**
              * @deprecated
@@ -2299,7 +2320,7 @@ export type components = {
             /**
              * Format: uri
              * @description Resource to resource type connection id
-             * @example urn:resource-has-resourcetypes:12
+             * @example urn:resource-resourcetype:urn:resource:123_urn:resourcetype:subjectMaterial
              */
             id: string;
             /**
@@ -2346,37 +2367,13 @@ export type components = {
              * @description Sort order of the resource type
              * @example 1
              */
-            order?: number;
+            order: number;
             /** @description Sub resource types */
-            subtypes?: components["schemas"]["ResourceType"][];
+            subtypes?: components["schemas"]["ResourceType"][] | null;
             /** @description List of language codes supported by translations */
             supportedLanguages: string[];
             /** @description All translations of this resource type */
             translations: components["schemas"]["Translation"][];
-        };
-        /** @description The new resource type */
-        ResourceTypePUT: {
-            /**
-             * Format: uri
-             * @description If specified, set the id to this value. Must start with urn:resourcetype: and be a valid URI. If omitted, an id will be assigned automatically.
-             * @example urn:resourcetype:1
-             */
-            id: string | null;
-            /**
-             * @description The name of the resource type
-             * @example Lecture
-             */
-            name: string;
-            /**
-             * Format: int32
-             * @description Order in which the resource type should be sorted among its siblings
-             */
-            order?: number;
-            /**
-             * Format: uri
-             * @description If specified, the new resource type will be a child of the mentioned resource type.
-             */
-            parentId: string;
         };
         ResourceTypeWithConnection: {
             /**
@@ -2399,12 +2396,12 @@ export type components = {
              * Format: int32
              * @description Internal order of the resource types
              */
-            order?: number;
+            order: number;
             /**
              * Format: uri
              * @example urn:resourcetype:1
              */
-            parentId?: string;
+            parentId?: string | null;
             /** @description List of language codes supported by translations */
             supportedLanguages: string[];
             /** @description All translations of this resource type */
@@ -2435,8 +2432,8 @@ export type components = {
                 [key: string]: string;
             };
             /** Format: int32 */
-            order?: number;
-            parentId?: string;
+            order: number;
+            parentId?: string | null;
         };
         TaxonomyContext: {
             /** @description A breadcrumb of the names of the context's parents */
@@ -2663,7 +2660,6 @@ export type ResolvedUrl = components['schemas']['ResolvedUrl'];
 export type ResourceResourceType = components['schemas']['ResourceResourceType'];
 export type ResourceResourceTypePOST = components['schemas']['ResourceResourceTypePOST'];
 export type ResourceType = components['schemas']['ResourceType'];
-export type ResourceTypePUT = components['schemas']['ResourceTypePUT'];
 export type ResourceTypeWithConnection = components['schemas']['ResourceTypeWithConnection'];
 export type SearchResult = components['schemas']['SearchResult'];
 export type SearchableTaxonomyResourceType = components['schemas']['SearchableTaxonomyResourceType'];
@@ -3042,7 +3038,7 @@ export interface operations {
             };
         };
     };
-    deleteEntity_3: {
+    deleteEntity_2: {
         parameters: {
             query?: never;
             header?: {
@@ -3884,7 +3880,7 @@ export interface operations {
             };
         };
     };
-    deleteEntity_2: {
+    deleteEntity_1: {
         parameters: {
             query?: never;
             header?: {
@@ -4784,31 +4780,6 @@ export interface operations {
             };
         };
     };
-    createResourceType: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResourceTypePUT"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    Location?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     getAllResourceTypes_1: {
         parameters: {
             query?: {
@@ -4834,31 +4805,6 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ResourceType"][];
                 };
-            };
-        };
-    };
-    createResourceType_1: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResourceTypePUT"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    Location?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -4889,54 +4835,6 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ResourceType"];
                 };
-            };
-        };
-    };
-    updateResourceType: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResourceTypePUT"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteEntity_1: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -5046,64 +4944,6 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["Translation"];
                 };
-            };
-        };
-    };
-    createUpdateResourceTypeTranslation: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path: {
-                id: string;
-                /**
-                 * @description ISO-639-1 language code
-                 * @example nb
-                 */
-                language: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TranslationPUT"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteResourceTypeTranslation: {
-        parameters: {
-            query?: never;
-            header?: {
-                versionHash?: components["parameters"]["versionHash"];
-            };
-            path: {
-                id: string;
-                /**
-                 * @description ISO-639-1 language code
-                 * @example nb
-                 */
-                language: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
