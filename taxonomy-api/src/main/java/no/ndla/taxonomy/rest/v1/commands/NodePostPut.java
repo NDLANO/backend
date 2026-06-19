@@ -23,6 +23,7 @@ import no.ndla.taxonomy.service.UpdatableDto;
 import no.ndla.taxonomy.service.dtos.QualityEvaluationDTO;
 import no.ndla.taxonomy.service.dtos.TechnicalEvaluationDTO;
 import no.ndla.taxonomy.service.dtos.TranslationDTO;
+import no.ndla.taxonomy.service.exceptions.InvalidArgumentServiceException;
 
 @Schema(name = "NodePostPut")
 public class NodePostPut implements UpdatableDto<Node> {
@@ -59,9 +60,7 @@ public class NodePostPut implements UpdatableDto<Node> {
     @Schema(description = "The node is visible. Default is true.")
     public Optional<Boolean> visible = Optional.empty();
 
-    @Schema(
-            description =
-                    "ResourceType public ids to assign to the node. Only works on create for nodes of type RESOURCE")
+    @Schema(description = "ResourceType public ids to assign to the node. Only works for nodes of type RESOURCE")
     public Optional<List<URI>> resourceTypes = Optional.empty();
 
     @JsonProperty
@@ -140,6 +139,17 @@ public class NodePostPut implements UpdatableDto<Node> {
                     .map(t -> new JsonTranslation(t.name, t.language))
                     .toList());
         });
+
+        if (node.getNodeType() == NodeType.RESOURCE) {
+            resourceTypes.ifPresent(rts -> {
+                node.clearResourceTypes();
+                rts.forEach(rt -> {
+                    var resourceType = ResourceType.Companion.findByPublicId(rt);
+                    if (resourceType == null) throw new InvalidArgumentServiceException("Unknown resource type:" + rt);
+                    node.addResourceType(resourceType);
+                });
+            });
+        }
 
         root.ifPresent(node::setContext);
         context.ifPresent(node::setContext);

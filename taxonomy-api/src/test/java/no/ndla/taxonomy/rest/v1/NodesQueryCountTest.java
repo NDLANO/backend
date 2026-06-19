@@ -32,8 +32,6 @@ public class NodesQueryCountTest extends RestTest {
     void clearAllRepos() {
         nodeRepository.deleteAllAndFlush();
         nodeConnectionRepository.deleteAllAndFlush();
-        resourceTypeRepository.deleteAllAndFlush();
-        resourceResourceTypeRepository.deleteAllAndFlush();
     }
 
     private Statistics statistics() {

@@ -34,12 +34,6 @@ public class RestTest extends AbstractIntegrationTest {
     VersionRepository versionRepository;
 
     @Autowired
-    ResourceResourceTypeRepository resourceResourceTypeRepository;
-
-    @Autowired
-    ResourceTypeRepository resourceTypeRepository;
-
-    @Autowired
     NodeRepository nodeRepository;
 
     @Autowired
@@ -79,9 +73,5 @@ public class RestTest extends AbstractIntegrationTest {
     Node newResource() {
         var node = new Node(NodeType.RESOURCE);
         return save(node);
-    }
-
-    ResourceType newResourceType() {
-        return save(new ResourceType());
     }
 }

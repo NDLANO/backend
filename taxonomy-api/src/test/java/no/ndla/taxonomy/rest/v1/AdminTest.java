@@ -24,8 +24,6 @@ public class AdminTest extends RestTest {
     void clearAllRepos() {
         nodeRepository.deleteAllAndFlush();
         nodeConnectionRepository.deleteAllAndFlush();
-        resourceTypeRepository.deleteAllAndFlush();
-        resourceResourceTypeRepository.deleteAllAndFlush();
     }
 
     public void connect(Node parent, Node child) throws Exception {

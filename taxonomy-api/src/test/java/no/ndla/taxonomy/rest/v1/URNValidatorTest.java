@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
 import no.ndla.taxonomy.domain.Node;
 import no.ndla.taxonomy.domain.NodeType;
-import no.ndla.taxonomy.domain.ResourceType;
 import no.ndla.taxonomy.domain.exceptions.IdFormatException;
 import no.ndla.taxonomy.service.URNValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,17 +19,17 @@ import org.junit.jupiter.api.Test;
 
 public class URNValidatorTest {
     private URNValidator validator;
-    private ResourceType entity;
+    private Node entity;
 
     @BeforeEach
     public void setUp() {
         validator = new URNValidator();
-        entity = new ResourceType();
+        entity = new Node(NodeType.TOPIC);
     }
 
     @Test
     public void urnWithOutURNIsRejected() {
-        URI id = URI.create("resourcetype:1");
+        URI id = URI.create("topic:1");
 
         assertThrows(IdFormatException.class, () -> validator.validate(id, entity), "Id should start with urn:");
     }
@@ -44,21 +43,21 @@ public class URNValidatorTest {
 
     @Test
     public void urnMustHaveID() {
-        URI id = URI.create("urn:resourcetype");
+        URI id = URI.create("urn:topic");
 
         assertThrows(IdFormatException.class, () -> validator.validate(id, entity), "Id should have id field");
     }
 
     @Test
     public void validURIPasses() {
-        URI id = URI.create("urn:resourcetype:2");
+        URI id = URI.create("urn:topic:2");
 
         validator.validate(id, entity);
     }
 
     @Test
     public void uriCanHaveVersionField() {
-        URI id = URI.create("urn:resourcetype:1:134");
+        URI id = URI.create("urn:topic:1:134");
 
         validator.validate(id, entity);
     }

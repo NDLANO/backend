@@ -28,13 +28,16 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
     @Query(value = "SELECT n.id FROM Node n ORDER BY n.id", countQuery = "SELECT count(*) from Node")
     Page<Integer> findIdsPaginated(Pageable pageable);
 
-    @Query("""
-            SELECT DISTINCT n FROM Node n
-            LEFT JOIN FETCH n.resourceResourceTypes rrt
-            LEFT JOIN FETCH rrt.resourceType rt
-            WHERE n.id in :ids
-            """)
+    @Query("SELECT n FROM Node n WHERE n.id in :ids")
     List<Node> findByIds(Collection<Integer> ids);
+
+    @Query(value = """
+            SELECT n.public_id, unnest(n.resource_type_ids) AS resource_type_id
+            FROM node n
+            WHERE n.node_type = 'RESOURCE'
+            AND array_length(n.resource_type_ids, 1) > 0
+            """, nativeQuery = true)
+    List<Object[]> findAllResourceTypeConnections();
 
     @Query("SELECT n FROM Node n WHERE n.publicId IN :ids")
     List<Node> findByPublicIds(Collection<URI> ids);
@@ -94,8 +97,6 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
 
     @Query("""
             SELECT DISTINCT n FROM Node n
-            LEFT JOIN FETCH n.resourceResourceTypes rrt
-            LEFT JOIN FETCH rrt.resourceType
             LEFT JOIN FETCH n.parentConnections pc
             LEFT JOIN FETCH n.childConnections cc
             WHERE n.nodeType = "PROGRAMME"
@@ -105,8 +106,6 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
 
     @Query("""
             SELECT DISTINCT n FROM Node n
-            LEFT JOIN FETCH n.resourceResourceTypes rrt
-            LEFT JOIN FETCH rrt.resourceType
             LEFT JOIN FETCH n.parentConnections pc
             LEFT JOIN FETCH n.childConnections cc
             WHERE n.nodeType = "SUBJECT"
@@ -116,8 +115,6 @@ public interface NodeRepository extends TaxonomyRepository<Node> {
 
     @Query("""
             SELECT DISTINCT n FROM Node n
-            LEFT JOIN FETCH n.resourceResourceTypes rrt
-            LEFT JOIN FETCH rrt.resourceType
             LEFT JOIN FETCH n.parentConnections pc
             WHERE n.contentUri = :contentUri
             """)

@@ -37,8 +37,6 @@ public class NodesTest extends RestTest {
     void clearAllRepos() {
         nodeRepository.deleteAllAndFlush();
         nodeConnectionRepository.deleteAllAndFlush();
-        resourceTypeRepository.deleteAllAndFlush();
-        resourceResourceTypeRepository.deleteAllAndFlush();
     }
 
     @Test
@@ -950,7 +948,7 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_create_node_with_resourcetype() throws Exception {
-        var resourceType = builder.resourceType("type1", rt -> rt.name("Resourcetype"));
+        var resourceType = ResourceType.SUBJECT_MATERIAL;
         {
             final var createNodeCommand = new NodePostPut() {
                 {
@@ -958,7 +956,7 @@ public class NodesTest extends RestTest {
                     name = Optional.of("Resource");
                     contentUri = Optional.of(URI.create("urn:article:1"));
                     context = Optional.of(Boolean.TRUE);
-                    resourceTypes = Optional.of(List.of(resourceType.getPublicId()));
+                    resourceTypes = Optional.of(List.of(ResourceType.SUBJECT_MATERIAL.getPublicId()));
                 }
             };
 
@@ -972,7 +970,7 @@ public class NodesTest extends RestTest {
             assertTrue(node.isContext());
             assertNotNull(node.getCreatedAt());
             assertNotNull(node.getUpdatedAt());
-            assertEquals(1, node.getResourceResourceTypes().size());
+            assertEquals(1, node.getResourceTypes().size());
         }
         {
             // Setting resourcetypes only works for resource
@@ -996,7 +994,7 @@ public class NodesTest extends RestTest {
             assertTrue(node.isContext());
             assertNotNull(node.getCreatedAt());
             assertNotNull(node.getUpdatedAt());
-            assertEquals(0, node.getResourceResourceTypes().size());
+            assertEquals(0, node.getResourceTypes().size());
         }
     }
 
@@ -1152,11 +1150,11 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_delete_nodes_but_resources_remain() throws Exception {
-        var x = builder.resourceType("rt", rt -> rt.name("Learning path"));
+        var x = ResourceType.LEARNING_PATH;
         Node resource = builder.node(NodeType.RESOURCE, r -> r.translation("nb", tr -> tr.name("ressurs")));
 
-        var hallo = resource.addResourceType(x);
-        entityManager.persist(hallo);
+        resource.addResourceType(x);
+        entityManager.persist(resource);
 
         URI parentId = builder.node(NodeType.TOPIC, parent -> parent.resource(resource))
                 .getPublicId();
@@ -1258,7 +1256,7 @@ public class NodesTest extends RestTest {
         URI publicId = builder.node(
                         NodeType.RESOURCE,
                         r -> r.name("Resource")
-                                .resourceType(rt -> rt.name("Fagstoff"))
+                                .resourceType(ResourceType.SUBJECT_MATERIAL)
                                 .translation("nb", tr -> tr.name("Fagstoff nb"))
                                 .contentUri("urn:article:1"))
                 .getPublicId();
