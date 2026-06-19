@@ -7,14 +7,12 @@
 
 package no.ndla.taxonomy.service;
 
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.integration.DraftApiClient;
 import no.ndla.taxonomy.repositories.NodeConnectionRepository;
 import no.ndla.taxonomy.repositories.NodeRepository;
-import no.ndla.taxonomy.rest.NotFoundHttpResponseException;
 import no.ndla.taxonomy.service.exceptions.DuplicateConnectionException;
 import no.ndla.taxonomy.service.exceptions.InvalidArgumentServiceException;
 import org.springframework.stereotype.Service;
@@ -304,14 +302,6 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     @Override
     public Collection<NodeConnection> getChildConnections(Node entity) {
         return entity.getChildConnections();
-    }
-
-    @Override
-    public void disconnectAllParents(URI nodeId) {
-        var node = nodeRepository
-                .findFirstByPublicId(nodeId)
-                .orElseThrow(() -> new NotFoundHttpResponseException("Node was not found"));
-        node.getParentConnections().forEach(this::disconnectParentChildConnection);
     }
 
     @Override

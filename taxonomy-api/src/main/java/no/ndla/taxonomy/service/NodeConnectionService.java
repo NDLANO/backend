@@ -7,7 +7,6 @@
 
 package no.ndla.taxonomy.service;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
 import no.ndla.taxonomy.domain.*;
@@ -24,8 +23,6 @@ public interface NodeConnectionService {
     void disconnectParentChild(Node parent, Node child);
 
     void disconnectParentChildConnection(NodeConnection nodeConnection);
-
-    void disconnectAllParents(URI nodeId);
 
     void disconnectAllParents(Node entity);
 
