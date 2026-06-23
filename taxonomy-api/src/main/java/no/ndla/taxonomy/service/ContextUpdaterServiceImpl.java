@@ -31,7 +31,7 @@ public class ContextUpdaterServiceImpl implements ContextUpdaterService {
                 node.getCustomFields().getOrDefault(Constants.SubjectType, "").equals(Constants.ArchiveSubject);
         // This entity can be root path
         if (node.isContext()) {
-            var contextId = HashUtil.semiHash(node.getPublicId());
+            var contextId = HashUtil.INSTANCE.semiHash(node.getPublicId());
             returnedContexts.add(new TaxonomyContext(
                     node.getPublicId().toString(),
                     LanguageField.fromNode(node),
@@ -67,7 +67,7 @@ public class ContextUpdaterServiceImpl implements ContextUpdaterService {
                                     parentIds.add(parent.getPublicId().toString());
                                     var parentContextIds = parentContext.parentContextIds();
                                     parentContextIds.add(parentContext.contextId());
-                                    var contextId = HashUtil.mediumHash(
+                                    var contextId = HashUtil.INSTANCE.mediumHash(
                                             parentContext.contextId() + parentConnection.getPublicId());
                                     return new TaxonomyContext(
                                             node.getPublicId().toString(),
