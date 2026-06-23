@@ -83,7 +83,7 @@ class Nodes(
         contextId.isEmpty &&
         contextIds.isEmpty &&
         isContext.isEmpty &&
-        !metadataFilters.hasFilters()) {
+        !metadataFilters.hasFilters) {
       return listOf(NodeType.TOPIC, NodeType.NODE, NodeType.SUBJECT, NodeType.PROGRAMME)
     }
     return NodeType.entries.toList()
@@ -116,10 +116,10 @@ class Nodes(
       isContext: Optional<Boolean>,
       @Parameter(description = "Filter by key and value")
       @RequestParam(value = "key", required = false)
-      key: Optional<String>,
+      key: String?,
       @Parameter(description = "Filter by key and value")
       @RequestParam(value = "value", required = false)
-      value: Optional<String>,
+      value: String?,
       @Parameter(
           description = "Filter by context id. Beware: handled separately from other parameters!")
       @RequestParam(value = "contextId", required = false)
@@ -130,7 +130,7 @@ class Nodes(
       contextIds: Optional<List<String>>,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false)
-      isVisible: Optional<Boolean>,
+      isVisible: Boolean?,
       @Parameter(description = "Include all contexts")
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
@@ -459,7 +459,7 @@ class Nodes(
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            MetadataFilters(Optional.empty(), Optional.empty(), Optional.empty()),
+            MetadataFilters(),
         )
     val childrenIds: List<URI> =
         if (recursive) {

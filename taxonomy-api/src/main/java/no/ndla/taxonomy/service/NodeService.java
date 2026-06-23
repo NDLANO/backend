@@ -98,8 +98,8 @@ public class NodeService {
             ids = nodeRepository.findIdsFiltered(
                     nodeType,
                     publicIds,
-                    metadataFilters.getKey(),
-                    metadataFilters.getLikeQueryValue(),
+                    Optional.ofNullable(metadataFilters.getKey()),
+                    Optional.ofNullable(metadataFilters.getLikeQueryValue()),
                     contentUri,
                     isRoot,
                     isContext);
@@ -125,7 +125,8 @@ public class NodeService {
                                     contextId,
                                     includeContexts,
                                     filterProgrammes,
-                                    metadataFilters.getVisible().orElse(false),
+                                    Optional.ofNullable(metadataFilters.getVisible())
+                                            .orElse(false),
                                     includeParents,
                                     parentContexts))
                             .toList();
