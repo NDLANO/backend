@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import java.net.URI
+import kotlin.jvm.optionals.getOrNull
 import no.ndla.taxonomy.domain.NodeConnectionType
 import no.ndla.taxonomy.domain.Relevance
 import no.ndla.taxonomy.domain.exceptions.NotFoundException
@@ -104,12 +105,18 @@ class NodeConnections(
     val parent = nodeRepository.getByPublicId(command.parentId)
     val child = nodeRepository.getByPublicId(command.childId)
     val relevance =
-        Relevance.unsafeGetRelevance(command.relevanceId.orElse(URI.create("urn:relevance:core")))
+        command.relevanceId.getOrNull()?.let { Relevance.getRelevance(it) } ?: Relevance.CORE
     val rank = command.rank.orElse(null)
     val connectionType = command.connectionType.orElse(NodeConnectionType.BRANCH)
     val nodeConnection =
         connectionService.connectParentChild(
-            parent, child, relevance, rank, command.primary, connectionType)
+            parent,
+            child,
+            relevance,
+            rank,
+            command.primary,
+            connectionType,
+        )
 
     val location = URI.create("/node-child/${nodeConnection.publicId}")
     return ResponseEntity.created(location).build()
@@ -145,7 +152,7 @@ class NodeConnections(
   ) {
     val connection = nodeConnectionRepository.getByPublicId(id)
     val relevance =
-        Relevance.unsafeGetRelevance(command.relevanceId.orElse(URI.create("urn:relevance:core")))
+        command.relevanceId.getOrNull()?.let { Relevance.getRelevance(it) } ?: Relevance.CORE
     if (connection.isPrimary().orElse(false) && !command.primary.orElse(false)) {
       throw PrimaryParentRequiredException()
     }

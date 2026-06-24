@@ -25,20 +25,20 @@ public class RelevanceTranslationsTest extends RestTest {
         RelevanceDTO[] relevances = testUtils.getObject(RelevanceDTO[].class, response);
 
         assertEquals(2, relevances.length);
-        assertAnyTrue(relevances, s -> "Kjernestoff".equals(s.name));
-        assertAnyTrue(relevances, s -> "Tilleggsstoff".equals(s.name));
+        assertAnyTrue(relevances, s -> "Kjernestoff".equals(s.getName()));
+        assertAnyTrue(relevances, s -> "Tilleggsstoff".equals(s.getName()));
     }
 
     @Test
     public void can_get_single_relevance() throws Exception {
         RelevanceDTO relevanceDTO = getRelevanceDTO(URI.create("urn:relevance:core"), "nb");
-        assertEquals("Kjernestoff", relevanceDTO.name);
+        assertEquals("Kjernestoff", relevanceDTO.getName());
     }
 
     @Test
     public void fallback_to_default_language() throws Exception {
         RelevanceDTO relevance = getRelevanceDTO(URI.create("urn:relevance:core"), "XX");
-        assertEquals("Kjernestoff", relevance.name);
+        assertEquals("Kjernestoff", relevance.getName());
     }
 
     @Test

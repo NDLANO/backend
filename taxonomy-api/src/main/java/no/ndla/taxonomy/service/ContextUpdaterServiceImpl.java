@@ -47,7 +47,7 @@ public class ContextUpdaterServiceImpl implements ContextUpdaterService {
                     activeContext,
                     true,
                     isArchived,
-                    Relevance.CORE.getPublicId().toString(),
+                    Relevance.CORE.getId().toString(),
                     contextId,
                     0,
                     "",
@@ -86,11 +86,10 @@ public class ContextUpdaterServiceImpl implements ContextUpdaterService {
                                             parentContext.isArchived(),
                                             parentConnection
                                                     .getRelevance()
-                                                    .flatMap(relevance -> Optional.of(relevance
-                                                            .getPublicId()
-                                                            .toString()))
+                                                    .flatMap(relevance -> Optional.of(
+                                                            relevance.getId().toString()))
                                                     .orElse(Relevance.CORE
-                                                            .getPublicId()
+                                                            .getId()
                                                             .toString()),
                                             contextId,
                                             parentConnection.getRank(),
