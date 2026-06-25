@@ -712,7 +712,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all relevanceTranslations for a single relevance */
+        /**
+         * Gets all relevanceTranslations for a single relevance
+         * @deprecated
+         */
         get: operations["getAllRelevanceTranslations"];
         put?: never;
         post?: never;
@@ -729,7 +732,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all relevanceTranslations for a single relevance */
+        /**
+         * Gets all relevanceTranslations for a single relevance
+         * @deprecated
+         */
         get: operations["getAllRelevanceTranslations_1"];
         put?: never;
         post?: never;
@@ -746,7 +752,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets a single translation for a single relevance */
+        /**
+         * Gets a single translation for a single relevance
+         * @deprecated
+         */
         get: operations["getRelevanceTranslation"];
         put?: never;
         post?: never;
@@ -4591,10 +4600,6 @@ export interface operations {
             };
             path: {
                 id: string;
-                /**
-                 * @description ISO-639-1 language code
-                 * @example nb
-                 */
                 language: string;
             };
             cookie?: never;
