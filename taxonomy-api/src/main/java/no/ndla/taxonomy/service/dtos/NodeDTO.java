@@ -260,12 +260,8 @@ public class NodeDTO {
                             .findFirst();
                     if (parent.isPresent()) {
                         var p = parent.get();
-                        var url = PrettyUrlUtil.createPrettyUrl(
-                                Optional.ofNullable(ctx.rootName()),
-                                p.name(),
-                                this.language,
-                                parentCtxId,
-                                p.nodeType());
+                        var url = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                                ctx.rootName(), p.name(), this.language, parentCtxId, p.nodeType()));
                         return new TaxonomyCrumbDTO(
                                 URI.create(p.publicId()),
                                 parentCtxId,
@@ -278,21 +274,22 @@ public class NodeDTO {
                 })
                 .filter(Objects::nonNull)
                 .toList();
+
         var relevance = Relevance.Companion.getRelevance(URI.create(ctx.relevanceId()));
-        var url = PrettyUrlUtil.createPrettyUrl(
-                        Optional.of(ctx.rootName()),
+        var url = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                        ctx.rootName(),
                         LanguageField.fromNode(entity),
                         this.language,
                         ctx.contextId(),
-                        entity.getNodeType())
+                        entity.getNodeType()))
                 .orElse(ctx.path());
 
-        var defaultUrl = PrettyUrlUtil.createPrettyUrl(
-                        Optional.of(ctx.rootName()),
+        var defaultUrl = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                        ctx.rootName(),
                         LanguageField.fromNode(entity),
                         Constants.DefaultLanguage,
                         ctx.contextId(),
-                        entity.getNodeType())
+                        entity.getNodeType()))
                 .orElse(ctx.path());
 
         return new TaxonomyContextDTO(

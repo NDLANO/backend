@@ -374,12 +374,8 @@ public class NodeService {
                                             .findFirst();
                                     if (parent.isPresent()) {
                                         var p = parent.get();
-                                        var url = PrettyUrlUtil.createPrettyUrl(
-                                                Optional.ofNullable(context.rootName()),
-                                                p.name(),
-                                                language,
-                                                parentCtxId,
-                                                p.nodeType());
+                                        var url = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                                                context.rootName(), p.name(), language, parentCtxId, p.nodeType()));
                                         return new TaxonomyCrumbDTO(
                                                 URI.create(p.publicId()),
                                                 parentCtxId,
@@ -391,20 +387,20 @@ public class NodeService {
                                     }
                                 })
                                 .toList();
-                        var url = PrettyUrlUtil.createPrettyUrl(
-                                        Optional.ofNullable(context.rootName()),
+                        var url = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                                        context.rootName(),
                                         LanguageField.fromNode(node),
                                         language,
                                         context.contextId(),
-                                        node.getNodeType())
+                                        node.getNodeType()))
                                 .orElse(context.path());
 
-                        var defaultUrl = PrettyUrlUtil.createPrettyUrl(
-                                        Optional.ofNullable(context.rootName()),
+                        var defaultUrl = Optional.ofNullable(PrettyUrlUtil.INSTANCE.createPrettyUrl(
+                                        context.rootName(),
                                         LanguageField.fromNode(node),
                                         Constants.DefaultLanguage,
                                         context.contextId(),
-                                        node.getNodeType())
+                                        node.getNodeType()))
                                 .orElse(context.path());
 
                         return new TaxonomyContextDTO(
@@ -452,7 +448,7 @@ public class NodeService {
     }
 
     public List<TaxonomyContextDTO> getContextByPath(Optional<String> path, String language) {
-        return path.map(p -> getContextByContextId(Optional.of(PrettyUrlUtil.getHashFromPath(p)), language))
+        return path.map(p -> getContextByContextId(Optional.of(PrettyUrlUtil.INSTANCE.getHashFromPath(p)), language))
                 .orElse(List.of());
     }
 

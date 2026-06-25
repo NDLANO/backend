@@ -134,7 +134,7 @@ class UrlResolverService(
 
         val prettyUrl =
             PrettyUrlUtil.createPrettyUrl(
-                Optional.ofNullable(ctx.rootName),
+                ctx.rootName,
                 ctx.name,
                 language,
                 ctx.contextId,
@@ -148,7 +148,7 @@ class UrlResolverService(
             parents = ctx.parentIds.map(URI::create).reversed(),
             name = ctx.name.fromLanguage(language),
             path = ctx.path,
-            url = prettyUrl.orElse(ctx.path) ?: "",
+            url = prettyUrl ?: ctx.path ?: "",
         )
       } catch (_: Exception) {
         null
