@@ -742,7 +742,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
         var pretties = this.translations.stream()
                 .map(JsonTranslation::getName)
                 .filter(Objects::nonNull)
-                .map(PrettyUrlUtil::prettyName)
+                .map(PrettyUrlUtil.INSTANCE::prettyName)
                 .collect(Collectors.toSet());
         getPrettyName().ifPresent(pretties::add);
         return pretties;
@@ -751,6 +751,6 @@ public class Node extends DomainObject implements EntityWithMetadata {
     public Optional<String> getPrettyName() {
         var defaultTranslation = this.getTranslatedName(Constants.DefaultLanguage);
         var name = Optional.ofNullable(defaultTranslation);
-        return name.map(PrettyUrlUtil::prettyName);
+        return name.map(PrettyUrlUtil.INSTANCE::prettyName);
     }
 }
