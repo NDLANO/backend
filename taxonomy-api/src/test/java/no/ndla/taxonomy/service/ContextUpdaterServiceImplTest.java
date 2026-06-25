@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 class ContextUpdaterServiceImplTest extends AbstractIntegrationTest {
-    private ContextUpdaterServiceImpl service;
+    private ContextUpdaterService service;
 
     private NodeRepository nodeRepository;
     private NodeConnectionRepository nodeConnectionRepository;
@@ -39,7 +39,7 @@ class ContextUpdaterServiceImplTest extends AbstractIntegrationTest {
         this.nodeRepository.deleteAllAndFlush();
         this.nodeConnectionRepository.deleteAllAndFlush();
 
-        service = new ContextUpdaterServiceImpl();
+        service = new ContextUpdaterService();
     }
 
     @Test

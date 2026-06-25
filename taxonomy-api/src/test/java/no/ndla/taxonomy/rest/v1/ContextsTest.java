@@ -40,9 +40,9 @@ public class ContextsTest extends RestTest {
         var contexts = testUtils.getObject(ContextDTO[].class, response);
 
         assertEquals(1, contexts.length);
-        assertEquals("urn:subject:1", contexts[0].id.toString());
-        assertEquals("/subject:1", contexts[0].path);
-        assertEquals("Subject 1", contexts[0].name);
+        assertEquals("urn:subject:1", contexts[0].getId().toString());
+        assertEquals("/subject:1", contexts[0].getPath());
+        assertEquals("Subject 1", contexts[0].getName());
     }
 
     @Test
@@ -56,20 +56,16 @@ public class ContextsTest extends RestTest {
         var contexts = testUtils.getObject(ContextDTO[].class, response);
 
         assertEquals(1, contexts.length);
-        assertEquals("urn:topic:1", contexts[0].id.toString());
-        assertEquals("/topic:1", contexts[0].path);
-        assertEquals("Topic 1", contexts[0].name);
+        assertEquals("urn:topic:1", contexts[0].getId().toString());
+        assertEquals("/topic:1", contexts[0].getPath());
+        assertEquals("Topic 1", contexts[0].getName());
     }
 
     @Test
     public void can_add_topic_as_context() throws Exception {
         Node topic = builder.node(t -> t.nodeType(NodeType.TOPIC).publicId("urn:topic:ct:2"));
 
-        testUtils.createResource("/v1/contexts", new ContextPOST() {
-            {
-                id = topic.getPublicId();
-            }
-        });
+        testUtils.createResource("/v1/contexts", new ContextPOST(topic.getPublicId()));
 
         assertTrue(topic.isContext());
     }
@@ -104,8 +100,8 @@ public class ContextsTest extends RestTest {
 
         assertEquals(2, contexts.length);
 
-        assertAnyTrue(contexts, c -> "Emne 1".equals(c.name));
-        assertAnyTrue(contexts, c -> "Fag 1".equals(c.name));
+        assertAnyTrue(contexts, c -> "Emne 1".equals(c.getName()));
+        assertAnyTrue(contexts, c -> "Fag 1".equals(c.getName()));
     }
 
     // TODO Set is not ordered
