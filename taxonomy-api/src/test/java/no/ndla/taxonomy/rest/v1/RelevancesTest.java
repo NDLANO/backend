@@ -22,7 +22,7 @@ public class RelevancesTest extends RestTest {
         MockHttpServletResponse response = testUtils.getResource("/v1/relevances/" + "urn:relevance:core");
         RelevanceDTO relevance = testUtils.getObject(RelevanceDTO.class, response);
 
-        assertEquals("Kjernestoff", relevance.name);
+        assertEquals("Kjernestoff", relevance.getName());
     }
 
     @Test
@@ -31,8 +31,8 @@ public class RelevancesTest extends RestTest {
         RelevanceDTO[] relevances = testUtils.getObject(RelevanceDTO[].class, response);
 
         assertEquals(2, relevances.length);
-        assertAnyTrue(relevances, f -> "Kjernestoff".equals(f.name));
-        assertAnyTrue(relevances, f -> "Tilleggsstoff".equals(f.name));
+        assertAnyTrue(relevances, f -> "Kjernestoff".equals(f.getName()));
+        assertAnyTrue(relevances, f -> "Tilleggsstoff".equals(f.getName()));
     }
 
     @Test

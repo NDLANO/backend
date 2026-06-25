@@ -262,7 +262,7 @@ public class NodeService {
                                 .map(ids -> ids.stream().map(URI::toString).toArray(String[]::new))
                                 .orElse(null),
                         relevanceId
-                                .flatMap(Relevance::getRelevance)
+                                .flatMap(id -> Optional.ofNullable(Relevance.Companion.findRelevanceById(id)))
                                 .map(Enum::name)
                                 .orElse(null))
                 .stream();
@@ -277,7 +277,7 @@ public class NodeService {
                 }
                 final var rel = nodeResource.getRelevance().orElse(null);
                 if (rel != null) {
-                    return rel.getPublicId().equals(relevanceId.get());
+                    return rel.getId().equals(relevanceId.get());
                 } else {
                     return isRequestingCore;
                 }
@@ -356,7 +356,8 @@ public class NodeService {
                                     .collect(Collectors.toSet())
                             : node.getContexts();
                     return contexts.stream().map(context -> {
-                        Optional<Relevance> relevance = Relevance.getRelevance(URI.create(context.relevanceId()));
+                        Optional<Relevance> relevance = Optional.ofNullable(
+                                Relevance.Companion.findRelevanceById(URI.create(context.relevanceId())));
                         var relevanceName = new LanguageField<String>();
                         if (relevance.isPresent()) {
                             relevanceName = LanguageField.fromRelevance(relevance.get());

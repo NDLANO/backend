@@ -278,7 +278,7 @@ public class NodeDTO {
                 })
                 .filter(Objects::nonNull)
                 .toList();
-        var relevance = Relevance.unsafeGetRelevance(URI.create(ctx.relevanceId()));
+        var relevance = Relevance.Companion.getRelevance(URI.create(ctx.relevanceId()));
         var url = PrettyUrlUtil.createPrettyUrl(
                         Optional.of(ctx.rootName()),
                         LanguageField.fromNode(entity),
