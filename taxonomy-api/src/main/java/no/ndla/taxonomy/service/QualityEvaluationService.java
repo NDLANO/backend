@@ -234,7 +234,7 @@ public class QualityEvaluationService {
         var grade = Optional.ofNullable(row[0])
                 .map(Number.class::cast)
                 .map(Number::intValue)
-                .map(Grade::fromInt);
+                .map(Grade.Companion::fromInt);
         var comment = Optional.ofNullable((String) row[1]);
         var sum = Optional.ofNullable(row[2])
                 .map(Number.class::cast)

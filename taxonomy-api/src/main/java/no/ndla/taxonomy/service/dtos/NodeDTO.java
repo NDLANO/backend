@@ -185,7 +185,7 @@ public class NodeDTO {
                 .collect(Collectors.toSet());
 
         this.qualityEvaluation = QualityEvaluationDTO.fromNode(entity);
-        this.gradeAverage = GradeAverageDTO.fromNode(entity);
+        this.gradeAverage = Optional.ofNullable(GradeAverageDTO.Companion.fromNode(entity));
         this.technicalEvaluation = TechnicalEvaluationDTO.fromNode(entity);
         this.id = entity.getPublicId();
         this.contentUri = Optional.ofNullable(entity.getContentUri());

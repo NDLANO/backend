@@ -24,7 +24,7 @@ public class QualityEvaluationDTODeserializer extends UpdateOrDelete.Deserialize
     @Override
     protected QualityEvaluationDTO deserializeInner(JsonNode node) {
         var gradeInt = node.get("grade").asInt();
-        var grade = Grade.fromInt(gradeInt);
+        var grade = Grade.Companion.fromInt(gradeInt);
         var note = getNote(node);
         return new QualityEvaluationDTO(grade, note);
     }

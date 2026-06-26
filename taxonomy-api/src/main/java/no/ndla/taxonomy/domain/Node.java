@@ -238,7 +238,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
         if (previousGrade.isEmpty() && newGrade.isEmpty()) return;
         else if (previousGrade.isEmpty()) { // New grade is present
             var newCount = avg.getCount() + 1;
-            var newSum = avg.averageSum + newGrade.get().toInt();
+            var newSum = avg.getAverageSum() + newGrade.get().toInt();
             this.childQualityEvaluationCount = newCount;
             this.childQualityEvaluationSum = newSum;
         } else if (newGrade.isEmpty()) { // Previous grade is present
@@ -262,19 +262,19 @@ public class Node extends DomainObject implements EntityWithMetadata {
 
     public void updateEntireAverageTree() {
         var allChildGrades = getChildGradesRecursively();
-        var gradeAverage = GradeAverage.fromGrades(allChildGrades);
+        var gradeAverage = GradeAverage.Companion.fromGrades(allChildGrades);
         logger.info(
                 "Found average grades for {} children of node '{}' -> {}",
                 allChildGrades.size(),
                 this.getPublicId(),
                 gradeAverage);
 
-        if (gradeAverage.count == 0) {
+        if (gradeAverage.getCount() == 0) {
             this.childQualityEvaluationSum = 0;
             this.childQualityEvaluationCount = 0;
-        } else if (gradeAverage.count > 0) {
+        } else if (gradeAverage.getCount() > 0) {
             this.childQualityEvaluationSum = gradeAverage.getAverageSum();
-            this.childQualityEvaluationCount = gradeAverage.count;
+            this.childQualityEvaluationCount = gradeAverage.getCount();
         }
     }
 
