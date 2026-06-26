@@ -246,7 +246,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     }
 
     private void updateRank(NodeConnection rankable, int newRank) {
-        final var updatedConnections = RankableConnectionUpdater.rank(
+        final var updatedConnections = RankableConnectionUpdater.INSTANCE.rank(
                 new ArrayList<>(rankable.getParent()
                         .orElseThrow(() -> new IllegalStateException("Rankable parent not found"))
                         .getChildConnections()),

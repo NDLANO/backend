@@ -38,15 +38,15 @@ public class RankableConnectionUpdaterTest {
         final var rankable7 = new NodeConnection("urn:7", relevance, 100);
         final var rankable8 = new NodeConnection("urn:8", relevance, 1000);
 
-        final var rankableList = new ArrayList<NodeConnection>();
+        List<NodeConnection> rankableList = new ArrayList<NodeConnection>();
 
-        RankableConnectionUpdater.rank(rankableList, rankable1, 0);
-        RankableConnectionUpdater.rank(rankableList, rankable2, 1);
-        RankableConnectionUpdater.rank(rankableList, rankable3, 10);
-        RankableConnectionUpdater.rank(rankableList, rankable4, 11);
-        RankableConnectionUpdater.rank(rankableList, rankable5, 12);
-        RankableConnectionUpdater.rank(rankableList, rankable6, 20);
-        RankableConnectionUpdater.rank(rankableList, rankable7, 100);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable1, 0);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable2, 1);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable3, 10);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable4, 11);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable5, 12);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable6, 20);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable7, 100);
 
         assertEquals(0, rankable1.getRank());
         assertEquals(1, rankable2.getRank());
@@ -59,7 +59,7 @@ public class RankableConnectionUpdaterTest {
 
         verifyOrder(rankableList, List.of("urn:1", "urn:2", "urn:3", "urn:4", "urn:5", "urn:6", "urn:7"));
 
-        RankableConnectionUpdater.rank(rankableList, rankable3, 0);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable3, 0);
         verifyOrder(rankableList, List.of("urn:3", "urn:1", "urn:2", "urn:4", "urn:5", "urn:6", "urn:7"));
 
         assertEquals(1, rankable1.getRank());
@@ -71,7 +71,7 @@ public class RankableConnectionUpdaterTest {
         assertEquals(100, rankable7.getRank());
         assertEquals(1000, rankable8.getRank());
 
-        RankableConnectionUpdater.rank(rankableList, rankable2, 200);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable2, 200);
         verifyOrder(rankableList, List.of("urn:3", "urn:1", "urn:4", "urn:5", "urn:6", "urn:7", "urn:2"));
 
         assertEquals(1, rankable1.getRank());
@@ -83,7 +83,7 @@ public class RankableConnectionUpdaterTest {
         assertEquals(100, rankable7.getRank());
         assertEquals(1000, rankable8.getRank());
 
-        RankableConnectionUpdater.rank(rankableList, rankable2, 11);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable2, 11);
         verifyOrder(rankableList, List.of("urn:3", "urn:1", "urn:2", "urn:4", "urn:5", "urn:6", "urn:7"));
 
         assertEquals(1, rankable1.getRank());
@@ -95,7 +95,7 @@ public class RankableConnectionUpdaterTest {
         assertEquals(100, rankable7.getRank());
         assertEquals(1000, rankable8.getRank());
 
-        RankableConnectionUpdater.rank(rankableList, rankable8, 11);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable8, 11);
         verifyOrder(rankableList, List.of("urn:3", "urn:1", "urn:8", "urn:2", "urn:4", "urn:5", "urn:6", "urn:7"));
 
         assertEquals(1, rankable1.getRank());
@@ -121,7 +121,7 @@ public class RankableConnectionUpdaterTest {
         final var rankable7 = new NodeConnection("urn:7", relevance, 13);
         final var rankable8 = new NodeConnection("urn:8", relevance, 20);
 
-        final var rankableList = Arrays.nonNullElementsIn(new NodeConnection[] {
+        List<NodeConnection> rankableList = Arrays.nonNullElementsIn(new NodeConnection[] {
             rankable1, rankable2, rankable3, rankable4, rankable5, rankable6, rankable7, rankable8
         });
 
@@ -136,7 +136,7 @@ public class RankableConnectionUpdaterTest {
 
         verifyOrder(rankableList, List.of("urn:1", "urn:2", "urn:3", "urn:4", "urn:5", "urn:6", "urn:7", "urn:8"));
 
-        RankableConnectionUpdater.rank(rankableList, rankable5, 10);
+        rankableList = RankableConnectionUpdater.INSTANCE.rank(rankableList, rankable5, 10);
         verifyOrder(rankableList, List.of("urn:1", "urn:2", "urn:5", "urn:3", "urn:4", "urn:6", "urn:7", "urn:8"));
 
         assertEquals(0, rankable1.getRank());
