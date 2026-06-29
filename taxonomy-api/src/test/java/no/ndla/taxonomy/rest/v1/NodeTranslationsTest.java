@@ -81,19 +81,11 @@ public class NodeTranslationsTest extends RestTest {
         Node trigonometry = builder.node(NodeType.NODE, t -> t.name("Trigonometry"));
         URI id = trigonometry.getPublicId();
 
-        testUtils.updateResource("/v1/nodes/" + id + "/translations/nb", new TranslationPUT() {
-            {
-                name = "Trigonometri";
-            }
-        });
+        testUtils.updateResource("/v1/nodes/" + id + "/translations/nb", new TranslationPUT("Trigonometri"));
 
         assertEquals("Trigonometri", trigonometry.getTranslation("nb").get().getName());
 
-        testUtils.updateResource("/v1/nodes/" + id + "/translations/nn", new TranslationPUT() {
-            {
-                name = "Trigonometri";
-            }
-        });
+        testUtils.updateResource("/v1/nodes/" + id + "/translations/nn", new TranslationPUT("Trigonometri"));
 
         assertEquals("Trigonometri", trigonometry.getTranslation("nn").get().getName());
         assertEquals(2, trigonometry.getTranslations().size());
@@ -105,11 +97,7 @@ public class NodeTranslationsTest extends RestTest {
                 builder.node(NodeType.NODE, t -> t.name("Trigonometry").translation("Trignometry", "nb"));
         URI id = trigonometry.getPublicId();
 
-        testUtils.updateResource("/v1/nodes/" + id + "/translations/nb", new TranslationPUT() {
-            {
-                name = "Trigonometri";
-            }
-        });
+        testUtils.updateResource("/v1/nodes/" + id + "/translations/nb", new TranslationPUT("Trigonometri"));
 
         assertEquals("Trigonometri", trigonometry.getTranslation("nb").get().getName());
         assertEquals(1, trigonometry.getTranslations().size());
