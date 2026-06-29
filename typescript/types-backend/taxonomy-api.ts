@@ -2129,46 +2129,46 @@ export type components = {
         };
         NodeSearchBody: {
             /** @description ContentURIs to fetch for query */
-            contentUris?: string[];
+            contentUris?: string[] | null;
             /** @description If specified, the search result will be filtered by whether they include the key,value combination provided. If more than one provided only one will be required (OR) */
             customFields?: {
                 [key: string]: string;
-            };
+            } | null;
             /** @description Filter out programme contexts */
-            filterProgrammes?: boolean;
+            filterProgrammes: boolean;
             /** @description Ids to fetch for query */
-            ids?: string[];
+            ids?: string[] | null;
             /** @description Include all contexts */
-            includeContexts?: boolean;
+            includeContexts: boolean;
             /**
              * @description ISO-639-1 language code
              * @example nb
              */
-            language?: string;
+            language: string;
             /** @description Filter by nodeType */
-            nodeType?: components["schemas"]["NodeType"][];
+            nodeType?: components["schemas"]["NodeType"][] | null;
             /**
              * Format: int32
              * @description Which page to fetch
              */
-            page?: number;
+            page: number;
             /**
              * Format: int32
              * @description How many results to return per page
              */
-            pageSize?: number;
+            pageSize: number;
             /**
              * Format: uri
              * @description Id to parent id in context.
              */
-            parentId?: string;
+            parentId?: string | null;
             /** @description Query to search names */
-            query?: string;
+            query?: string | null;
             /**
              * Format: uri
              * @description Id to root id in context.
              */
-            rootId?: string;
+            rootId?: string | null;
         };
         /** @enum {string} */
         NodeType: "NODE" | "SUBJECT" | "TOPIC" | "CASE" | "RESOURCE" | "PROGRAMME";
@@ -2434,19 +2434,19 @@ export type components = {
         SearchResult: {
             /**
              * Format: int32
-             * @example The page number
+             * @description The page number
              */
             page: number;
             /**
              * Format: int32
-             * @example The page size
+             * @description The page size
              */
             pageSize: number;
-            /** @example List of search results */
+            /** @description List of search results */
             results: components["schemas"]["Node"][];
             /**
              * Format: int64
-             * @example Total search result count, useful for fetching multiple pages
+             * @description Total search result count, useful for fetching multiple pages
              */
             totalCount: number;
         };
