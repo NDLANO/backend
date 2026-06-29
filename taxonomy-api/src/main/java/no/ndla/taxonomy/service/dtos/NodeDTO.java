@@ -181,7 +181,7 @@ public class NodeDTO {
         var visibleContexts =
                 isVisible ? contexts.stream().filter(TaxonomyContext::isVisible).collect(Collectors.toSet()) : contexts;
         var filteredContexts = visibleContexts.stream()
-                .filter(ctx -> !filterProgrammes || !ctx.rootId().contains(NodeType.PROGRAMME.getName()))
+                .filter(ctx -> !filterProgrammes || !ctx.rootId().contains(NodeType.PROGRAMME.getTypeName()))
                 .collect(Collectors.toSet());
 
         this.qualityEvaluation = QualityEvaluationDTO.fromNode(entity);

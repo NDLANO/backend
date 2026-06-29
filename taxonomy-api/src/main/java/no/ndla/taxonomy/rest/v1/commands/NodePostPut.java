@@ -93,7 +93,7 @@ public class NodePostPut implements UpdatableDto<Node> {
 
     @JsonIgnore
     public URI getPublicId() {
-        return URI.create("urn:" + nodeType.getName() + ":" + nodeId.get());
+        return URI.create("urn:" + nodeType.getTypeName() + ":" + nodeId.get());
     }
 
     @Override
