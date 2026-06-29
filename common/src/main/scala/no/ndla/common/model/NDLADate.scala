@@ -32,6 +32,7 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate], Parame
   def plusSeconds(seconds: Long): NDLADate                     = withUnderlying(_.plusSeconds(seconds))
   def minusDays(days: Long): NDLADate                          = withUnderlying(_.minusDays(days))
   def plusDays(days: Long): NDLADate                           = withUnderlying(_.plusDays(days))
+  def plusMonths(months: Long): NDLADate                       = withUnderlying(_.plusMonths(months))
   def plusYears(years: Long): NDLADate                         = withUnderlying(_.plusYears(years))
   def minusYears(years: Long): NDLADate                        = withUnderlying(_.minusYears(years))
   def isAfter(date: NDLADate): Boolean                         = underlying.isAfter(date.underlying)

@@ -12,9 +12,10 @@ import no.ndla.common.Clock
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException}
 import no.ndla.draftapi.model.domain.ImportId
+import no.ndla.draftapi.service.UrlCheckSummary
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, anyInt, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
 import sttp.client4.quick.*
 
@@ -142,5 +143,25 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verify(tagIndexService).deleteIndexWithName(Some("index7"))
     verify(tagIndexService).deleteIndexWithName(Some("index8"))
+  }
+
+  test("That triggering url-checker works") {
+    {
+      // Happy days
+      when(urlCheckerService.checkUrlsForArticleSlice(anyInt, anyInt)).thenReturn(Success(UrlCheckSummary(1, 1, 0)))
+      val res = quickRequest.post(uri"http://localhost:$serverPort/intern/check-urls").send()
+      res.code.code should be(200)
+      res.body should equal("URL check complete: 1 article(s) checked, 1 updated, 0 error(s).")
+      verify(urlCheckerService).checkUrlsForArticleSlice(anyInt(), anyInt())
+    }
+    {
+      // Invalid modulus parameter
+      val res = quickRequest.post(uri"http://localhost:$serverPort/intern/check-urls?modulus=-1").send()
+      res.code.code should be(400)
+      res.body should include(
+        "Invalid value for: query parameter modulus (expected value to be greater than 0, but got -1)"
+      )
+    }
+
   }
 }

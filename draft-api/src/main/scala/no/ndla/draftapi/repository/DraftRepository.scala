@@ -344,7 +344,6 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       .runSingle()
       .map(_.getOrElse(0))
   }
-
   def getArticlesByPage(pageSize: Int, offset: Int)(using session: DBSession): Try[Seq[Draft]] = {
     val dr  = dbDraft.syntax("dr")
     val dr2 = dbDraft.syntax("dr2")
@@ -361,6 +360,27 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       order by dr.id
       offset $offset
       limit $pageSize
+    """.map(dbDraft.fromResultSet(dr)).runList()
+  }
+
+  /** Fetch the latest revision of each article where {@code article_id % modulus == remainder % modulus}. Using a
+    * modulus of 365 and the day-of-year as the remainder spreads the full article corpus evenly across a year so that
+    * each article is visited roughly once per year. Setting modulus to 1 (remainder is ignored) returns every article.
+    */
+  def getArticlesByModulus(modulus: Int, remainder: Int)(using session: DBSession): Try[List[Draft]] = {
+    val dr  = dbDraft.syntax("dr")
+    val dr2 = dbDraft.syntax("dr2")
+    tsql"""
+      select ${dr.result.*}
+      from ${dbDraft.as(dr)}
+      where dr.document is not NULL
+      and (dr.article_id % $modulus) = ($remainder % $modulus)
+      and not exists (
+        select 1
+        from ${dbDraft.as(dr2)}
+        where dr2.article_id = dr.article_id
+        and dr2.revision > dr.revision
+      )
     """.map(dbDraft.fromResultSet(dr)).runList()
   }
 
