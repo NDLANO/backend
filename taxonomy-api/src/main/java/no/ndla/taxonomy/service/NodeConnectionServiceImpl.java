@@ -7,14 +7,12 @@
 
 package no.ndla.taxonomy.service;
 
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.integration.DraftApiClient;
 import no.ndla.taxonomy.repositories.NodeConnectionRepository;
 import no.ndla.taxonomy.repositories.NodeRepository;
-import no.ndla.taxonomy.rest.NotFoundHttpResponseException;
 import no.ndla.taxonomy.service.exceptions.DuplicateConnectionException;
 import no.ndla.taxonomy.service.exceptions.InvalidArgumentServiceException;
 import org.springframework.stereotype.Service;
@@ -307,14 +305,6 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     }
 
     @Override
-    public void disconnectAllParents(URI nodeId) {
-        var node = nodeRepository
-                .findFirstByPublicId(nodeId)
-                .orElseThrow(() -> new NotFoundHttpResponseException("Node was not found"));
-        node.getParentConnections().forEach(this::disconnectParentChildConnection);
-    }
-
-    @Override
     public void disconnectAllParents(Node entity) {
         Set.copyOf(entity.getParentConnections()).forEach(this::disconnectParentChildConnection);
     }
@@ -327,20 +317,18 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
     @Transactional
     @Override
     public Optional<DomainEntity> disconnectAllInvisibleNodes() {
-        nodeRepository.findRootSubjects().forEach(subject -> {
-            disconnectInvisibleConnections(subject);
-            nodeRepository.save(subject);
-        });
+        disconnectInvisibleConnectionsBatch();
         return Optional.empty();
     }
 
-    private void disconnectInvisibleConnections(Node node) {
-        if (!node.isVisible()) {
-            node.getParentConnections().forEach(this::disconnectParentChildConnection);
-        } else {
-            node.getChildConnections()
-                    .forEach(nodeConnection ->
-                            nodeConnection.getChild().ifPresent(this::disconnectInvisibleConnections));
+    /**
+     * Efficiently disconnects all invisible nodes using batch SQL operations.
+     */
+    private void disconnectInvisibleConnectionsBatch() {
+        int deletedCount = nodeConnectionRepository.deleteConnectionsWhereChildIsInvisible();
+
+        if (deletedCount > 0) {
+            nodeRepository.clearContextsForInvisibleNodes();
         }
     }
 }

@@ -13,9 +13,25 @@ import no.ndla.taxonomy.domain.NodeConnection;
 import no.ndla.taxonomy.domain.NodeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface NodeConnectionRepository extends TaxonomyRepository<NodeConnection> {
+
+    /**
+     * Batch delete all connections where the child node has visible = false.
+     *
+     * @return the number of connections deleted
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            DELETE FROM node_connection nc
+            WHERE nc.child_id IN (
+                SELECT n.id FROM node n WHERE n.visible = false
+            )
+            """, nativeQuery = true)
+    int deleteConnectionsWhereChildIsInvisible();
+
     @Query("""
             SELECT DISTINCT nc
             FROM NodeConnection nc
