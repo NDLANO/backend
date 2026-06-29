@@ -514,7 +514,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all translations for a single node */
+        /**
+         * Gets all translations for a single node
+         * @deprecated
+         */
         get: operations["getAllNodeTranslations"];
         put?: never;
         post?: never;
@@ -531,7 +534,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets all translations for a single node */
+        /**
+         * Gets all translations for a single node
+         * @deprecated
+         */
         get: operations["getAllNodeTranslations_1"];
         put?: never;
         post?: never;
@@ -548,12 +554,21 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Gets a single translation for a single node */
+        /**
+         * Gets a single translation for a single node
+         * @deprecated
+         */
         get: operations["getNodeTranslation"];
-        /** Creates or updates a translation of a node */
+        /**
+         * Creates or updates a translation of a node
+         * @deprecated
+         */
         put: operations["createUpdateNodeTranslation"];
         post?: never;
-        /** Deletes a translation */
+        /**
+         * Deletes a translation
+         * @deprecated
+         */
         delete: operations["deleteNodeTranslation"];
         options?: never;
         head?: never;
