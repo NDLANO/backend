@@ -2542,7 +2542,7 @@ export type components = {
         };
         TechnicalEvaluationDTO: {
             /** @description Notes for the technical evaluation of this node. */
-            comment?: string;
+            comment?: string | null;
             /** @description Whether this node requires a technical evaluation. */
             requiresEvaluation: boolean;
         };
