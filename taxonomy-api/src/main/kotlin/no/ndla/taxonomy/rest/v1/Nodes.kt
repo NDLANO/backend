@@ -69,20 +69,21 @@ class Nodes(
   private val location: String by lazy { controllerLocation(javaClass) }
 
   private fun getDefaultNodeTypes(
-      nodeType: Optional<List<NodeType>>,
-      contentURI: Optional<URI>,
-      contextId: Optional<String>,
-      contextIds: Optional<List<String>>,
-      isContext: Optional<Boolean>,
+      nodeType: List<NodeType>? = null,
+      contentURI: URI? = null,
+      contextId: String? = null,
+      contextIds: List<String>? = null,
+      isContext: Boolean? = null,
       metadataFilters: MetadataFilters,
   ): List<NodeType> {
-    if (nodeType.isPresent && nodeType.get().isNotEmpty()) {
-      return nodeType.get()
+
+    if (!nodeType.isNullOrEmpty()) {
+      return nodeType
     }
-    if (contentURI.isEmpty &&
-        contextId.isEmpty &&
-        contextIds.isEmpty &&
-        isContext.isEmpty &&
+    if (contentURI == null &&
+        contextId == null &&
+        contextIds == null &&
+        isContext == null &&
         !metadataFilters.hasFilters) {
       return listOf(NodeType.TOPIC, NodeType.NODE, NodeType.SUBJECT, NodeType.PROGRAMME)
     }
@@ -98,22 +99,22 @@ class Nodes(
               "Filter by nodeType, could be a comma separated list, defaults to Topics and Subjects (Resources are quite slow). :^)",
       )
       @RequestParam(value = "nodeType", required = false)
-      nodeType: Optional<List<NodeType>>,
+      nodeType: List<NodeType>?,
       @Parameter(description = "ISO-639-1 language code", example = "nb")
       @RequestParam(value = "language", defaultValue = Constants.DefaultLanguage, required = false)
       language: String,
       @Parameter(description = "Filter by contentUri")
       @RequestParam(value = "contentURI", required = false)
-      contentUri: Optional<URI>,
+      contentUri: URI?,
       @Parameter(description = "Ids to filter by")
       @RequestParam(value = "ids", required = false)
-      publicIds: Optional<List<URI>>,
+      publicIds: List<URI>?,
       @Parameter(description = "Only root level contexts", deprecated = true)
       @RequestParam(value = "isRoot", required = false)
-      isRoot: Optional<Boolean>,
+      isRoot: Boolean?,
       @Parameter(description = "Only contexts")
       @RequestParam(value = "isContext", required = false)
-      isContext: Optional<Boolean>,
+      isContext: Boolean?,
       @Parameter(description = "Filter by key and value")
       @RequestParam(value = "key", required = false)
       key: String?,
@@ -123,11 +124,11 @@ class Nodes(
       @Parameter(
           description = "Filter by context id. Beware: handled separately from other parameters!")
       @RequestParam(value = "contextId", required = false)
-      contextId: Optional<String>,
+      contextId: String?,
       @Parameter(
           description = "Filter by context ids. Beware: handled separately from other parameters!")
       @RequestParam(value = "contextIds", required = false)
-      contextIds: Optional<List<String>>,
+      contextIds: List<String>?,
       @Parameter(description = "Filter contexts by visibility")
       @RequestParam(value = "isVisible", required = false)
       isVisible: Boolean?,
@@ -139,13 +140,13 @@ class Nodes(
       filterProgrammes: Boolean,
       @Parameter(description = "Id to root id in context.")
       @RequestParam(value = "rootId", required = false)
-      rootId: Optional<URI>,
+      rootId: URI?,
       @Parameter(description = "Id to parent id in context.")
       @RequestParam(value = "parentId", required = false)
-      parentId: Optional<URI>,
+      parentId: URI?,
   ): List<NodeDTO> {
     val metadataFilters = MetadataFilters(key, value, isVisible)
-    val isRootOrContext = if (isRoot.isPresent) isRoot else isContext
+    val isRootOrContext = isRoot ?: isContext
     val defaultNodeTypes =
         getDefaultNodeTypes(
             nodeType,
@@ -158,18 +159,18 @@ class Nodes(
     return nodeService.getNodesByType(
         Optional.of(defaultNodeTypes),
         language,
-        publicIds,
-        contentUri,
-        contextId,
-        contextIds,
-        isRoot,
-        isContext,
+        Optional.ofNullable(publicIds),
+        Optional.ofNullable(contentUri),
+        Optional.ofNullable(contextId),
+        Optional.ofNullable(contextIds),
+        Optional.ofNullable(isRoot),
+        Optional.ofNullable(isContext),
         metadataFilters,
         includeContexts,
         filterProgrammes,
         true,
-        rootId,
-        parentId,
+        Optional.ofNullable(rootId),
+        Optional.ofNullable(parentId),
     )
   }
 
@@ -188,16 +189,16 @@ class Nodes(
       page: Int,
       @Parameter(description = "Query to search names")
       @RequestParam(value = "query", required = false)
-      query: Optional<String>,
+      query: String?,
       @Parameter(description = "Ids to fetch for query")
       @RequestParam(value = "ids", required = false)
-      ids: Optional<List<String>>,
+      ids: List<String>?,
       @Parameter(description = "ContentURIs to fetch for query")
       @RequestParam(value = "contentUris", required = false)
-      contentUris: Optional<List<String>>,
+      contentUris: List<String>?,
       @Parameter(description = "Filter by nodeType")
       @RequestParam(value = "nodeType", required = false)
-      nodeType: Optional<List<NodeType>>,
+      nodeType: List<NodeType>?,
       @Parameter(description = "Include all contexts")
       @RequestParam(value = "includeContexts", required = false, defaultValue = "true")
       includeContexts: Boolean,
@@ -206,44 +207,43 @@ class Nodes(
       filterProgrammes: Boolean,
       @Parameter(description = "Id to root id in context to select. Does not affect search results")
       @RequestParam(value = "rootId", required = false)
-      rootId: Optional<URI>,
+      rootId: URI?,
       @Parameter(
           description = "Id to parent id in context to select. Does not affect search results")
       @RequestParam(value = "parentId", required = false)
-      parentId: Optional<URI>,
+      parentId: URI?,
   ): SearchResultDTO<NodeDTO> =
-      searchService.searchByNodeType(
-          query,
-          ids,
-          contentUris,
-          language,
-          includeContexts,
-          filterProgrammes,
-          pageSize,
-          page,
-          nodeType,
-          Optional.empty(),
-          rootId,
-          parentId,
+      searchService.search(
+          query = query,
+          ids = ids,
+          contentUris = contentUris,
+          language = language,
+          includeContexts = includeContexts,
+          filterProgrammes = filterProgrammes,
+          pageSize = pageSize,
+          page = page,
+          nodeType = nodeType,
+          rootId = rootId,
+          parentId = parentId,
       )
 
   @PostMapping("/search")
   @Operation(summary = "Search all nodes")
   @Transactional(readOnly = true)
   fun searchNodes(@RequestBody searchBodyParams: NodeSearchBody): SearchResultDTO<NodeDTO> =
-      searchService.searchByNodeType(
-          searchBodyParams.query,
-          searchBodyParams.ids,
-          searchBodyParams.contentUris,
-          searchBodyParams.language,
-          searchBodyParams.includeContexts,
-          searchBodyParams.filterProgrammes,
-          searchBodyParams.pageSize,
-          searchBodyParams.page,
-          searchBodyParams.nodeType,
-          searchBodyParams.customFields,
-          searchBodyParams.rootId,
-          searchBodyParams.parentId,
+      searchService.search(
+          query = searchBodyParams.query,
+          ids = searchBodyParams.ids,
+          contentUris = searchBodyParams.contentUris,
+          language = searchBodyParams.language,
+          includeContexts = searchBodyParams.includeContexts,
+          filterProgrammes = searchBodyParams.filterProgrammes,
+          pageSize = searchBodyParams.pageSize,
+          page = searchBodyParams.page,
+          nodeType = searchBodyParams.nodeType,
+          customFieldFilters = searchBodyParams.customFields,
+          rootId = searchBodyParams.rootId,
+          parentId = searchBodyParams.parentId,
       )
 
   @GetMapping("/page")
@@ -430,7 +430,7 @@ class Nodes(
               "Filter by nodeType, could be a comma separated list, defaults to Topics and Subjects (Resources are quite slow). :^)",
       )
       @RequestParam(value = "nodeType", required = false)
-      nodeType: Optional<List<NodeType>>,
+      nodeType: List<NodeType>?,
       @Parameter(description = "Only connections of given type are returned")
       @RequestParam(value = "connectionTypes", defaultValue = "BRANCH")
       connectionTypes: List<NodeConnectionType>,
@@ -452,15 +452,7 @@ class Nodes(
   ): List<NodeChildDTO> {
     val node = nodeRepository.findFirstByPublicId(id).orElseThrow { NotFoundException("Node", id) }
 
-    val nodeTypes =
-        getDefaultNodeTypes(
-            nodeType,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            MetadataFilters(),
-        )
+    val nodeTypes = getDefaultNodeTypes(nodeType = nodeType, metadataFilters = MetadataFilters())
     val childrenIds: List<URI> =
         if (recursive) {
           recursiveNodeTreeService.getRecursiveNodes(node, nodeTypes).map { it.id }

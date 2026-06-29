@@ -16,7 +16,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import no.ndla.taxonomy.domain.*;
 import no.ndla.taxonomy.repositories.NodeRepository;
@@ -117,46 +116,12 @@ public class NodeServiceTest extends AbstractIntegrationTest {
         builder.node(n -> n.nodeType(NodeType.TOPIC));
         var subject = builder.node(n -> n.nodeType(NodeType.SUBJECT));
 
-        var subjects = searchService.searchByNodeType(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.of(List.of(NodeType.SUBJECT)),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var subjects = searchService.search(
+                null, null, null, "", true, false, 10, 1, List.of(NodeType.SUBJECT), null, null, null);
 
-        var topics = searchService.searchByNodeType(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.of(List.of(NodeType.TOPIC)),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
-        var all = searchService.searchByNodeType(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var topics = searchService.search(
+                null, null, null, "", true, false, 10, 1, List.of(NodeType.TOPIC), null, null, null);
+        var all = searchService.search(null, null, null, "", true, false, 10, 1, null, null, null, null);
 
         assertEquals(subjects.getResults().getFirst().getId(), subject.getPublicId());
 
@@ -172,19 +137,7 @@ public class NodeServiceTest extends AbstractIntegrationTest {
         builder.node(n -> n.nodeType(NodeType.TOPIC).name("Hund"));
         var tiger = builder.node(n -> n.nodeType(NodeType.TOPIC).name("Tiger"));
 
-        var result = searchService.search(
-                Optional.of("tiger"),
-                Optional.empty(),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var result = searchService.search("tiger", null, null, "", true, false, 10, 1, null, null, null, null);
 
         assertEquals(result.getResults().getFirst().getId(), tiger.getPublicId());
         assertEquals(1, result.getTotalCount());
@@ -201,37 +154,13 @@ public class NodeServiceTest extends AbstractIntegrationTest {
         idList.add("urn:topic:1");
         idList.add("urn:topic:2");
 
-        var result = searchService.search(
-                Optional.empty(),
-                Optional.of(idList),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var result = searchService.search(null, idList, null, "", true, false, 10, 1, null, null, null, null);
 
         assertEquals(new URI("urn:topic:1"), result.getResults().get(0).getId());
         assertEquals(new URI("urn:topic:2"), result.getResults().get(1).getId());
         assertEquals(2, result.getTotalCount());
 
-        var result2 = searchService.search(
-                Optional.of("Ape"),
-                Optional.of(idList),
-                Optional.empty(),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var result2 = searchService.search("Ape", idList, null, "", true, false, 10, 1, null, null, null, null);
 
         assertEquals(new URI("urn:topic:1"), result2.getResults().getFirst().getId());
         assertEquals(1, result2.getTotalCount());
@@ -253,19 +182,7 @@ public class NodeServiceTest extends AbstractIntegrationTest {
         var idList = new ArrayList<String>();
         idList.add("urn:article:1");
 
-        var result = searchService.search(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(idList),
-                "",
-                true,
-                false,
-                10,
-                1,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+        var result = searchService.search(null, null, idList, "", true, false, 10, 1, null, null, null, null);
 
         assertAnyTrue(result.getResults(), res -> res.getId().equals(URI.create("urn:topic:1")));
         assertAnyTrue(result.getResults(), res -> res.getId().equals(URI.create("urn:topic:4")));
