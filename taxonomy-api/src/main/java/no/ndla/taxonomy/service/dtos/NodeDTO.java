@@ -184,7 +184,7 @@ public class NodeDTO {
                 .filter(ctx -> !filterProgrammes || !ctx.rootId().contains(NodeType.PROGRAMME.getName()))
                 .collect(Collectors.toSet());
 
-        this.qualityEvaluation = QualityEvaluationDTO.fromNode(entity);
+        this.qualityEvaluation = Optional.ofNullable(QualityEvaluationDTO.Companion.fromNode(entity));
         this.gradeAverage = Optional.ofNullable(GradeAverageDTO.Companion.fromNode(entity));
         this.technicalEvaluation = Optional.ofNullable(TechnicalEvaluationDTO.Companion.fromNode(entity));
         this.id = entity.getPublicId();

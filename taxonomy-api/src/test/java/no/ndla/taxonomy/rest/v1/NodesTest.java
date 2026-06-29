@@ -1690,7 +1690,7 @@ public class NodesTest extends RestTest {
         n.name = Optional.of(name);
         n.nodeType = nodeType;
         qualityEvaluation.ifPresent(x -> {
-            var comment = Optional.of("La til karakter " + x + " her da...");
+            var comment = "La til karakter " + x + " her da...";
             var qe = new QualityEvaluationDTO(Grade.Companion.fromInt(x), comment);
             n.qualityEvaluation = new UpdateOrDelete.Update<>(qe);
         });
@@ -2002,7 +2002,7 @@ public class NodesTest extends RestTest {
 
         {
             var updater12 = new NodePostPut();
-            var qe12 = new QualityEvaluationDTO(Grade.Companion.fromInt(5), Optional.of("Hei"));
+            var qe12 = new QualityEvaluationDTO(Grade.Companion.fromInt(5), "Hei");
             updater12.qualityEvaluation = new UpdateOrDelete.Update<>(qe12);
             testUtils.updateResource("/v1/nodes/" + r12.getPublicId(), updater12);
         }
@@ -2017,7 +2017,7 @@ public class NodesTest extends RestTest {
 
     public QualityEvaluationDTO getRandomGrade() {
         var x = new Random().nextInt(5) + 1;
-        return new QualityEvaluationDTO(Grade.Companion.fromInt(x), Optional.of("Random grade " + x));
+        return new QualityEvaluationDTO(Grade.Companion.fromInt(x), "Random grade " + x);
     }
 
     @Test
