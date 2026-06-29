@@ -45,13 +45,17 @@ class OEmbedProxyProperties extends BaseProps {
     "prod"  -> List("https?://www.ndla.no/*", "https?://ndla.no/*", "https?://beta.ndla.no/*"),
   ).getOrElse(Environment, List(s"https?://ndla-frontend.$Environment.ndla.no/*", s"https?://$Environment.ndla.no/*"))
 
-  val NdlaH5POembedProvider: String = Map("staging" -> "https://h5p-staging.ndla.no", "prod" -> "https://h5p.ndla.no")
-    .getOrElse(Environment, "https://h5p-test.ndla.no")
+  val NdlaH5PAddress: String = propOrElse(
+    "NDLA_H5P_ADDRESS",
+    Map("staging" -> "https://h5p-staging.ndla.no", "prod" -> "https://h5p.ndla.no").getOrElse(
+      Environment,
+      "https://h5p-test.ndla.no",
+    ),
+  )
 
-  val NdlaH5PApprovedUrl: String = Map(
-    "staging" -> "https://h5p-staging.ndla.no/resource/*",
-    "prod"    -> "https://h5p.ndla.no/resource/*",
-  ).getOrElse(Environment, "https://h5p-test.ndla.no/resource/*")
+  val NdlaH5POembedProvider: String = NdlaH5PAddress
+
+  val NdlaH5PApprovedUrl: String = s"$NdlaH5PAddress/resource/*"
 
   private lazy val Domain: String = Domains.get(Environment)
 
