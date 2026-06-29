@@ -1692,7 +1692,7 @@ public class NodesTest extends RestTest {
         qualityEvaluation.ifPresent(x -> {
             var comment = Optional.of("La til karakter " + x + " her da...");
             var qe = new QualityEvaluationDTO(Grade.Companion.fromInt(x), comment);
-            n.qualityEvaluation = UpdateOrDelete.Update(qe);
+            n.qualityEvaluation = new UpdateOrDelete.Update<>(qe);
         });
 
         try {
@@ -1821,7 +1821,7 @@ public class NodesTest extends RestTest {
 
         // Update all quality evaluations
         var updateBody = new NodePostPut();
-        updateBody.qualityEvaluation = UpdateOrDelete.Update(getRandomGrade());
+        updateBody.qualityEvaluation = new UpdateOrDelete.Update<>(getRandomGrade());
         for (var id : allIds) {
             testUtils.updateResource("/v1/nodes/" + id, updateBody);
         }
@@ -2003,7 +2003,7 @@ public class NodesTest extends RestTest {
         {
             var updater12 = new NodePostPut();
             var qe12 = new QualityEvaluationDTO(Grade.Companion.fromInt(5), Optional.of("Hei"));
-            updater12.qualityEvaluation = UpdateOrDelete.Update(qe12);
+            updater12.qualityEvaluation = new UpdateOrDelete.Update<>(qe12);
             testUtils.updateResource("/v1/nodes/" + r12.getPublicId(), updater12);
         }
 
@@ -2035,8 +2035,7 @@ public class NodesTest extends RestTest {
         var command = new NodePostPut() {
             {
                 nodeType = NodeType.TOPIC;
-                technicalEvaluation =
-                        UpdateOrDelete.Update(new TechnicalEvaluationDTO(true, Optional.of("Needs review")));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(true, "Needs review"));
             }
         };
         var id = getId(testUtils.createResource("/v1/nodes", command));
@@ -2047,8 +2046,7 @@ public class NodesTest extends RestTest {
 
         var command2 = new NodePostPut() {
             {
-                technicalEvaluation =
-                        UpdateOrDelete.Update(new TechnicalEvaluationDTO(false, Optional.of("Needs review")));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(false, "Needs review"));
             }
         };
         testUtils.updateResource("/v1/nodes/" + id, command2);
@@ -2062,7 +2060,7 @@ public class NodesTest extends RestTest {
         var command = new NodePostPut() {
             {
                 nodeType = NodeType.TOPIC;
-                technicalEvaluation = UpdateOrDelete.Update(new TechnicalEvaluationDTO(true, Optional.empty()));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(true, null));
             }
         };
         var id = getId(testUtils.createResource("/v1/nodes", command));
@@ -2073,8 +2071,7 @@ public class NodesTest extends RestTest {
 
         var command2 = new NodePostPut() {
             {
-                technicalEvaluation =
-                        UpdateOrDelete.Update(new TechnicalEvaluationDTO(true, Optional.of("Needs review")));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(true, "Needs review"));
             }
         };
         testUtils.updateResource("/v1/nodes/" + id, command2);
@@ -2089,8 +2086,7 @@ public class NodesTest extends RestTest {
         var command = new NodePostPut() {
             {
                 nodeType = NodeType.TOPIC;
-                technicalEvaluation =
-                        UpdateOrDelete.Update(new TechnicalEvaluationDTO(false, Optional.of("Needs review")));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(false, "Needs review"));
             }
         };
         var id = getId(testUtils.createResource("/v1/nodes", command));
@@ -2105,8 +2101,7 @@ public class NodesTest extends RestTest {
         var command = new NodePostPut() {
             {
                 nodeType = NodeType.TOPIC;
-                technicalEvaluation =
-                        UpdateOrDelete.Update(new TechnicalEvaluationDTO(true, Optional.of("Needs review")));
+                technicalEvaluation = new UpdateOrDelete.Update<>(new TechnicalEvaluationDTO(true, "Needs review"));
             }
         };
         var id = getId(testUtils.createResource("/v1/nodes", command));
@@ -2115,8 +2110,8 @@ public class NodesTest extends RestTest {
 
         var nodeDTO = testUtils.getObject(NodeDTO.class, response);
         var te = nodeDTO.getTechnicalEvaluation().orElseThrow();
-        assertTrue(te.requiresEvaluation());
-        assertEquals("Needs review", te.getComment().orElseThrow());
+        assertTrue(te.getRequiresEvaluation());
+        assertEquals("Needs review", te.getComment());
     }
 
     public void testQualityEvaluationAverage(Node inputNode, int expectedCount, double expectedAverage) {

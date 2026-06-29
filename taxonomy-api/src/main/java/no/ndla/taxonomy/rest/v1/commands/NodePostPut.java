@@ -8,8 +8,6 @@
 package no.ndla.taxonomy.rest.v1.commands;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -73,10 +71,8 @@ public class NodePostPut implements UpdatableDto<Node> {
             description =
                     "The quality evaluation of the node. Consist of a score from 1 to 5 and a comment. Can be null to remove existing evaluation.",
             types = {"object", "null"})
-    @JsonDeserialize(using = QualityEvaluationDTODeserializer.class)
-    @JsonSerialize(using = QualityEvaluationDTOSerializer.class)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public UpdateOrDelete<QualityEvaluationDTO> qualityEvaluation = UpdateOrDelete.Default();
+    public UpdateOrDelete<QualityEvaluationDTO> qualityEvaluation = UpdateOrDelete.Default.INSTANCE;
 
     @JsonProperty
     @Schema(
@@ -84,10 +80,8 @@ public class NodePostPut implements UpdatableDto<Node> {
             description =
                     "The technical evaluation of the node. Contains a flag and an optional comment. Can be null to remove existing evaluation.",
             types = {"object", "null"})
-    @JsonDeserialize(using = TechnicalEvaluationDTODeserializer.class)
-    @JsonSerialize(using = TechnicalEvaluationDTOSerializer.class)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public UpdateOrDelete<TechnicalEvaluationDTO> technicalEvaluation = UpdateOrDelete.Default();
+    public UpdateOrDelete<TechnicalEvaluationDTO> technicalEvaluation = UpdateOrDelete.Default.INSTANCE;
 
     @JsonProperty
     @Schema(description = "The translations for the node. Contains an array of translations in different languages")
@@ -114,24 +108,31 @@ public class NodePostPut implements UpdatableDto<Node> {
             node.setNodeType(nodeType);
         }
 
-        if (this.qualityEvaluation.isDelete()) {
-            node.setQualityEvaluation(null);
-            node.setQualityEvaluationComment(Optional.empty());
-        } else {
-            this.qualityEvaluation.getValue().ifPresent(qe -> {
+        switch (this.qualityEvaluation) {
+            case UpdateOrDelete.Delete _ -> {
+                node.setQualityEvaluation(null);
+                node.setQualityEvaluationComment(Optional.empty());
+            }
+            case UpdateOrDelete.Update<?> u -> {
+                var qe = (QualityEvaluationDTO) u.getValue();
                 node.setQualityEvaluation(qe.getGrade());
                 node.setQualityEvaluationComment(qe.getNote());
-            });
+            }
+            default -> {}
         }
 
-        if (this.technicalEvaluation.isDelete()) {
-            node.setRequiresTechnicalEvaluation(Optional.empty());
-            node.setTechnicalEvaluationComment(Optional.empty());
-        } else {
-            this.technicalEvaluation.getValue().ifPresent(te -> {
-                node.setRequiresTechnicalEvaluation(Optional.of(te.requiresEvaluation()));
-                node.setTechnicalEvaluationComment(te.requiresEvaluation() ? te.getComment() : Optional.empty());
-            });
+        switch (this.technicalEvaluation) {
+            case UpdateOrDelete.Delete _ -> {
+                node.setRequiresTechnicalEvaluation(Optional.empty());
+                node.setTechnicalEvaluationComment(Optional.empty());
+            }
+            case UpdateOrDelete.Update<?> u -> {
+                var te = (TechnicalEvaluationDTO) u.getValue();
+                node.setRequiresTechnicalEvaluation(Optional.of(te.getRequiresEvaluation()));
+                node.setTechnicalEvaluationComment(
+                        te.getRequiresEvaluation() ? Optional.ofNullable(te.getComment()) : Optional.empty());
+            }
+            default -> {}
         }
 
         translations.ifPresent(ts -> {
