@@ -52,7 +52,8 @@ public class QualityEvaluationService {
     }
 
     private Optional<NodePostPut> getQualityEvaluationCommand(UpdatableDto<?> command) {
-        if (command instanceof NodePostPut nodeCommand && nodeCommand.qualityEvaluation.isChanged()) {
+        if (command instanceof NodePostPut nodeCommand
+                && !(nodeCommand.qualityEvaluation instanceof UpdateOrDelete.Default)) {
             return Optional.of(nodeCommand);
         }
 
@@ -96,7 +97,9 @@ public class QualityEvaluationService {
             return;
         }
 
-        var newGrade = nodeCommand.get().qualityEvaluation.getValue().map(QualityEvaluationDTO::getGrade);
+        var newGrade = nodeCommand.get().qualityEvaluation instanceof UpdateOrDelete.Update<?> u
+                ? Optional.of(((QualityEvaluationDTO) u.getValue()).getGrade())
+                : Optional.<Grade>empty();
 
         updateQualityEvaluationOfParents(
                 node.getNodeType(), node.getParentNodesForQualityEvaluation(), oldGrade, newGrade, false);
