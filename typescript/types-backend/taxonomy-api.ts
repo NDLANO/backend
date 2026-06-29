@@ -1743,7 +1743,7 @@ export type components = {
             /** Format: uri */
             id: string;
             name: string;
-            path: string;
+            path?: string | null;
         };
         /** @description object containing public id of the node to be registered as context */
         ContextPOST: {
