@@ -2281,7 +2281,7 @@ export type components = {
             /** @description The grade (1-5) of the article */
             grade: components["schemas"]["Grade"];
             /** @description Note explaining the score */
-            note?: string;
+            note?: string | null;
         };
         Relevance: {
             /**
