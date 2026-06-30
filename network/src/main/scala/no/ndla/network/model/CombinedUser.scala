@@ -8,35 +8,39 @@
 
 package no.ndla.network.model
 
-import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.UserRole.EMPLOYEE
 import no.ndla.network.tapir.auth.TokenUser
 
 sealed trait CombinedUser {
   val tokenUser: Option[TokenUser]
-  val myndlaUser: Option[MyNDLAUserDTO]
+  val myndlaUser: Option[FeideUserWrapper]
   def isMyNDLAUser: Boolean = myndlaUser.isDefined && tokenUser.isEmpty
-  def isEmployee: Boolean   = myndlaUser.exists(_.role == EMPLOYEE)
+  def isEmployee: Boolean   = myndlaUser.exists(_.user.userRole == EMPLOYEE)
 }
 
-case class OptionalCombinedUser(tokenUser: Option[TokenUser], myndlaUser: Option[MyNDLAUserDTO]) extends CombinedUser
+case class OptionalCombinedUser(
+    override val tokenUser: Option[TokenUser],
+    override val myndlaUser: Option[FeideUserWrapper],
+) extends CombinedUser
 
 trait CombinedUserRequired extends CombinedUser {
   def id: String
 }
 
-case class CombinedUserWithTokenUser(user: TokenUser, myndlaUser: Option[MyNDLAUserDTO]) extends CombinedUserRequired {
-  override def id: FeideID         = user.id
-  val tokenUser: Option[TokenUser] = Some(user)
+case class CombinedUserWithTokenUser(ndlaUser: TokenUser, override val myndlaUser: Option[FeideUserWrapper])
+    extends CombinedUserRequired {
+  override def id: FeideID                  = ndlaUser.id
+  override val tokenUser: Option[TokenUser] = Some(ndlaUser)
 }
 
-case class CombinedUserWithMyNDLAUser(tokenUser: Option[TokenUser], user: MyNDLAUserDTO) extends CombinedUserRequired {
-  override def id: String               = user.feideId
-  val myndlaUser: Option[MyNDLAUserDTO] = Some(user)
+case class CombinedUserWithMyNDLAUser(override val tokenUser: Option[TokenUser], feideUser: FeideUserWrapper)
+    extends CombinedUserRequired {
+  override def id: String                           = feideUser.user.feideId
+  override val myndlaUser: Option[FeideUserWrapper] = Some(feideUser)
 }
 
-case class CombinedUserWithBoth(user: TokenUser, ndlaUser: MyNDLAUserDTO) extends CombinedUserRequired {
-  override def id: String               = user.id
-  val tokenUser: Option[TokenUser]      = Some(user)
-  val myndlaUser: Option[MyNDLAUserDTO] = Some(ndlaUser)
+case class CombinedUserWithBoth(ndlaUser: TokenUser, feideUser: FeideUserWrapper) extends CombinedUserRequired {
+  override def id: String                           = ndlaUser.id
+  override val tokenUser: Option[TokenUser]         = Some(ndlaUser)
+  override val myndlaUser: Option[FeideUserWrapper] = Some(feideUser)
 }

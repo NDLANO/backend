@@ -9,7 +9,6 @@
 package no.ndla.tapirtesting
 
 import com.nimbusds.jose.crypto.RSASSASigner
-import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.{JOSEObjectType, JWSAlgorithm, JWSHeader}
 import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
 import no.ndla.common.auth.Permission
@@ -17,9 +16,7 @@ import no.ndla.common.auth.Permission.*
 import no.ndla.common.configuration.BaseProps
 
 import java.util.Date
-import scala.io.Source
 import scala.jdk.CollectionConverters.*
-import scala.util.Using
 
 object NdlaAuthTestTokens {
   lazy val NoPermissions: String  = mkJWT()
@@ -42,13 +39,10 @@ object NdlaAuthTestTokens {
   lazy val LearningPathWrite: String         = mkJWT(LEARNINGPATH_API_WRITE)
   lazy val LearningPathAdminAndWrite: String = mkJWT(LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_WRITE)
 
-  lazy val signer: RSASSASigner = {
-    val rsaJson = Using.resource(Source.fromResource("test-jwks.json"))(_.mkString)
-    val jwk     = RSAKey.parse(rsaJson)
-    new RSASSASigner(jwk)
-  }
+  private val rsaJwk                    = TestRsaJwk.NdlaAuthKey
+  private lazy val signer: RSASSASigner = new RSASSASigner(rsaJwk)
 
-  def mkJWT(permissions: Permission*): String = {
+  private def mkJWT(permissions: Permission*): String = {
     val props = new BaseProps {
       override def ApplicationName: String          = ""
       override def ApplicationPort: Int             = 0
@@ -59,7 +53,7 @@ object NdlaAuthTestTokens {
 
     val claims = new JWTClaimsSet.Builder()
       .issueTime(new Date())
-      .expirationTime(new Date(System.currentTimeMillis() + 3600_000))
+      .expirationTime(new Date(System.currentTimeMillis() + 3_600_000))
       .issuer(iss)
       .audience(aud)
       .subject("google-oauth2|SomeGoogleNumber")
@@ -71,7 +65,7 @@ object NdlaAuthTestTokens {
       .claim("https://ndla.no/user_name", "Some cool user")
       .claim("permissions", permissions.map(_.entryName).asJava)
       .build()
-    val header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("test-key-1").`type`(JOSEObjectType.JWT).build()
+    val header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaJwk.getKeyID).`type`(JOSEObjectType.JWT).build()
     val jwt    = new SignedJWT(header, claims)
     jwt.sign(signer)
     jwt.serialize()

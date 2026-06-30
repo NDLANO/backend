@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.model.api.bulk.BulkUploadStateDTO
-import no.ndla.network.clients.rediscache.{FeideRedisClient, RedisStoredType}
+import no.ndla.network.clients.rediscache.{RedisStoredType, ScalaJedis}
 
 import java.util.UUID
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -24,9 +24,7 @@ object BulkUploadType extends RedisStoredType {
   val stateField: String           = "state"
 }
 
-class BulkUploadStore(using redisClient: FeideRedisClient) extends StrictLogging {
-  private val jedis = redisClient.jedis
-
+class BulkUploadStore(jedis: ScalaJedis) extends StrictLogging {
   def get(uploadId: UUID): Try[Option[BulkUploadStateDTO]] = jedis
     .hget(BulkUploadType, uploadId.toString, BulkUploadType.stateField)
     .flatMap {
@@ -37,9 +35,13 @@ class BulkUploadStore(using redisClient: FeideRedisClient) extends StrictLogging
   def set(uploadId: UUID, state: BulkUploadStateDTO): Try[Unit] = {
     val json = CirceUtil.toJsonString(state)
     for {
-      newTtl <- jedis.getNewTTL(BulkUploadType, uploadId.toString)
+      newTtl <- jedis.getFieldNewTtl(BulkUploadType, uploadId.toString, BulkUploadType.stateField)
       _      <- jedis.hset(BulkUploadType, uploadId.toString, BulkUploadType.stateField, json)
-      _      <- jedis.expire(BulkUploadType, uploadId.toString, newTtl)
+      _      <- jedis.hexpire(BulkUploadType, uploadId.toString, BulkUploadType.stateField, newTtl)
     } yield ()
   }
+}
+
+object BulkUploadStore {
+  def apply(host: String, port: Int): BulkUploadStore = new BulkUploadStore(ScalaJedis(host, port))
 }

@@ -12,15 +12,13 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.network.clients.MyNDLAProvider
-import no.ndla.network.jwt.JwsKeySelectorFactory
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.auth.{CombinedAuth, FeideAuth, NdlaAuth}
 import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import sttp.tapir.server.netty.sync.NettySyncServerBinding
-
-import scala.util.Success
 
 trait TapirControllerTest extends UnitTestSuite {
   val serverPort: Int = findFreePort
@@ -36,30 +34,32 @@ trait TapirControllerTest extends UnitTestSuite {
 
   implicit lazy val myNdlaProvider: MyNDLAProvider = {
     val providerMock = mock[MyNDLAProvider]
-    when(providerMock.getDomainUser(any())).thenAnswer { _ =>
-      Success(
-        MyNDLAUser(
-          id = 0,
-          feideId = "",
-          favoriteSubjects = Seq.empty,
-          userRole = UserRole.STUDENT,
-          lastUpdated = clock.now(),
-          organization = "",
-          groups = Seq.empty,
-          username = "",
-          displayName = "",
-          email = "",
-          arenaEnabled = false,
-          lastSeen = clock.now(),
+    when(providerMock.getFeideUserWrapperFromIdToken(any())).thenAnswer { i =>
+      Right(
+        FeideUserWrapper(
+          MyNDLAUser(
+            id = 0,
+            feideId = "",
+            favoriteSubjects = Seq.empty,
+            userRole = UserRole.STUDENT,
+            lastUpdated = clock.now(),
+            organization = "",
+            groups = Seq.empty,
+            username = "",
+            displayName = "",
+            email = "",
+            arenaEnabled = false,
+            lastSeen = clock.now(),
+          ),
+          i.getArgument(0),
         )
       )
     }
     providerMock
   }
-  given jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                           = NdlaAuth()
-  given feideAuth: FeideAuth                         = FeideAuth()
-  given combinedAuth: CombinedAuth                   = CombinedAuth()
+  implicit lazy val ndlaAuth: NdlaAuth         = NdlaAuthTest()
+  implicit lazy val feideAuth: FeideAuth       = FeideAuthTest()
+  implicit lazy val combinedAuth: CombinedAuth = CombinedAuth()
 
   val controller: TapirController
 

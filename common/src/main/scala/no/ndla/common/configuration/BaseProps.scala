@@ -150,6 +150,11 @@ trait BaseProps extends StrictLogging {
   val ndlaAuth0LegacyIssuer = s"https://$ndlaAuth0LegacyHost/"
   val ndlaAuth0Audience     = "ndla_system"
 
+  val feideIssuer: String           = "https://auth.dataporten.no"
+  val feideAuthorizationUrl: String = s"$feideIssuer/oauth/authorization"
+  val feideTokenUrl: String         = s"$feideIssuer/oauth/token"
+  def feideClientId: Option[String] = propOrNone("FEIDE_CLIENT_ID")
+
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)
   def SEARCH_INDEX_REPLICAS: Int = intPropOrDefault("SEARCH_INDEX_REPLICAS", 1)

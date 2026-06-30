@@ -8,16 +8,21 @@
 
 package no.ndla.myndlaapi
 
+import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.domain.{NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.model.domain
+import no.ndla.myndlaapi.service.FolderConverterService
 
 import java.util.UUID
 
 object TestData {
+  val folderConverterService = FolderConverterService(using Clock())
+
   val today: NDLADate = NDLADate.now()
 
   val emptyDomainResource: Resource = Resource(
@@ -83,4 +88,5 @@ object TestData {
     lastSeen = today,
   )
 
+  val emptyMyNdlaUserDto: MyNDLAUserDTO = folderConverterService.toApiUserData(emptyMyNDLAUser)
 }

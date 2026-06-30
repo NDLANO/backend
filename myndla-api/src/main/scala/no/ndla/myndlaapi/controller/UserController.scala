@@ -17,7 +17,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
-import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
+import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FeideAccessTokenDTO}
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
 
 class UserController(using
@@ -38,7 +38,7 @@ class UserController(using
     .out(jsonBody[MyNDLAUserDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
     .withFeideUser
-    .serverLogicPure(feide => _ => userService.getMyNDLAUserData(Some(feide.token)))
+    .serverLogicPure(feide => _ => Right(userService.getApiUserFromFeideWrapper(feide)))
 
   def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint
     .patch
@@ -87,6 +87,18 @@ class UserController(using
       folderWriteService.importUserData(importBody, feide)
     }
 
+  val createOrUpdateUser: ServerEndpoint[Any, Eff] = endpoint
+    .put
+    .summary("Create or update the user")
+    .description("Creates or updates the current user with data from Feide")
+    .in(jsonBody[FeideAccessTokenDTO])
+    .out(jsonBody[MyNDLAUserDTO])
+    .errorOut(errorOutputsFor(401, 403))
+    .withFeideIdToken
+    .serverLogic(idToken => { case FeideAccessTokenDTO(accessToken) =>
+      userService.createOrUpdateUser(idToken, accessToken)
+    })
+
   override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(getMyNDLAUser, updateMyNDLAUser, deleteAllUserData, exportUserData, importUserData)
+    List(getMyNDLAUser, updateMyNDLAUser, deleteAllUserData, exportUserData, importUserData, createOrUpdateUser)
 }

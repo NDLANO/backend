@@ -17,9 +17,9 @@ import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepTy
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.integration.{Node, TaxonomyApiClient}
-import no.ndla.network.jwt.JwsKeySelectorFactory
+import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
-import no.ndla.tapirtesting.{NdlaAuthTestTokens, TestJwsKeySelectorFactory}
+import no.ndla.tapirtesting.{FeideAuthTest, NdlaAuthTest, NdlaAuthTestTokens}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.invocation.InvocationOnMock
@@ -69,7 +69,8 @@ class LearningPathAndStepCreationTests
         when(client.queryNodes(any[Long])).thenReturn(Success(List.empty[Node]))
         client
       }
-      override implicit val jwsKeySelectorFactory: JwsKeySelectorFactory = TestJwsKeySelectorFactory
+      override implicit lazy val ndlaAuth: NdlaAuth   = NdlaAuthTest()
+      override implicit lazy val feideAuth: FeideAuth = FeideAuthTest()
     }
   }
 

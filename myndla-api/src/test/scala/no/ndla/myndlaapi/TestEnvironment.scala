@@ -18,7 +18,6 @@ import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRe
 import no.ndla.myndlaapi.service.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.tapir.*
 import no.ndla.scalatestsuite.DBUtilityStub
 import org.mockito.Mockito.reset
@@ -52,7 +51,6 @@ trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with Mockito
   implicit lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
   implicit lazy val configController: ConfigController             = mock[ConfigController]
   implicit lazy val robotController: RobotController               = mock[RobotController]
-  implicit lazy val redisClient: FeideRedisClient                  = mock[FeideRedisClient]
   implicit lazy val folderController: FolderController             = mock[FolderController]
   implicit lazy val userController: UserController                 = mock[UserController]
   implicit lazy val statsController: StatsController               = mock[StatsController]
@@ -82,7 +80,6 @@ trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with Mockito
     reset(configRepository)
     reset(feideApiClient)
     reset(configController)
-    reset(redisClient)
     reset(folderController)
     reset(userController)
     reset(robotController)

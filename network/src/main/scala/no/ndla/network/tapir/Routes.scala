@@ -74,12 +74,21 @@ class Routes(using
         ex: AuthException
     ): Option[ValuedEndpointOutput[((StatusCode, List[Header]), AllErrors)]] = {
       val (sc, body) = ex match {
+        case _: MissingAudienceConfiguration =>
+          logger.error(ex.message, ex)
+          (StatusCode.InternalServerError, errorHelpers.generic)
+        case _: UnexpectedNimbusException =>
+          logger.error(ex.message, ex)
+          (StatusCode.InternalServerError, errorHelpers.generic)
+        case _: GetFeideUserWrapperException =>
+          logger.error(ex.message, ex)
+          (StatusCode.InternalServerError, errorHelpers.generic)
+        case _: InvalidJwtException =>
+          logger.error(ex.message, ex)
+          (StatusCode.Unauthorized, errorHelpers.unauthorized.copy(description = ex.message))
         case _: UnauthenticatedException =>
           (StatusCode.Unauthorized, errorHelpers.unauthorized.copy(description = ex.message))
-        case _: ForbiddenException         => (StatusCode.Forbidden, errorHelpers.forbidden.copy(description = ex.message))
-        case UnexpectedNimbusException(ex) =>
-          logger.error("Unexpected Nimbus exception", ex)
-          (StatusCode.InternalServerError, errorHelpers.generic)
+        case _: ForbiddenException => (StatusCode.Forbidden, errorHelpers.forbidden.copy(description = ex.message))
       }
       val errorBodyOutput = ValuedEndpointOutput(jsonBody[AllErrors], body)
       Some(errorBodyOutput.prepend(statusCode.and(headers), (sc, Nil)))

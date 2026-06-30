@@ -8,17 +8,13 @@
 
 package no.ndla.network.model
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.domain.myndla.MyNDLAUser
-import no.ndla.common.implicits.toTry
-import no.ndla.network.clients.FeideApiClient
 
-import scala.util.Try
+case class FeideUserWrapper(user: MyNDLAUser, idToken: FeideIdToken)
 
-case class FeideUserWrapper(token: FeideAccessToken, user: Option[MyNDLAUser]) {
-  def userOrAccessDenied: Try[MyNDLAUser] = user.toTry(FeideApiClient.accessDeniedException)
-}
-
-extension (maybeUser: Option[FeideUserWrapper]) {
-  def userOrAccessDenied: Try[MyNDLAUser] = maybeUser.flatMap(_.user).toTry(FeideApiClient.accessDeniedException)
-
+object FeideUserWrapper {
+  implicit val encoder: Encoder[FeideUserWrapper] = deriveEncoder
+  implicit val decoder: Decoder[FeideUserWrapper] = deriveDecoder
 }

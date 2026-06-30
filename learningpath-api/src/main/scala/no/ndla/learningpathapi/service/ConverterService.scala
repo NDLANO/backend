@@ -572,7 +572,7 @@ class ConverterService(using
   private def newDefaultCopyright(user: CombinedUser): CopyrightDTO = {
     val contributors = user
       .myndlaUser
-      .map(_.displayName)
+      .map(_.user.displayName)
       .map(name => Seq(commonApi.AuthorDTO(ContributorType.Writer, name)))
       .getOrElse(Seq.empty)
     CopyrightDTO(asApiLicense(License.CC_BY.toString), contributors)

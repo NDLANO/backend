@@ -8,15 +8,14 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.common.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.common.errors.{
   AccessDeniedException,
   NotFoundException,
   OperationNotAllowedException,
   ValidationException,
 }
-import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.learningpath.*
-import no.ndla.common.model.domain.myndla.UserRole.EMPLOYEE
 import no.ndla.common.model.domain.{Author, ContributorType, Title, learningpath}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.learningpathapi.*
@@ -25,15 +24,15 @@ import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.OptimisticLockException
 import no.ndla.mapping.License
 import no.ndla.network.model.CombinedUserWithMyNDLAUser
-import no.ndla.common.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.tapirtesting.FeideAuthTestData
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doAnswer, doReturn, never, times, verify, when}
+import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
-import org.mockito.ArgumentCaptor
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override implicit lazy val converterService: ConverterService = new ConverterService
@@ -46,21 +45,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set(LEARNINGPATH_API_WRITE, LEARNINGPATH_API_PUBLISH), None)
   val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set(LEARNINGPATH_API_WRITE), None)
 
-  val MYNDLA_USER = CombinedUserWithMyNDLAUser(
-    None,
-    MyNDLAUserDTO(
-      id = 1L,
-      feideId = "eier3",
-      username = "eier3",
-      email = "",
-      displayName = "eier3",
-      favoriteSubjects = Seq.empty,
-      role = EMPLOYEE,
-      organization = "",
-      groups = Seq.empty,
-      arenaEnabled = false,
-    ),
-  )
+  val MYNDLA_USER = CombinedUserWithMyNDLAUser(None, FeideAuthTestData.FrankForeleser)
 
   val today: NDLADate = NDLADate.now()
 

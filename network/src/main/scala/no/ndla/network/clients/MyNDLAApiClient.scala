@@ -9,25 +9,19 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.{MyNDLABundleDTO, SingleResourceStatsDTO}
 import no.ndla.common.model.domain.ResourceType
-import no.ndla.common.model.api.myndla as api
-import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.*
 import sttp.client4.quick.*
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends MyNDLAProvider with StrictLogging {
   private val statsEndpoint  = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
-  private val userEndpoint   = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/users"
   private val internEndpoint = uri"http://${props.MyNDLAApiHost}/intern"
-
-  def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUserDTO] = {
-    val req = quickRequest.get(userEndpoint)
-    ndlaClient.fetchWithForwardedFeideAuth[api.MyNDLAUserDTO](req, Some(feideToken))
-  }
 
   def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStatsDTO]] = {
     val url = uri"$statsEndpoint/favorites/${resourceTypes.map(_.toString).mkString(",")}/$id"
@@ -42,14 +36,17 @@ class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) extends My
     res.map(favMap => MyNDLABundleDTO(favMap))
   }
 
-  def getDomainUser(feideToken: String): Try[MyNDLAUser] = {
+  override def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Either[AuthException, FeideUserWrapper] = {
     val url = uri"$internEndpoint/get-user"
-    val req = quickRequest.get(url).header("FeideAuthorization", s"Bearer $feideToken")
-    ndlaClient.fetch[MyNDLAUser](req)
+    val req = quickRequest.post(url).body(CirceUtil.toJsonString(idToken))
+    ndlaClient.fetch[Option[FeideUserWrapper]](req) match {
+      case Success(Some(userWrapper)) => Right(userWrapper)
+      case Success(None)              => Left(MissingFeideUserException())
+      case Failure(ex)                => Left(GetFeideUserWrapperException(ex))
+    }
   }
 }
 
 trait MyNDLAProvider {
-  def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUserDTO]
-  def getDomainUser(feideToken: String): Try[MyNDLAUser]
+  def getFeideUserWrapperFromIdToken(idToken: FeideIdToken): Either[AuthException, FeideUserWrapper]
 }

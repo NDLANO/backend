@@ -15,7 +15,7 @@ import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
-import no.ndla.tapirtesting.TapirControllerTest
+import no.ndla.tapirtesting.{FeideAuthTestData, TapirControllerTest}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import sttp.client4.quick.*
@@ -34,11 +34,11 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
   override def beforeEach(): Unit = {
     resetMocks()
     when(clock.now()).thenReturn(TestData.today)
-    when(myndlaApiClient.getDomainUser(any)).thenReturn(Success(testUser))
   }
 
   val feideToken = "aec48787-36b7-4d04-8c11-40e374256f1e"
   val feideId    = "someid"
+  val authHeader = s"Bearer ${FeideAuthTestData.FrankForeleser.idToken.originalToken}"
 
   val testUser: MyNDLAUser = MyNDLAUser(
     id = 1,
@@ -59,7 +59,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     when(folderReadService.getAllResources(any, any[FeideUserWrapper])).thenReturn(Success(List.empty))
     val request = quickRequest
       .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/resources")
-      .header("FeideAuthorization", s"Bearer $feideToken")
+      .header("FeideAuthorization", authHeader)
     val response = request.send()
 
     verify(folderReadService, times(1)).getAllResources(any, any[FeideUserWrapper])
@@ -90,7 +90,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     )
     val request = quickRequest
       .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/${someId.toString}")
-      .header("FeideAuthorization", s"Bearer $feideToken")
+      .header("FeideAuthorization", authHeader)
     val response = request.send()
 
     verify(folderReadService, times(0)).getAllResources(any, any[FeideUserWrapper])

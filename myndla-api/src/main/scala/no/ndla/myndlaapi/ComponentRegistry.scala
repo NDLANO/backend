@@ -25,7 +25,6 @@ import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRe
 import no.ndla.myndlaapi.service.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import no.ndla.network.jwt.{DefaultJwsKeySelectorFactory, JwsKeySelectorFactory}
 import no.ndla.network.tapir.auth.{FeideAuth, NdlaAuth}
 import no.ndla.network.tapir.*
@@ -46,14 +45,13 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
 
   given ndlaClient: NdlaClient                               = new NdlaClient
   implicit lazy val myndlaApiClient: InternalMyNDLAApiClient = new InternalMyNDLAApiClient
-  implicit lazy val redisClient: FeideRedisClient            = new FeideRedisClient(props.RedisHost, props.RedisPort)
   implicit lazy val feideApiClient: FeideApiClient           = new FeideApiClient
   implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
   given errorHelpers: ErrorHelpers                           = new ErrorHelpers
   given errorHandling: ControllerErrorHandling               = new ControllerErrorHandling
-  given jwsKeySelectorFactory: JwsKeySelectorFactory         = DefaultJwsKeySelectorFactory
-  given ndlaAuth: NdlaAuth                                   = NdlaAuth()
-  given feideAuth: FeideAuth                                 = FeideAuth()
+  implicit val jwsKeySelectorFactory: JwsKeySelectorFactory  = DefaultJwsKeySelectorFactory
+  implicit lazy val ndlaAuth: NdlaAuth                       = NdlaAuth()
+  implicit lazy val feideAuth: FeideAuth                     = FeideAuth()
   implicit lazy val folderRepository: FolderRepository       = new FolderRepository
   given folderConverterService: FolderConverterService       = new FolderConverterService
   implicit lazy val userRepository: UserRepository           = new UserRepository

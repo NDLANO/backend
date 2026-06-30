@@ -12,11 +12,9 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
-import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
+import no.ndla.network.model.{FeideAccessToken, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits.*
-import no.ndla.network.clients.rediscache.FeideRedisClient
 import sttp.client4.Response
 import sttp.client4.quick.*
 import sttp.model.Uri
@@ -82,15 +80,12 @@ object FeideExtendedUserInfo {
   implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
 }
 
-class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging {
+class FeideApiClient extends StrictLogging {
 
-  private val feideTimeout           = 30.seconds
-  private val openIdUserInfoEndpoint = uri"https://auth.dataporten.no/openid/userinfo"
-  private val feideUserInfoEndpoint  = uri"https://api.dataporten.no/userinfo/v1/userinfo"
-  private val feideGroupEndpoint     = uri"https://groups-api.dataporten.no/groups/me/groups"
+  private val feideTimeout          = 30.seconds
+  private val feideUserInfoEndpoint = uri"https://api.dataporten.no/userinfo/v1/userinfo"
+  private val feideGroupEndpoint    = uri"https://groups-api.dataporten.no/groups/me/groups"
 
-  private def fetchOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
-    fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
   private def fetchFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
     fetchAndParse[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
   private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
@@ -145,15 +140,6 @@ class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging 
     }
   }
 
-  def getFeideAccessTokenOrFail(maybeFeideAccessToken: Option[FeideAccessToken]): Try[FeideAccessToken] = {
-    maybeFeideAccessToken match {
-      case None => Failure(
-          AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
-        )
-      case Some(feideAccessToken) => Success(feideAccessToken)
-    }
-  }
-
   private def getFeideDataOrFail[T](feideResponse: Try[T]): Try[T] = {
     feideResponse match {
       case Failure(ex: HttpRequestException) if ex.code == 403 || ex.code == 401 || ex.code == 400 =>
@@ -163,60 +149,17 @@ class FeideApiClient(using redisClient: FeideRedisClient) extends StrictLogging 
     }
   }
 
-  def getFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
-    for {
-      accessToken   <- getFeideAccessTokenOrFail(feideAccessToken)
-      maybeFeideId  <- redisClient.getFeideIdFromCache(accessToken)
-      feideOpenUser <- maybeFeideId match {
-        case Some(feideId) => Success(FeideOpenIdUserInfo(feideId))
-        case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken))
-      }
-      feideId <- redisClient.updateCacheAndReturnFeideId(accessToken, feideOpenUser.sub)
-    } yield feideId
-  }
+  def getFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
+    getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
 
-  def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = permitTry {
-    val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
-    val maybeFeideUser    = redisClient.getFeideUserFromCache(accessToken).?
-    val feideExtendedUser = (
-      maybeFeideUser match {
-        case Some(feideUser) => Success(feideUser)
-        case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
-      }
-    ).?
-    redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
-  }
-
-  def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = permitTry {
-    val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
-    val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
-    val feideGroups      = (
-      maybeFeideGroups match {
-        case Some(groups) => Success(groups)
-        case None         => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
-      }
-    ).?
-    redisClient.updateCacheAndReturnGroups(accessToken, feideGroups)
-  }
-
-  def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
-    val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
-    val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
-    val organization      = (
-      maybeOrganization match {
-        case Some(organization) => Success(organization)
-        case None               =>
-          getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken)).flatMap(findOrganization)
-      }
-    ).?
-    redisClient.updateCacheAndReturnOrganization(accessToken, organization)
-  }
-
+  def getFeideGroupsAndOrganization(accessToken: FeideAccessToken): Try[(Seq[FeideGroup], String)] = for {
+    groups       <- getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
+    organization <- findOrganization(groups)
+  } yield (groups, organization)
 }
 
 object FeideApiClient {
   def accessDeniedException: AccessDeniedException = AccessDeniedException(
     "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
   )
-
 }
