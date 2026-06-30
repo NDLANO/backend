@@ -321,7 +321,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
     }
 
     private void updatePublicID() {
-        super.setPublicId(URI.create("urn:" + nodeType.getName() + ":" + getIdent()));
+        super.setPublicId(URI.create("urn:" + nodeType.getTypeName() + ":" + getIdent()));
     }
 
     public Optional<String> getPrimaryPath() {
@@ -609,7 +609,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
 
     @Override
     public String getEntityName() {
-        return nodeType.getName();
+        return nodeType.getTypeName();
     }
 
     @Override

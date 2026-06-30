@@ -1050,7 +1050,7 @@ public class NodesTest extends RestTest {
 
         Node node = nodeRepository.getByPublicId(command.getPublicId());
         assertEquals(
-                NodeType.SUBJECT.getName() + ":" + ident, node.getPublicId().getSchemeSpecificPart());
+                NodeType.SUBJECT.getTypeName() + ":" + ident, node.getPublicId().getSchemeSpecificPart());
         assertEquals("trigonometry", node.getName());
         assertEquals("urn:article:1", node.getContentUri().toString());
     }
