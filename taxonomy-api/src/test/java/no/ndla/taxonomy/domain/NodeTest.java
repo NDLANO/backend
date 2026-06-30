@@ -585,19 +585,19 @@ public class NodeTest extends AbstractIntegrationTest {
     @Test
     public void qualityEvaluationPartialCalulationWorksAsExpected() {
         var parent = builder.node(n -> n.nodeType(NodeType.SUBJECT));
-        parent.updateChildQualityEvaluationAverage(Optional.empty(), Optional.of(Grade.Five));
+        parent.updateChildQualityEvaluationAverage(null, Grade.Five);
         testAverageAndCount(parent, 5, 1);
 
-        parent.updateChildQualityEvaluationAverage(Optional.empty(), Optional.of(Grade.Five));
+        parent.updateChildQualityEvaluationAverage(null, Grade.Five);
         testAverageAndCount(parent, 5, 2);
 
-        parent.updateChildQualityEvaluationAverage(Optional.empty(), Optional.of(Grade.Three));
+        parent.updateChildQualityEvaluationAverage(null, Grade.Three);
         testAverageAndCount(parent, 4.333333333333333, 3);
 
-        parent.updateChildQualityEvaluationAverage(Optional.of(Grade.Three), Optional.of(Grade.Four));
+        parent.updateChildQualityEvaluationAverage(Grade.Three, Grade.Four);
         testAverageAndCount(parent, 4.666666666666667, 3);
 
-        parent.updateChildQualityEvaluationAverage(Optional.of(Grade.Four), Optional.empty());
+        parent.updateChildQualityEvaluationAverage(Grade.Four, null);
         testAverageAndCount(parent, 5, 2);
     }
 
@@ -607,7 +607,7 @@ public class NodeTest extends AbstractIntegrationTest {
         setField(parent, "childQualityEvaluationSum", 1);
         setField(parent, "childQualityEvaluationCount", 1);
 
-        parent.updateChildQualityEvaluationAverage(Optional.of(Grade.Two), Optional.empty());
+        parent.updateChildQualityEvaluationAverage(Grade.Two, null);
 
         assertEquals(0, getField(parent, "childQualityEvaluationSum"));
         assertEquals(0, getField(parent, "childQualityEvaluationCount"));
@@ -640,7 +640,7 @@ public class NodeTest extends AbstractIntegrationTest {
         setField(parent, "childQualityEvaluationSum", 1);
         setField(parent, "childQualityEvaluationCount", 2);
 
-        parent.updateChildQualityEvaluationAverage(Optional.of(Grade.Two), Optional.empty());
+        parent.updateChildQualityEvaluationAverage(Grade.Two, null);
 
         assertEquals(0, getField(parent, "childQualityEvaluationSum"));
         assertEquals(0, getField(parent, "childQualityEvaluationCount"));

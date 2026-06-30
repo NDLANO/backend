@@ -229,8 +229,7 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
             Node parent = nodeRepository.getByPublicId(parentId);
             loadedParent.countDown();
             await(startUpdates);
-            qualityEvaluationService.updateQualityEvaluationOfRecursive(
-                    List.of(parent), Optional.empty(), Optional.of(grade));
+            qualityEvaluationService.updateQualityEvaluationOfRecursive(List.of(parent), null, grade);
         });
     }
 
@@ -270,7 +269,7 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
         var template = new TransactionTemplate(transactionManager);
         template.executeWithoutResult(status -> {
             var command = new NodePostPut();
-            command.qualityEvaluation = new UpdateOrDelete.Update<>(new QualityEvaluationDTO(grade, Optional.empty()));
+            command.qualityEvaluation = new UpdateOrDelete.Update<>(new QualityEvaluationDTO(grade, null));
 
             if (readyForLock != null) {
                 readyForLock.countDown();
@@ -287,7 +286,8 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
 
             var oldGrade = node.getQualityEvaluationGrade();
             command.apply(node);
-            qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(node, oldGrade, command);
+            qualityEvaluationService.updateQualityEvaluationOfParentsFromFreshlyLoadedNode(
+                    node, oldGrade.orElse(null), command);
         });
     }
 

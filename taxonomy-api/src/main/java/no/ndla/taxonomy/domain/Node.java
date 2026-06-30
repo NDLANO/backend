@@ -21,6 +21,7 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
+import org.springframework.lang.Nullable;
 
 @Entity
 public class Node extends DomainObject implements EntityWithMetadata {
@@ -224,27 +225,27 @@ public class Node extends DomainObject implements EntityWithMetadata {
         }
     }
 
-    public void updateChildQualityEvaluationAverage(Optional<Grade> previousGrade, Optional<Grade> newGrade) {
+    public void updateChildQualityEvaluationAverage(@Nullable Grade previousGrade, @Nullable Grade newGrade) {
         var childAvg = getChildQualityEvaluationAverage();
         if (childAvg.isEmpty()) {
-            newGrade.ifPresent(ng -> {
-                this.childQualityEvaluationSum = ng.toInt();
+            if (newGrade != null) {
+                this.childQualityEvaluationSum = newGrade.toInt();
                 this.childQualityEvaluationCount = 1;
-            });
+            }
             return;
         }
 
         var avg = childAvg.get();
-        if (previousGrade.isEmpty() && newGrade.isEmpty()) return;
-        else if (previousGrade.isEmpty()) { // New grade is present
+        if (previousGrade == null && newGrade == null) return;
+        else if (previousGrade == null) { // New grade is present
             var newCount = avg.getCount() + 1;
-            var newSum = avg.getAverageSum() + newGrade.get().toInt();
+            var newSum = avg.getAverageSum() + newGrade.toInt();
             this.childQualityEvaluationCount = newCount;
             this.childQualityEvaluationSum = newSum;
-        } else if (newGrade.isEmpty()) { // Previous grade is present
+        } else if (newGrade == null) { // Previous grade is present
             var newCount = avg.getCount() - 1;
             var oldSum = avg.getAverageSum();
-            var newSum = oldSum - previousGrade.get().toInt();
+            var newSum = oldSum - previousGrade.toInt();
             if (newCount <= 0 || newSum <= 0) {
                 this.childQualityEvaluationCount = 0;
                 this.childQualityEvaluationSum = 0;
@@ -254,7 +255,7 @@ public class Node extends DomainObject implements EntityWithMetadata {
             }
         } else { // Both grades are present
             var oldSum = avg.getAverageSum();
-            var newSum = oldSum - previousGrade.get().toInt() + newGrade.get().toInt();
+            var newSum = oldSum - previousGrade.toInt() + newGrade.toInt();
             this.childQualityEvaluationCount = avg.getCount();
             this.childQualityEvaluationSum = newSum;
         }

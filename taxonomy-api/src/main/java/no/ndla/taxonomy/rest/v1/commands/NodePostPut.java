@@ -116,7 +116,7 @@ public class NodePostPut implements UpdatableDto<Node> {
             case UpdateOrDelete.Update<?> u -> {
                 var qe = (QualityEvaluationDTO) u.getValue();
                 node.setQualityEvaluation(qe.getGrade());
-                node.setQualityEvaluationComment(qe.getNote());
+                node.setQualityEvaluationComment(Optional.ofNullable(qe.getNote()));
             }
             default -> {}
         }
