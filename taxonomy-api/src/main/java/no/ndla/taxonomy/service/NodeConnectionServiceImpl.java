@@ -223,7 +223,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
                     foundNewPrimary.set(true);
                     updatedConnectables.add(connectable1);
                 } else if (setPrimaryTo && connectable.getConnectionType() == NodeConnectionType.BRANCH) {
-                    draftApiClient.updatePrimaryNotesWithUpdatedConnection(connectable1, Optional.of(false));
+                    draftApiClient.updatePrimaryNotesWithUpdatedConnection(connectable1, false);
                     connectable1.setPrimary(false);
                     updatedConnectables.add(connectable1);
                 }
@@ -266,7 +266,7 @@ public class NodeConnectionServiceImpl implements NodeConnectionService {
             Optional<Integer> newRank,
             Optional<Boolean> isPrimary) {
         draftApiClient.updateRelevanceNotesWithUpdatedConnection(nodeConnection, newRelevance);
-        draftApiClient.updatePrimaryNotesWithUpdatedConnection(nodeConnection, isPrimary);
+        draftApiClient.updatePrimaryNotesWithUpdatedConnection(nodeConnection, isPrimary.orElse(false));
         newRank.ifPresent(integer -> updateRank(nodeConnection, integer));
         isPrimary.ifPresent(primary -> updatePrimaryConnection(nodeConnection, primary));
         updateRelevance(nodeConnection, newRelevance);
